@@ -1,0 +1,379 @@
+
+
+.c - C source code
+.zc - HL-ZASM source code
+.asm - HL-ZASM assembly
+.x - machine code
+.o - object file
+.exe - executable file
+
+
+program loading:
+
+source.c -[compiler]-> source.asm
+							|
+						[assembler]
+							|
+							v
+source.zc -[toolgun]-> source.x -[link-build]-> object.exe -----[link-static]-> executable.exe 
+									builds symbol table				library code is appended to executable
+									creates retarget info			relevant symbols are linked and removed from table
+									by searching for markers		
+									in code.
+									-- unknown problem?		----[link-load-dynamic]-> executable.exe
+									code at addr 70K+				 executable is copied into the memory
+									writes to *0 through			 of its process and linked to dlls there;
+									addr. bus.						 instance on disk is not modified.
+									-----------
+									needed dlls should be
+									listed (by version)
+									and present
+									during building.
+									
+shared library loading:
+
+library.x -[link-build]-> library.dll -> load as a program
+				builds symbol table
+				creates retarget info
+				creates export symbol table
+
+kernel module hot-swapping:
+
+module
+------------------
+. import-symbol-table
+. export-symbol-table
+.
+. #pragma export func
+. void myfunc()
+.
+. - void initialize()   - construct necessary objects and start
+. - void deinitialize() - deconstruct and clean up
+.
+------------------
+
+----------------
+. import symbol table:
+.  +-lib1.dll--+
+.  |-minv 2.3--|
+.  +-maxv -1 --+
+.  |           |
+.  | symbol 1  |
+.  | symbol 2  |
+.  +-----------+
+----------------
+
+modules:
+- C runtime
+- malloc-heap
+- interrupts
+- paging
+- threads
+- filesystem
+
+type system:
+everything must be of type:
+- float (1 byte, no checks)
+- C string (null-terminated, printable)
+- canary struct (vector,etc. 1st byte checked for typeof)
+- dynamic struct
+every type must have serialize/deserialize functions to write and read from file.
+
+dynamic struct:
+A dynamic struct is a collection of data. The organization of this structure is described in the corresponding type information object (typeinfo).
+All dynamic structs can be verified, serialized and deserialized by generic DS functions that do not need to be rewritten for every new struct.
+A typeinfo object can be constructed from a text definition of the struct.
+
+Dynamic structs permit the following subtypes:
+type regex: ("ptr"|"["(literal|ident)"]")* subtype;
+
+type modifiers:
+"ptr"   - corresponds to a pointer to subtypes
+"[23]"  - array of a constant size
+"[foo]" - array of size determined by the variable "foo".
+		  "foo" must have been seen earlier.
+"[0]"	- a null-terminated array of unknown size.
+		  "0" must not be a valid element.
+
+subtypes:
+"float" - corresponds to a single float element
+"char" - a printable character (float that matches isprint(x))
+"string" - an unknown number of printable characters, followed by 0. (same as [0]char)
+"variant foo<bar>" - subtype "foo", that is a variant type (defined elsewhere), 
+					 where the exact variant is defined by identifier "bar".
+					 "bar" must have been defined earlier, or else parsing is impossible.
+"union" - equivalent to a C union.
+"cs foo" - canary-struct "foo"
+"ds foo" - dynamic-struct "foo"
+
+
+
+
+in RAM, an instance of a dynamic struct looks like
+{ 
+  DYN_STRUCT_MARKER
+  float ds_type;
+  float ds_size;
+  data as described in ds_typeinfo for the matching type.
+}
+
+exe definition:
+ds exe
+{
+	float exe_style;
+	variant exe_var<exe_style> var;
+};
+
+variant exe_var
+{
+	case 0:
+	{
+		float prog_size;
+		[prog_size] float data;	//an array, called "data", of prog_size instances of a float
+		//[prog_size] data float;
+	};
+	case 1:
+	{
+		float prog_size;
+		[prog_size] float data;
+	};
+	case 2:
+	{
+		float prog_size;
+		float import_table_size;
+		ptr [import_table_size] float import_table; //pointer, called "import_table", to an array of import_table_size number of floats.
+		//ptr import_table [import_table_size] float;
+		//ptr cs t_import_table import_table;
+		ptr [prog_size] float program;
+	};
+	case 3:
+	{
+		float link_style;
+		float has_static_links;
+		float compile_timestamp;
+		[0] ds section section_list;
+	};
+};
+
+typeinfo entries:
+
+[raw/ptr/array/cs/ds][param][subentry][name]
+
+ds symbol_list{
+float symbol_list_size;
+ptr [symbol_list_size] ds symbol list;
+};
+
+num entries: 1
+num subentries: 1
+entry 1: [raw]		[float]			[]			[str_symbol_list_size]
+entry 2: [ptr]		[]				[entry 3]	[str_list]
+-----------------
+entry 3: [array]	[entry 1]		[entry 4]	[]
+entry 4: [ds]		[str_symbol]	[]			[]
+
+
+// exe:
+// {variant type,
+    type 0{
+        program.size,
+        blob program
+    },
+    type 1{
+        program.size,
+        blob progam
+    },
+    type 2{
+        program.size,
+        num,
+        blob import_table,
+        blob program
+    },
+    type 3{
+        num,
+        num,
+        num,
+        v<section> sections,
+        sections.data
+    }
+    }
+    
+// section:
+// {num, data.size, 8x num, blob data}
+    
+    
+// section list:
+// {num,blob.'a'.size,blob.'a'.data}
+//
+
+parsing / general compiler toolkit
+
+NTparser
+{
+	state 0: start
+	state 1: production 1 parsed
+		
+			  v-can reparse? y->reparse
+		A B C D
+	state 2: production 2 parsed
+	float canReparse - true if production can be reparsed or more productions left
+	production can be reparsed if at least one of symbols (A,B,C,D) can be reparsed.
+}
+
+functor{funcptr f, float arg};
+
+symbol
+{
+	string name;
+	string type; //NT, ident, number, string, char, special, comment
+	bool isTerminal;
+};
+
+token	//to be modified by the user
+{
+	char C;
+};
+
+typedef vector<symbol> production;
+typedef vector<token> tokenList;
+
+tokenInterval					//represents a token sublist.
+{
+	tokenList *source;
+	tokenAdr begin;
+	tokenAdr end;
+	tokenList getCopy();	//returns a copy of a token sub-list.
+};
+
+//Zons universal recursive backtracking top-down parser
+
+parser
+{
+	symbol S;						//symbol to parse
+	void *parsedData;				//to be filled by walking the AST after finalized
+	tokenInterval TI;				//the addresses of the first and the last token in the parsed
+	bool parsed = false;			//has this symbol beeen sucessfully parsed?
+	bool finalized = false;			//has this parse been accepted as final?
+	vector<production*> productions;
+	vector<parser*> curProduction;
+	float curProductionNum = -1;
+
+	functor f_parse = parser::parseDefault;	//called to attempt parsing
+	functor f_onParsed = 0;			
+	functor f_onFinalized = parser::onFinalizedDefault;
+	
+	bool parse();
+	bool reparse();
+	bool canReparse();
+	void finalize();
+	//-----------------
+	bool parseDefault();
+	void onFinalizeDefault();
+};
+
+bool parser::parse(){
+	if(f_parse){return f_parse.f(f_parse.arg);}
+	else return false;
+}
+
+bool parser::parseDefault(float arg){
+	if(S.isTerminal){
+		if(accept_terminal(S)){
+			TI.end = inputCurToken; //to simply record the interval is enough parsing
+			return true;			//terminal symbol matched
+		}else{
+			inputCurToken = TI.begin;
+			return false;			//could not match this terminal symbol
+		}
+	}else{
+		if(!productions.size()){return false;} //there are no known productions for this symbol
+		if(curProduction != -1){return reparse();} //already parsed once
+		//construct a production
+		curProduction = 0;
+		production *Pn = productions[0];
+		for(int I = 0; I < Pn->size(); I++){
+			symbol S = Pn->S;
+			curProduction.push_back(new parser(parent = this, symbol = S));
+		}
+		//apply production
+		for(int I = 0; I < curProduction.size(); I++){
+			parser *Pn = curProduction[I];
+			if(!Pn->parse()){return reparse();}
+		}
+		return true;
+	}
+}
+
+//a trimmed down version of the next function.
+bool parser::reparseDefault(float arg){
+	if(S.isTerminal){
+		return false;
+	}else{
+		for(int I = curProduction->size()-1; I >= 0; I--){
+			parser *Pr = curProduction[I];
+			if(Pr->parsed){
+				if(Pr->canReparse()){return true;}
+			}
+		}
+		return false;
+	}
+}
+
+bool parser::reparseDefault(float arg){
+	if(S.isTerminal){
+		return false;
+	}else{
+		//try to reparse current production
+		for(int I = curProduction->size()-1; I >= 0; I--){
+			parser *Pr = curProduction[I];
+			if(Pr->parsed){
+				if(Pr->canReparse()){
+					//reparse one of the parsers
+					if(Pr->reparse()){
+						//then reinitialize the rest of the parsers
+						production *Pr = productions[curProduction];
+						
+						for(int J = I+1; J < curProduction->size(); J++){
+							delete curProduction[J];
+							symbol S = Pr[J];
+ 							curProduction[J] = new parser(parent = this, symbol = S); 
+						}
+						//and initially parse them
+						bool restParsed = true;
+						for(int J = I+1; J < curProduction->size(); J++){
+							parser *Pr2 = curProduction[J];
+							if(!Pr2->parse()){restParsed = false;}
+						}
+						if(restParsed){return true;} //rest reparsed, exit
+						//rest did not reparse
+					}
+					//this one did not reparse (or above)
+				}
+				//this one cannot reparse (or above)
+			}
+			//this one has not succeeded in parsing, or maybe has not tried parsing (or above)
+			//so we check again for a previous parser.
+		}
+		//no parser was found that could be successfull reparsed.
+		//this production was not reparsed.
+		return false;
+	}
+}
+
+more features:
+functors
+basic print
+io streams/pipes
+module hot-swapping
+resurrection server
+
+
+
+
+
+
+
+
+
+
+

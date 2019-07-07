@@ -1,0 +1,502 @@
+//written a long time ago
+//last updated long time ago
+//list library
+#ifndef ZLIST_GUARD
+#define ZLIST_GUARD
+ZLIST_CODE:
+//[list]
+//---------
+//float element_size = list[0]; 
+//float first = list[1]; 
+//list[0] = element_size;
+//list[1] = first;
+//---------
+//node vars:
+//float prev = node[0];
+//float next = node[1];
+//float datas = node[2];
+//---------
+//note: list[1] and node[1] are both "next"
+//---------
+//funcs:
+//-constuctor
+//-size
+//-empty
+//-clear
+//-push
+//-pop
+//-get
+//-set
+//-insert
+//-remove
+//-splice
+//-move
+//-destructor
+float sizeof_listnode = 3;
+float sizeof_list = 2;
+
+//initialize list structure
+void list_constructor(void *list, float new_element_size){
+  float element_size = list[0]; 
+  float first = list[1];
+  element_size = new_element_size;
+  first = 0;
+  list[0] = element_size;
+  list[1] = first;
+}
+
+//initialize listnode structure
+void listnode_constructor(void *node){
+  float prev = node[0];
+  float next = node[1];
+  float datas = node[2];
+  prev = 0;
+  next = 0;
+  datas = 0;
+  node[0] = prev;
+  node[1] = next;
+  node[2] = datas;
+}
+
+//destroy listnode structure (and any children)
+void listnode_destructor(void *node){
+  float prev = node[0];
+  float next = node[1];
+  float datas = node[2];
+  if(next){
+    listnode_destructor(next);
+    free(next);
+  }
+  free(datas);
+  node[0] = prev;
+  node[1] = next;
+  node[2] = datas;
+}
+
+//return the size of a list
+float list_size(void *list){
+  float element_size = list[0]; 
+  float first = list[1]; 
+  if(first){
+    return list_size_helper(first);
+  }else{
+    return 0;
+  }
+  list[0] = element_size;
+  list[1] = first;
+}
+
+//(internal) list_size
+float list_size_helper(void *node){
+  float prev = node[0];
+  float next = node[1];
+  float datas = node[2];
+  if(next){
+    return list_size_helper(node)+1;
+  }else{
+    return 1;
+  }
+  node[0] = prev;
+  node[1] = next;
+  node[2] = datas;
+}
+
+//is the list empty? 1/0
+float list_empty(void *list){return (list_size(list)==0);}
+
+//make the list empty
+void list_clear(void *list){
+  float element_size = list[0]; 
+  float first = list[1];
+  if(first){
+    listnode_destructor(first);
+    free(first);
+    first = 0;
+  }
+  list[0] = element_size;
+  list[1] = first;
+} 
+
+//add an element to the end of a list
+void list_push(void *list, float *element){
+  float element_size = list[0]; 
+  float first = list[1];
+  if(first){
+    list_push_helper(list,first,element);
+  }else{
+    first = malloc(sizeof_listnode);
+    listnode_constructor(first);
+    list_push_helper(list,first,element);
+  }
+  list[0] = element_size;
+  list[1] = first;
+}
+
+//(internal) list_push
+void list_push_helper(void *list, void *node, float *element){
+  float prev = node[0];
+  float next = node[1];
+  float datas = node[2];
+  float element_size = list[0]; 
+  float first = list[1];
+  if(datas == 0){
+    datas = malloc(element_size);
+    memcpy(datas,element,element_size);
+  }else{
+    next = malloc(sizeof_listnode);
+    listnode_constructor(next,element_size);
+    list_push_helper(list,next,element);
+  }
+  node[0] = prev;
+  node[1] = next;
+  node[2] = datas;
+  list[0] = element_size;
+  list[1] = first;
+}
+
+//remove and return the element from the end of the list
+float list_pop(void *list, float *element){
+  float element_size = list[0]; 
+  float first = list[1];
+  if(first){
+    list_pop_helper(list,first,element);
+  }else{error(0);}
+  list[0] = element_size;
+  list[1] = first;
+}
+
+//have the node remove itself from the list
+float node_selfdestruct(void *node){
+  float prev = node[0]; 
+  float next = node[1];
+  float datas = node[2];
+  float P = prev;
+  float P_next = P[1];
+  listnode_destructor(node); //self_destruct
+  free(P_next);
+  P_next = 0;
+  node[0] = prev;
+  node[1] = next;
+  node[2] = datas;
+}
+
+//(internal) list_pop
+float list_pop_helper(void *list, void *node, float *element){
+  float element_size = list[0]; 
+  float first = list[1];
+  float prev = node[0];
+  float next = node[1];
+  float datas = node[2];
+  if(next){
+    list_pop_helper(list,next, element);
+  }else{
+    if(datas){
+      memcpy(element,datas,element_size);
+      float R = datas[0];
+      listnode_destructor(node);
+      free(node);
+      return R; 
+      //node_selfdestruct(node); //why this
+    }else{error(0);}
+  }
+  node[0] = prev;
+  node[1] = next;
+  node[2] = datas;
+  list[0] = element_size;
+  list[1] = first;
+}
+
+//return an element from the list
+float list_get(void *list, float *element, float pos){
+  float element_size = list[0]; 
+  float first = list[1];
+  if(first){
+    return list_get_helper(list,first,element,pos);
+  }else{error(0);}
+  list[0] = element_size;
+  list[1] = first;
+}
+
+//(internal) list_get
+float list_get_helper(void *list, void *node, void *element, float pos){
+  float element_size = list[0]; 
+  float first = list[1];
+  float prev = node[0];
+  float next = node[1];
+  float datas = node[2];
+  if(pos == 0){
+    if(element_size > 1){
+      if(datas != 0){
+          memcpy(element,datas,element_size);
+      }else{
+        error(0);
+      }
+    }else{
+      return datas;
+    }
+  }else{
+    if(next != 0){
+      list_get_helper(list,next,element, pos-1);
+    }else{
+      error(0);
+    }
+  }
+  node[0] = prev;
+  node[1] = next;
+  node[2] = datas;
+  list[0] = element_size;
+  list[1] = first;
+}
+
+//set an element in the list
+void list_set(float *list, float *element, float pos){
+  float element_size = list[0]; 
+  float first = list[1];
+  if(first){
+    list_set_helper(list,first,element,pos);
+  }else{error(0);}
+  list[0] = element_size;
+  list[1] = first;
+}
+
+//(internal) list_set
+void list_set_helper(void *list, void *node, float *element, float pos){
+  float element_size = list[0]; 
+  float first = list[1];
+  float prev = node[0];
+  float next = node[1];
+  float datas = node[2];
+  if(pos == 0){
+    if(element_size > 1){
+      if(datas != 0){
+        memcpy(datas,element,element_size);
+      }else{
+        error(0);
+      }
+    }else{
+       datas = element;
+    }
+  }else{
+    if(next != 0){
+      list_set_helper(list,next, element, pos-1);
+    }else{
+      error(0);
+    }
+  }
+  node[0] = prev;
+  node[1] = next;
+  node[2] = datas;
+  list[0] = element_size;
+  list[1] = first;
+}
+
+//insert an element into the list, moving existing elements forward
+void list_insert(void *list, float *element, float pos){
+  float element_size = list[0]; 
+  float first = list[1];
+  if(first != 0){
+    list_insert_helper(list, first, element, pos);
+  }else{error(0);}
+  list[0] = element_size;
+  list[1] = first;
+}
+
+//(internal) list_insert
+void list_insert_helper(void *list, void *node, float *element, float pos){
+  float prev = node[0];
+  float next = node[1];
+  float datas = node[2];
+  float element_size = list[0]; 
+  float first = list[1];
+  if(pos == 0){
+    if(prev != 0){
+      float P_next = prev[1]; //aka, node
+      float P_next_old = P_next;
+      P_next = malloc(sizeof_listnode);
+      listnode_constructor(P_next);
+      prev[1] = P_next;
+      float P_next_prev = P_next[0];
+      float P_next_next = P_next[1];
+      P_next_prev = prev;
+      P_next_next = P_next_old; //aka, node
+      P_next[0] = P_next_prev;
+      P_next[1] = P_next_next;
+    }else{
+      error(0);
+    }
+  }else{
+    if(next != 0){
+      list_insert_helper(list,next,element,pos-1);
+    }else{
+      if(pos == 1){
+        list_push(list, element);
+      }else{
+        error(0);
+      }
+    }
+  }
+  node[0] = prev;
+  node[1] = next;
+  node[2] = datas;
+  list[0] = element_size;
+  list[1] = first;
+}
+
+//remove an element from the list, returning it, and moving
+//existing elements back
+void list_remove(void *list, float *element, float pos){
+  float element_size = list[0]; 
+  float first = list[1];
+  if(first != 0){
+    list_remove_helper(list, first, element, pos);
+  }else{error(0);}
+  list[0] = element_size;
+  list[1] = first;
+}
+
+
+//(internal) list_remove
+void list_remove_helper(void *list, void* node, float *element, float pos){
+  float prev = node[0];
+  float next = node[1];
+  float datas = node[2];
+  float element_size = list[0]; 
+  float first = list[1];
+  if(pos == 0){
+    if(prev != 0){
+        //we are at the node that needs removing
+        free(datas);
+        float oldprev = prev;
+        float oldnext = next;
+        free(node);
+        float oldprev_next = oldprev[1];
+        float oldnext_prev = 0;
+        if(oldnext != 0){oldnext_prev = oldnext[0];}
+        oldprev_next = oldnext;
+        oldnext_prev = oldprev;
+        oldprev[1] = oldprev_next;
+        if(oldnext != 0){oldnext[0] = oldnext_prev;}
+    }else{
+      error(0);
+    }
+  }else{
+    if(next != 0){
+      list_remove_helper(list, next, element, pos-1);
+    }else{
+      if(pos == 1){
+        list_pop(list, element);
+      }else{
+        error(0);
+      }
+    }
+  }
+  node[0] = prev;
+  node[1] = next;
+  node[2] = datas;
+  list[0] = element_size;
+  list[1] = first;
+}
+
+//returns a pointer to the node pos in the list.
+float list_getnode(void *list, float pos){
+    float element_size = list[0];
+    float first = list[1];
+    
+    float node = first;
+    while(pos != 0){
+      float next = node[1];
+      if(next == 0){error(0);}
+      node = next;
+      pos = pos - 1;
+    }
+    return node;
+}
+
+//cut an element from one list and paste it into the other list,
+//without moving the actual data
+//node at posfrom will be inserted after the node posto.
+void list_splice(void *listfrom, void *listto, float posfrom, float posto){
+  float element_size1 = listfrom[0]; 
+  float first1 = listfrom[1];
+  float element_size2 = listto[0]; 
+  float first2 = listto[1];
+  if(element_size1 != element_size2){error(0);}
+  float nodefrom = list_getnode(listfrom, posfrom);
+  float nodeto = list_getnode(listto, posto);
+  float P1 = nodefrom[0];
+  float N1 = nodefrom[1];
+  float N2 = nodeto[1];
+  float N2N = N2[1];
+  //things that point to nodefrom:
+  //1P, 1N
+  //1PN = 1, 1NP = 1 (if 1 next)
+  //1PN = 1          (if not 1 next)
+  //things that point after nodeto:
+  //2N = 2N, 2NNP = 2N (if 2 next)
+  //2N = 2N            (if not 2 next.next)
+  //after the transition:
+  //1PN = 1N, 1NP = 1P (if 1 next)
+  //1PN = 1N           (if not 1 next) 
+  //1P = 2, 1N = 2N
+  //2N = 1, 2NNP = 1   (if 2 next.next)
+  //2N = 1             (if not 2 next.next)
+  float P1N = P1[1];
+  if(N1 != 0){
+    P1N = N1;
+    P1[1] = P1N;
+    
+    float N1P = N1[0];
+    N1P = P1;
+    N1[0] = N1P;
+  }else{
+    P1N = N1;
+    P1[1] = P1N;
+  }
+  P1 = nodeto;
+  nodefrom[0] = P1;
+  N1 = N2;
+  nodefrom[1] = N1;
+  if(N2N != 0){
+    N2 = nodefrom;
+    nodeto[1] = N2;
+    
+    float N2NP = N2N[0];
+    N2NP = nodefrom;
+    N2N[0] = N2NP;
+  }else{
+    N2 = nodefrom;
+    nodeto[1] = N2;
+  }
+  //that's all I guess?
+}
+
+//move an element in memory while keeping it at the same position
+//in the list
+void list_move(void *list, float pos, float *newnode, float *newdatas){
+  float node = list_getnode(list, pos);
+  float element_size = list[0];
+  float datas = node[2];
+  if(newnode != 0){
+    memcpy(newnode,node,sizeof_listnode);
+    node = newnode;
+  }
+  if(newdatas != 0){
+    memcpy(datas,newdatas,element_size);
+    datas = newdatas;
+  }
+  node[2] = datas;
+}
+
+//destroy the list
+void list_destructor(void *list){
+  float element_size = list[0]; 
+  float first = list[1];
+  if(first != 0){listnode_destructor(first);}
+  list[0] = element_size;
+  list[1] = first;
+}
+//--------
+ZLIST_CONSTANTS:
+ZLIST_VARS:
+ZLIST_END:
+#endif

@@ -1,0 +1,82 @@
+#ifndef typeinfo_GUARD
+#define typeinfo_GUARD
+
+//generated using:
+//skeleton typeinfo name size numentries entries -canary 
+
+//struct typeinfo
+//    0: canary
+//    1: name
+//    2: size
+//    3: numentries
+//    4: entries
+//
+
+str_typeinfo: db "typeinfo",0;
+
+#ifndef CANARY_GUARD
+#define CANARY_GUARD
+void error(){int 1;}
+void check_canary(float this, float canary){
+   if(this[0] != canary){
+        error();
+   }
+}
+#endif
+
+float sizeof_typeinfo(){return 5};
+
+//default constructor
+void typeinfo_constructor(float this){
+    this[0] = str_typeinfo;
+    this[1] = 0;
+    this[2] = 0;
+    this[3] = 0;
+    this[4] = 0;
+}
+
+//copy constructor
+void typeinfo_copy_constructor(float this, float that){
+    this[0] = that[0];
+    this[1] = that[1];
+    this[2] = that[2];
+    this[3] = that[3];
+    this[4] = that[4];
+    check_canary(this,str_typeinfo);
+}
+
+//default destructor
+void typeinfo_destructor(float this){check_canary(this,str_typeinfo);
+    check_canary(this,str_typeinfo);
+    //add your code here
+}
+
+//equivalent to "new typeinfo"
+float typeinfo_new(){
+    float size = sizeof_typeinfo();
+    float p = malloc(size);
+    typeinfo_constructor(p);
+    return p;
+}
+
+//equivalent to "delete typeinfo"
+void typeinfo_delete(float this){
+    typeinfo_destructor(this);
+    free(this);
+}
+
+//getters
+float typeinfo_get_canary(float this){check_canary(this,str_typeinfo);return this[0];}
+float typeinfo_get_name(float this){check_canary(this,str_typeinfo);return this[1];}
+float typeinfo_get_size(float this){check_canary(this,str_typeinfo);return this[2];}
+float typeinfo_get_numentries(float this){check_canary(this,str_typeinfo);return this[3];}
+float typeinfo_get_entries(float this){check_canary(this,str_typeinfo);return this[4];}
+
+//setters
+void typeinfo_set_canary(float this, float N){check_canary(this,str_typeinfo);this[0] = N;}
+void typeinfo_set_name(float this, float N){check_canary(this,str_typeinfo);this[1] = N;}
+void typeinfo_set_size(float this, float N){check_canary(this,str_typeinfo);this[2] = N;}
+void typeinfo_set_numentries(float this, float N){check_canary(this,str_typeinfo);this[3] = N;}
+void typeinfo_set_entries(float this, float N){check_canary(this,str_typeinfo);this[4] = N;}
+
+#endif

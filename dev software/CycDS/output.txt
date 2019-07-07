@@ -1,0 +1,47 @@
+reading file test.txt
+file to parse:
+----------------------------
+ds boop{
+    float adr;
+    string name;
+};
+
+ds test{
+    ptr string name;
+    [3] float vec;
+    float size;
+    float num = 1;
+    float where = &word;
+    ptr [size] float arr1;
+    [0] cs boop boops;
+    cs vector V;
+    float word;
+    variant what(num);
+    union noms happy;
+};
+
+variant what{
+  case 1:
+        float beep;
+        float bap;
+        float boop;
+  case 2:
+        string hi;  
+};
+
+union noms{
+  variant what(2);
+  string hi;
+  string apple;
+};
+
+cs vector{
+  float size;
+  float capacity;
+  ptr [capacity] float array;
+};
+----------------------------
+line 29:15:
+  variant what(2);
+               ^
+Expected an identifier.

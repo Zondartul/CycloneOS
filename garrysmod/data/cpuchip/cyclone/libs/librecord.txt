@@ -1,0 +1,216 @@
+#ifndef LIB_RECORD_GUARD
+#define LIB_RECORD_GUARD
+// lib record
+//
+// a record is number (indicating the size of the whole record) followed by a blob of data, followed by zero.
+// data can be added or removed from a record - this results in a reallocation - the record returns a new pointer to itself
+// and the old one becomes invalid.
+//
+// record[0] = typename
+// record[1] = size
+// record[2..size-2] = data
+// record[size-1] = 0
+//
+//record.new();                         //creates a new record
+//record.constructor(size);             //constructs a record
+//record.destructor();                  //invalidates the record (used internally for the "destroy" part of teleportation)
+//record.shrink();                      //reduces the record's allocation to it's actual size
+//record.move(dest);                    //moves the record to a new place
+//record.push(byte);                    //appends a value to the end of the record and returns the new pointer to the record
+//record.push_aray(bytes, num);         //appends an array of values to the end of the record
+//record.pop();                         //pops a value from the record and returns that value. does not reallocate.
+//record.pop_array(num);                //pops an array of values from the record and stack-returns it. does not reallocate.
+//record.get_array(index, dest, num);   //returns an array of elements beginning at some index.
+//record.get(index);                    //returns a signle element at some index.
+//record.set(index, val);               //sets a single element
+//record.set_array(index, vals, num);   //sets an array of elements
+//record.insert(index, val);            //inserts a single element before the given index, pushing current elements forward
+//record.insert_array(index, vals, num);//inserts an array of elements before the given index, pushing current contents forward.
+//record.remove(index);                 //remove a single element at the given index
+//record.remove_array(index, num);      //removes an array of elements at the given index, moving the next elements back.
+
+typeof_record: db "record",0;
+
+//creates a new record of a given size
+float record_new(){
+    assert_arity(ecx,0);
+    float record  = malloc(3);
+    record_constructor(record,3);
+    return record;
+}
+
+//constructs the record
+void record_constructor(float record, float size){
+    assert_arity(ecx,2);
+    assert(size >= 3, "size >=3");
+    record[0] = typeof_record;
+    record[1] = size;
+    //record[size-1] = 0;
+    float idx = size-1;
+    record[idx] = 0;
+}
+
+//deconstructs the record
+void record_destructor(float record){
+    assert_arity(ecx,1);
+    assert_type(record,typeof_record);
+    record[0] = 0;
+    record[1] = 0;
+}
+
+//reduces the record's allocation to it's actual size
+float record_shrink(float record){
+    assert_arity(ecx,1);
+    assert_type(record,typeof_record);
+    float size = record[1];
+    float oldrecord = record;
+    record = realloc(record,size);
+    record_destructor(oldrecord);
+    return record;
+}
+
+//appends a value to the end of the record and returns the new pointer to the record
+float record_push(float record, float byte){
+    assert_arity(ecx,2);
+    assert_type(record,typeof_record);
+    return record_push_array(record,&byte,1);
+}
+
+//appends an array of values to the end of the record
+float record_push_array(float record, float bytes, float num){
+    assert_arity(ecx,3);
+    assert_type(record,typeof_record);
+    float size = record[1];
+    float newsize = size+num;
+    float oldrecord = record;
+    if(malloc_test() == 0){printf("rpa_ malloc test 1\n");}
+    record = realloc(record,size);
+    if(malloc_test() == 0){printf("rpa_ malloc test 2\n");}
+    //record_destructor(oldrecord);
+    float dest = record+size-1;
+    printf("memcpy(%d,%d,%d)\n",dest,bytes,num);
+    memcpy(dest,bytes,num);
+    if(malloc_test() == 0){printf("rpa_ malloc test 3\n");}
+    record[newsize-1] = 0;
+    if(malloc_test() == 0){printf("rpa_ malloc test 4\n");}
+    record[1] = newsize;
+    if(malloc_test() == 0){printf("rpa_ malloc test 5\n");}
+    return record;
+}
+
+//pops a value from the record and returns that value. does not reallocate.
+float record_pop(float record){
+    assert_arity(ecx,1);
+    assert_type(record,typeof_record);
+    float size = record[1];
+    float num = record[size-2];
+    record[size-2] = 0;
+    record[1] = size-1;
+    return num;
+}
+
+//pops an array of values from the record and stack-returns it. does not reallocate.
+float record_pop_array(float record, float num){
+    assert_arity(ecx,2);
+    assert_type(record,typeof_record);
+    float size = record[1];
+    float index = size-num;
+    float buffer = stack_alloc(num);
+    record_get_array(record,index,buffer,num);
+    return record_remove_array(record,index,num);
+}
+
+//returns an array of elements beginning at some index.
+void record_get_array(float record, float index, float dest, float num){
+    assert_arity(ecx,4);
+    assert_type(record,typeof_record);
+    float source = record+2+index;
+    memcpy(dest,source,num);
+}
+
+//returns a signle element at some index.
+float record_get(float record, float index){
+    assert_arity(ecx,2);
+    assert_type(record,typeof_record);
+    index += 2;
+    return record[index];
+}
+
+//sets a single element
+void record_set(float record, float index, float val){
+    assert_arity(ecx,3);
+    assert_type(record,typeof_record);
+    index += 2;
+    record[index] = val;
+}
+
+//sets an array of elements
+void record_set_array(float record, float index, float vals, float num){
+    assert_arity(ecx,4);
+    assert_type(record,typeof_record);
+    index += 2;
+    float dest = record+index;
+    memcpy(dest,vals,num);
+}
+
+//inserts a single element before the given index, pushing current elements forward
+float record_insert(float record, float index, float val){
+    assert_arity(ecx,3);
+    assert_type(record,typeof_record);
+    return record_insert_array(record,index,&val,1);
+}
+
+//inserts an array of elements before the given index, pushing current contents forward.
+float record_insert_array(float record, float index, float vals, float num){
+    assert_arity(ecx,4);
+    assert_type(record,typeof_record);
+    float size = record[1];
+    float newsize = size+num;
+    float oldrecord = record;
+    record = realloc(record,size);
+    record_destructor(oldrecord);
+    index++;
+    float curback = record+2+index;
+    float newback = record+2+index+num;
+    float backsize = size-2-index;
+    memcpy(newback,curback,backsize);
+    memcpy(curback,vals,num);
+    record[1] = newsize;
+    return record;
+}
+
+float record_remove(float record, float index){
+    assert_arity(ecx,2);
+    assert_type(record,typeof_record);
+    return record_remove_array(record, index, 1);
+}
+
+//removes an array of elements after the given index, moving the next elements back.
+float record_remove_array(float record, float index, float num){
+    assert_arity(ecx,3);
+    assert_type(record,typeof_record);
+    float size = record[1];
+    float newsize = size-num;
+    float newback = record+2+index;
+    printf("newback = %d\n",newback);
+    float curback = record+2+index+num;    
+    printf("curback = %d\n",curback);
+    float backsize= size-2-index-num;
+    printf("backsize = %d\n",backsize);
+    memcpy(newback,curback,backsize);
+    record[1] = newsize;
+    return record;
+}
+
+//returns the amount of useful data inside the record
+float record_length(float record){
+    return record[1]-3;
+}
+
+#endif
+
+
+
+
+
+

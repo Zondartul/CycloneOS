@@ -1,0 +1,178 @@
+//libmulticonsolescreen
+/*
+    for console screens arranged in an NxM grid
+    
+    ---------------
+    |hello |world |
+    |      |      |
+    |      |      |
+    ---------------
+    |      |      |
+    |      |      |
+    |      |      |
+    ---------------
+
+
+*/
+
+void mcs_screen_clear(){
+    float scrx;
+    float scry;
+    for(scrx = 0; scrx < num_screens_x; scrx++){
+        for(scry = 0; scry < num_screens_y; scry++){
+            float scrID = scry*num_screens_x+scrx;
+            AdrScreen = screens[scrID];
+            screen_clear();
+        }
+    }
+}
+
+void mcs_screen_force_refresh(){
+    float scrx;
+    float scry;
+    for(scrx = 0; scrx < num_screens_x; scrx++){
+        for(scry = 0; scry < num_screens_y; scry++){
+            float scrID = scry*num_screens_x+scrx;
+            AdrScreen = screens[scrID];
+            screen_force_refresh();
+        }
+    }
+}
+
+float mcs_width;
+float mcs_height;
+float mcs_last_x;
+float mcs_last_y;
+float cs_width = 30;
+float cs_height = 18;
+float cs_last_x = 29;
+float cs_last_y = 17;
+
+void mcs_init(float numx, float numy){
+    num_screens_x = numx;
+    num_screens_y = numy;
+    mcs_width = cs_width*numx;
+    mcs_last_x = mcs_width-1;
+    mcs_height = cs_height*numy;
+    mcs_last_y = mcs_height-1;
+}
+
+
+void mcs_screen_shift_vertical(float n){
+    float scrx;
+    float scry;
+    for(scrx = 0; scrx < num_screens_x; scrx++){
+        for(scry = 0; scry < num_screens_y; scry++){
+            float scrID = scry*num_screens_x+scrx;
+            AdrScreen = screens[scrID];
+            screen_shift_vertical(n);
+        }
+    }
+}
+
+void mcs_screen_set_shift_box(float x1, float x2, float y1, float y2){
+    float scrx;
+    float scry;
+    for(scrx = 0; scrx < num_screens_x; scrx++){
+        for(scry = 0; scry < num_screens_y; scry++){
+            float scrID = scry*num_screens_x+scrx;
+            AdrScreen = screens[scrID];
+//            screen_set_shift_box(x1,x2,y1,y2);
+            float scrx1 = cs_width*scrx;
+            float scrx2 = scrx1+cs_last_x;
+            float scry1 = cs_height*scry;
+            float scry2 = scry1+cs_last_y;
+            float cx1 = x1;
+            float cx2 = x2;
+            float cy1 = y1;
+            float cy2 = y2;
+            
+            if(cx1 < scrx1){cx1 = scrx1;}
+            if(cx1 > scrx2){cx1 = scrx2;}
+            if(cx2 < scrx1){cx2 = scrx1;}
+            if(cx2 > scrx2){cx2 = scrx2;}
+            
+            if(cy1 < scry1){cy1 = scry1;}
+            if(cy1 > scry2){cy1 = scry2;}
+            if(cy2 < scry1){cy2 = scry1;}
+            if(cy2 > scry2){cy2 = scry2;}
+            
+            cx1 -= scrx1;
+            cx2 -= scrx1;
+            cy1 -= scry1;
+            cy2 -= scry1;
+             
+            screen_set_shift_box(cx1,cx2,cy1,cy2);
+        }
+    }
+}
+
+void mcs_screen_set_cursor_pos_xy(float x, float y){
+    float scrx;
+    float scry;
+    for(scrx = 0; scrx < num_screens_x; scrx++){
+        for(scry = 0; scry < num_screens_y; scry++){
+            float scrID = scry*num_screens_x+scrx;
+            AdrScreen = screens[scrID];
+            float posx = x-scrx*cs_width;
+            float posy = y-scry*cs_height;
+            if((posx >= 0) && (posx <= cs_last_x) && (posy >= 0) && (posy <= cs_last_y)){
+                screen_set_cursor_pos_xy(posx,posy);
+                screen_cursor_enable();
+            }else{
+                screen_cursor_disable();
+            }
+            
+        }
+    }
+}
+
+
+void mcs_screen_cursor_enable(){
+    float scrx;
+    float scry;
+    for(scrx = 0; scrx < num_screens_x; scrx++){
+        for(scry = 0; scry < num_screens_y; scry++){
+            float scrID = scry*num_screens_x+scrx;
+            AdrScreen = screens[scrID];
+            screen_cursor_enable();
+        }
+    }
+}    
+        
+void mcs_screen_cursor_disable(){
+    float scrx;
+    float scry;
+    for(scrx = 0; scrx < num_screens_x; scrx++){
+        for(scry = 0; scry < num_screens_y; scry++){
+            float scrID = scry*num_screens_x+scrx;
+            AdrScreen = screens[scrID];
+            screen_cursor_disable();
+        }
+    }
+}   
+
+
+void mcs_set_blink_rate(float rate){
+    float scrx;
+    float scry;
+    for(scrx = 0; scrx < num_screens_x; scrx++){
+        for(scry = 0; scry < num_screens_y; scry++){
+            float scrID = scry*num_screens_x+scrx;
+            AdrScreen = screens[scrID];
+            screen_set_blink_rate(rate);
+        }
+    }
+}   
+
+void mcs_set_cursor_size(float size){
+    float scrx;
+    float scry;
+    for(scrx = 0; scrx < num_screens_x; scrx++){
+        for(scry = 0; scry < num_screens_y; scry++){
+            float scrID = scry*num_screens_x+scrx;
+            AdrScreen = screens[scrID];
+            screen_set_cursor_size(size);
+        }
+    }
+}

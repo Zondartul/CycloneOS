@@ -1,0 +1,615 @@
+//CycloneFS
+#ifndef FILESYSTEM_GUARD
+#define FILESYSTEM_GUARD
+// The Sector System:
+// Disk is divided into Sectors of equal size.
+// The position of a Sector can be calculated from it's index,
+// regardless of other Sectors. This is to ensure corrupted sectors do not damage the whole system.
+// 
+// A Sector is divided into Sector Header and Sector Body.
+// Sector Header has an arbitrary but constant (for a given disk) Header Size.
+// Sector Body has a constant size that is an exact multiple of Page Size, so that a
+// paging memory allocator can load the file into pages without splitting, hense 
+// keeping the file continuous in virtual memory.
+//
+// The Sector Header must, at minimum, contain a "used/free" flag and the "next"
+// index. If a Sector is free, the "next" index is unused. If the Sector is used,
+// the "next" index may either be 0 for individual sectors, or it may contain
+// the index of a next sector in a Sector Chian (linked list of sectors).
+//
+// The Disk may contain any number of individual Sectors and Sector Chains.
+//
+// Sector 0 is considered "reserved" and will never be used.
+// No metadata is stored on the Disk.
+//
+// Default values:
+#define fs_header_size 2
+#define fs_page_size 128
+#define fs_pages_per_sector 2
+//dummy functions (external)
+//float malloc;
+//float P;
+//float P2;
+//float vector_get;
+//float memcpy;
+//float free;
+//float strcmp;
+//float sizeof_string;
+//float string_constructor;
+//float vector_push;
+//float vector_size;
+//float vector_set;
+//float string_c_str;
+//float sizeof_vector;
+//float vector_disk_size;
+//float vector_constructor;
+#include <cycloneOld/fs_sector.txt>
+#include <cycloneOld/fs_folder.txt>
+#include <cycloneOld/fs_file_metadata.txt>
+#include <cycloneOld/fs_file_handle.txt>
+#include <cycloneOld/libnumber.txt>
+//#include <zvector.txt>
+float fs_Disk = 0;
+float fs_Disk_size = 0;
+float fs_body_size = 0;
+float fs_sector_size = 0;
+float fs_num_sectors = 0;
+float fs_root_folder_file = 0;
+float fs_root_folder_data = 0;
+
+//initializes the RAM representation of the filesystem
+void FilesystemSetDisk(float disk, float size){
+    //calculate disk geometry
+    fs_Disk = disk;                                     //set Disk pointer
+    fs_body_size = fs_page_size * fs_pages_per_sector;  //calculate sector geometry
+    fs_sector_size = fs_header_size + fs_body_size;
+    fs_num_sectors = size / fs_sector_size;
+    fs_num_sectors = floor(fs_num_sectors);             //figure out how many full sectors fit on disk
+    fs_Disk_size = fs_num_sectors * fs_sector_size;     //set the actual disk size accordingly.
+    
+    //now let's load the root folder
+    //fs_root_folder_file = malloc(sizeof_fs_file_handle);
+    //fs_file_handle_constructor(fs_root_folder_file);
+    //fs_file_handle_set_disk_sector(fs_root_folder_file, 1);
+    fs_root_folder_data = fs_load_sector_chain(1);
+}
+
+//writes a blank filesystem to the disk
+void FilesystemFormat(){
+    P("FF1\n");
+    float I = 0;
+    for(I = 1; I < fs_num_sectors+1; I++){
+        float S = fs_index_to_ptr(I);
+        fs_sector_constructor(S);
+    }
+    P("FF2\n");
+    //fs_root_folder_file = malloc(sizeof_fs_file_handle);
+    //fs_file_handle_constructor(fs_root_folder_file);
+    float Folder = malloc(sizeof_fs_folder);
+    float FolderNames = malloc(sizeof_vector);
+    vector_constructor(FolderNames, sizeof_vector);
+    fs_folder_set_names(Folder, FolderNames);
+    P("FF3\n");
+    float FolderSectors = malloc(sizeof_vector);
+    vector_constructor(FolderSectors, 1);
+    fs_folder_set_sectors(Folder, FolderSectors);
+    P("FF4\n");
+    float FolderMetadata = malloc(sizeof_vector);
+    vector_constructor(FolderMetadata, sizeof_fs_file_metadata);
+    fs_folder_set_metadata(Folder, FolderMetadata);
+    
+    P("FF5\n");
+    float FolderFile = malloc(sizeof_fs_file_handle);
+    fs_file_handle_constructor(FolderFile);
+    fs_file_handle_set_sector(FolderFile, 1);
+    fs_sector_set_used(1,1);
+    P("FF6\n");
+    fs_folder_write_to_disk(Folder, FolderFile);
+    fs_root_folder_data = Folder;
+    P("FF7\n");
+}
+
+void FilesystemPrint(){
+    P("Filesystem stats:\n");
+    P2("Disk at: ",fs_Disk,"\n");
+    P2("Disk size: ",fs_Disk_size,"\n");
+    P2("Num sectors: ",fs_num_sectors,"\n");
+    P2("\nSector size: ",fs_sector_size,"\n");
+    P2("Sector header: ",fs_header_size,"\n");
+    P2("Sector body: ",fs_body_size,"\n");
+    P2("Sector page size: ",fs_page_size,"\n");
+    P2("Sector pages: ",fs_pages_per_sector,"\n");
+}
+
+void FilesystemList(){
+    P("Root folder:\n");
+    float Folder = fs_root_folder_data;
+    float FolderNames = fs_folder_get_names(Folder);
+    float FolderSectors = fs_folder_get_sectors(Folder);
+    float FolderMetadata = fs_folder_get_metadata(Folder);
+    float numFiles = vector_size(FolderNames);
+    P2("",numFiles," files\n");
+    P("size sector name\n");
+    float I;
+    float S = malloc(sizeof_vector);
+    float M = malloc(sizeof_fs_file_metadata);
+    float sector;
+    float filesize;
+    for(I = 0; I < numFiles; I++){
+        vector_get(FolderNames,S,I);
+        sector = vector_get(FolderSectors,0,I);
+        vector_get(FolderMetadata,M,I);
+        filesize = fs_file_metadata_get_size(M);
+        P2("",filesize," ");
+        P2("",sector," ");
+        P(string_c_str(S));
+        P("\n");
+    }
+}
+
+//bc pi:
+//a = 0; b = 1; for(i = 0; i < 100; i++){a = sqrt(2+a); b = b*a/2; c = 2/b;} c
+
+
+//-----------------------------------------------------------------------
+//reads "size"*"count" bytes into "ptr" from file "File".
+//returns the number of objects written
+float FileRead(float ptr, float size, float count, float File){
+    if(!fs_file_handle_get_read_allowed(File)){Perr("FileRead: reading forbidden\n");return;}
+    //1) make sure we have a suitable buffer
+        //when paging is online, we will want to map the whole file to continuous sections,
+        //then we can do the whole write in one go.
+        //as is though, we have to load fragments one-by-one so as not to use too much physical RAM.
+        
+        //1.1) calculate the first sector that we will write to
+        float folder = fs_file_handle_get_folder(File);
+        float name = fs_file_handle_get_name(File);
+        P2("fr: name = ",name,"\n");
+        P(name);P("\n");
+        float c_name = string_c_str(name);
+        P2("fr: c_name = ",c_name,"\n");
+        P(c_name);P("\n");
+        float folder_index = fs_folder_get_file_index(folder, c_name);
+        float folder_sectors = fs_folder_get_sectors(folder);
+        float sector = vector_get(folder_sectors, 0, folder_index);
+        float filepos = fs_file_handle_get_read_pos(File);
+        float sizetotal = size*count;
+        float numsectors;
+        float pos;
+        fs_file_pos_to_sector_and_pos(filepos, &numsectors, &pos);
+        //sector = sector+first_sector;
+        while(sizetotal){
+            //now we know the sector and position of the read.
+            //first, make sure the sector is allocated:
+            while(numsectors){
+                float next = fs_sector_get_next(sector);
+                if(next){sector = next;}
+                else{
+                    //sector is not allocated, stop reading and return how many bytes we've read so far.
+                    return size*count-sizetotal;
+                }
+                numsectors--;
+            }
+            //next, load the sector into memory.
+            float buffer = fs_load_sector(sector);
+            float left_sector_memory = fs_body_size - pos;
+            float readpos = buffer+pos;
+            if(left_sector_memory < sizetotal){ //we will need more sectors to finish reading
+                memcpy(ptr, readpos, left_sector_memory);
+                filepos = filepos + left_sector_memory;
+                ptr = ptr + left_sector_memory;
+                fs_file_handle_set_read_pos(File, filepos);
+                free(buffer);
+                sizetotal = sizetotal - left_sector_memory;
+                numsectors++;
+            }else{ //this is the last sector we need to read.
+                memcpy(ptr, readpos, sizetotal);
+                filepos = filepos + sizetotal;
+                ptr = ptr + sizetotal;
+                fs_file_handle_set_read_pos(File, filepos);
+                free(buffer);
+                return size*count; //success
+            }
+            //at this point it loops to do the next sector's worth of reading.
+        }
+        return 0; //this should be unreachable...
+}
+//writes "size"*"count" bytes from "ptr" into file "File".
+//returns the number of objects written
+float FileWrite(float ptr, float size, float count, float File){
+    float name;                 //name of the file
+    float c_name;               //name as c string
+    float folder;               //folder data
+    float folder_index;         //index of file within folder
+    float folder_sectors;       //folder.sectors
+    float folder_metadata;      //folder.metadata
+    float file_metadata;
+    float sector;               //current sector index
+    float copypos;              //absolute address where we will write to loaded sector
+    float filepos;              //file-relative position of the write
+    float sizetotal;            //how many bytes in total we have left to copy
+    float numsectors;           //how many sectors we need allocated for the write
+    float pos;                  //current sector-relative position
+    float buffer;               //pointer to where the current sector is loaded
+    float next;                 //index of the next sector
+    float free_sector_memory;   //how much write-able space is left in this sector
+    
+    if(!fs_file_handle_get_write_allowed(File)){Perr("FileWrite:write forbidden\n"); return 0;}
+    //1) make sure we have a suitable buffer
+    //when paging is online, we will want to map the whole file to continuous sections,
+    //then we can do the whole write in one go.
+    //as is though, we have to load fragments one-by-one so as not to use too much physical RAM.
+    
+    //1.1) calculate the first sector that we will write to
+    
+    // GATHER ALL INFO WE HAVE ABOUT THIS FILE
+    
+    P("FileWrite start\n");
+    if(malloc_test()){shell_panic();}
+    P2("0: file = ",file,"\n");
+    folder = fs_file_handle_get_folder(File);
+    if(malloc_test()){shell_panic();}
+    P2("0: folder = ",folder,"\n");
+    
+    if(folder){
+        name = fs_file_handle_get_name(File);
+        if(malloc_test()){shell_panic();}
+        P("1:name = ");
+        Ps(name);
+        P("\n");
+        c_name = string_c_str(name);
+        folder_index = fs_folder_get_file_index(folder, c_name);
+        P2("1:folder_index = ",folder_index,"\n");
+        if(folder_index==-1){Perr("FileWrite:no folder index\n"); return 0;}
+        folder_sectors = fs_folder_get_sectors(folder);
+        P2("1:folder_sectors = ",folder_sectors,"\n");
+        sector = vector_get(folder_sectors, 0, folder_index);
+        P2("1:sector = ",sector,"\n");
+        if(malloc_test()){shell_panic();}
+        folder_metadata = fs_folder_get_metadata(folder);
+        file_metadata = malloc(sizeof_fs_file_metadata);
+        vector_get(folder_metadata, file_metadata, folder_index);
+    }else{
+        sector = fs_file_handle_get_sector(File);
+        P2("2:sector = ",sector,"\n");
+    }
+    filepos = fs_file_handle_get_write_pos(File);
+    P2("3:filepos = ",filepos,"\n");
+    if(malloc_test()){shell_panic();}
+    sizetotal = size*count;
+    P2("3:sizetotal = ",sizetotal,"\n");
+    fs_file_pos_to_sector_and_pos(filepos, &numsectors, &pos);
+    P2("3:numsectors = ",numsectors,"\n");
+    if(malloc_test()){shell_panic();}
+    P2("3:pos = ",pos,"\n");
+    if(!sector){
+        sector = fs_allocate_sector();                            // a write
+        fs_file_handle_set_sector(File, sector);
+        if(folder){
+            //fs_file_metadata_set_sector(file_metadata, sector);
+            vector_set(folder_sectors, sector, folder_index);
+        }
+        P2("3:alc sector = ",sector,"\n");}
+    //sector = sector+first_sector;
+    buffer = 0;
+    
+    // BEGIN WRITING
+    while(sizetotal){
+        P2("4:sizetotal = ",sizetotal,"\n");
+        if(malloc_test()){shell_panic();}
+        //now we know the sector and position of the write.
+        //first, make sure the sector is allocated:
+        
+        // PREPARE SECTOR
+        
+        while(numsectors){
+            next = fs_sector_get_next(sector);
+            if(next){sector = next; P2("5:next = ",next,"\n");}
+            else{next = fs_allocate_sector(); P2("5:alc next = ",next,"\n");} // a write
+            numsectors--;
+            if(malloc_test()){shell_panic();}
+        }
+        if(malloc_test()){shell_panic();}
+        //next, load the sector into memory.
+        if(buffer){
+            P("6:free prev\n");
+            free(buffer);
+            if(malloc_test()){shell_panic();}    
+        }
+        buffer = fs_load_sector(sector);    // a write big
+        P2("6:buffer = ",buffer,"\n");
+        if(malloc_test()){shell_panic();}
+        free_sector_memory = fs_body_size - pos;
+        P2("6:free sec mem = ",free_sector_memory,"\n");
+        if(malloc_test()){shell_panic();}
+        copypos = buffer+pos;
+        P2("6:copypos = ",copypos,"\n");
+        if(malloc_test()){shell_panic();}
+        
+        // WRITE TO SECTOR
+        
+        if(free_sector_memory < sizetotal){ //we will need more sectors to finish writing
+            if(!copypos){Perr("FileWrite:1: null pointer\n"); return 0;}
+            if(!ptr){Perr("FileWrite:2: null pointer\n"); return 0;}
+            if(malloc_test()){shell_panic();}
+            P2("7:wet copy:",copypos," <-");
+            P2(" ",ptr,"\n");
+            memcpy(copypos, ptr, free_sector_memory); // a write big
+            if(malloc_test()){shell_panic();}
+            filepos = filepos + free_sector_memory;
+            ptr = ptr + free_sector_memory;
+            fs_file_handle_set_write_pos(File, filepos); //a write
+            P2("7:wet write sector:",sector,"\n");
+            fs_write_sector(sector, buffer);          // a write big
+            sizetotal = sizetotal - free_sector_memory;
+            if(malloc_test()){shell_panic();}
+            numsectors++;
+        }else{ //this is the last sector we need to write.
+            if(!copypos){Perr("FileWrite:3: null pointer\n"); return 0;}
+            if(!ptr){Perr("FileWrite:4: null pointer\n"); return 0;}
+            if(malloc_test()){shell_panic();}
+            P2("8:wet copy:",copypos,"<-");
+            P2("",ptr,"\n");
+            memcpy(copypos, ptr, sizetotal);          // a write big
+            if(malloc_test()){shell_panic();}
+            filepos = filepos + sizetotal;
+            ptr = ptr + sizetotal;
+            fs_file_handle_set_write_pos(File, filepos); //a write
+            P2("8:wet write sector:",sector,"\n");
+            if(malloc_test()){shell_panic();}
+            fs_write_sector(sector, buffer);          // a write big
+            
+            // UPDATE FILE INFO
+            fs_file_handle_set_size(File, filepos);
+            if(folder){
+                fs_file_metadata_set_size(file_metadata, filepos);        // a write
+                vector_set(folder_metadata, file_metadata, folder_index); // a write
+            }
+            P("FileWrite done\n");
+            return 1; //success
+        }
+        P("9:loopback\n");
+                if(malloc_test()){shell_panic();}
+        //at this point it loops to do the next sector's worth of writing.
+    }
+    P("10:unreachable location???\n");
+    return 0; //this should be unreachable...
+}
+
+void FileSeek(float File, float fseek_offset, float origin){
+    if(origin == 0){ //beginning of file
+        fs_file_handle_set_write_pos(File, fseek_offset);
+        fs_file_handle_set_read_pos(File, fseek_offset);
+    }
+    if(origin == 1){ //current pos
+        float cur_write_pos = fs_file_handle_get_write_pos(File);
+        float cur_read_pos = fs_file_handle_get_read_pos(File);
+        fs_file_handle_set_write_pos(File, cur_write_pos+fseek_offset);
+        fs_file_handle_set_read_pos(File, cur_read_pos+fseek_offset);
+    }
+    if(origin == 2){ //end of file
+        float S = fs_file_handle_get_metadata(File);
+        S = fs_file_metadata_get_size(S);
+        fs_file_handle_set_write_pos(File, S+fseek_offset);
+        fs_file_handle_set_read_pos(File, S+fseek_offset);
+    }
+}
+
+void FilePutC(float File, float C){
+    FileWrite(&C,1,1,File);
+}
+
+float FileGetC(float File){
+    float A;
+    FileRead(&A,1,1,File);
+    return A;
+}
+//opens a file
+//modes:
+//
+// r:  ADEHI
+// w:  BCFGI
+// a:  ACFGJ
+// r+: ADEGI
+// w+: BCEGI
+// a+: ACEGJ
+//                                       _____________________________
+//                                      |     |     A     |     B     |
+//                                      |-----|-----------|-----------|
+//                                      |     |  C  |  D  |  C  |  D  |
+//                                      |-----|-----------------------|
+//  existing file content treatment:    |I|E|G|     .  r+ .  w+ .     |
+//  A: keep content                     | | |H|     .  r  .     .     |
+//  B: overwrite content                | |----     .     .     .     |
+//  non-existing file treatment:        | |F|G|     .     .  w  .     |
+//  C: create                           | | |H|     .     .     .     |
+//  D: fail                             |------     .     .     .     |
+//  reading allowed:                    |J|E|G|  a+ .     .     .     |
+//  E: yes                              | | |H|     .     .     .     |
+//  F: no                               | |----     .     .     .     |
+//  writing allowed:                    | |F|G|  a  .     .     .     |
+//  G: yes                              |_|_|H|_______________________|
+//  H: no                               
+//  seeking allowed:                    
+//  I: yes                              
+//  J: no                               
+//
+fileopen_mode_r:db "r", db 0;
+fileopen_mode_w:db "w", db 0;
+fileopen_mode_a:db "a", db 0;
+fileopen_mode_rp:db "r+", db 0;
+fileopen_mode_wp:db "w+", db 0;
+fileopen_mode_ap:db "a+", db 0;
+float FileOpen(char *filename, char *mode){
+    float keepContent;
+    float create;
+    float allowRead;
+    float allowWrite;
+    float allowSeek;
+    if(strcmp(mode, fileopen_mode_r)==0){
+        keepContent = 1;
+        create = 0;
+        allowRead = 1;
+        allowWrite = 0;
+        allowSeek = 1;
+        goto fileOpen_good_mode;
+    }
+    if(strcmp(mode, fileopen_mode_w)==0){
+        keepContent = 0;
+        create = 1;
+        allowRead = 0;
+        allowWrite = 1;
+        allowSeek = 1;
+        goto fileOpen_good_mode;
+    }
+    if(strcmp(mode, fileopen_mode_a)==0){
+        keepContent = 1;
+        create = 1;
+        allowRead = 0;
+        allowWrite = 1;
+        allowSeek = 0;
+        goto fileOpen_good_mode;
+    }
+    if(strcmp(mode, fileopen_mode_rp)==0){
+        keepContent = 1;
+        create = 0;
+        allowRead = 1;
+        allowWrite = 1;
+        allowSeek = 1;
+        goto fileOpen_good_mode;
+    }
+    if(strcmp(mode, fileopen_mode_wp)==0){
+        keepContent = 0;
+        create = 1;
+        allowRead = 1;
+        allowWrite = 1;
+        allowSeek = 1;
+        goto fileOpen_good_mode;
+    }
+    if(strcmp(mode, fileopen_mode_ap)==0){
+        keepContent = 1;
+        create = 1;
+        allowRead = 1;
+        allowWrite = 1;
+        allowSeek = 0;
+        goto fileOpen_good_mode;
+    }
+    fileOpen_bad_mode:
+    P("Error: FileOpen: bad mode [");
+    P(mode);
+    P("]\n");
+    return 0;
+    fileOpen_good_mode:
+    //1) see if a file exists
+    float Folder = fs_root_folder_data; //body of the root folder file
+    float File = 0; //this is our file handle
+    float FileMetadata = 0;
+    float FileData = 0;
+    float FolderIndex = fs_folder_get_file_index(Folder, filename);
+    float FolderMetadata = fs_folder_get_metadata(Folder);
+    float FolderSectors = fs_folder_get_sectors(Folder);
+    float FolderNames = fs_folder_get_names(Folder);
+    float filenameString = malloc(sizeof_string);
+    float sector = 0;
+    string_constructor(filenameString, filename);
+    if(FolderIndex == -1){//file doesn't exist
+        if(!create){Perr("FileOpen: file missing: ");Perr(filename);Perr("\n"); return 0;}//we're not allowed to create a new file
+        P("FO: creating new file\n");
+        //1) construct file metadata
+        FileMetadata = malloc(sizeof_fs_file_metadata);
+        fs_file_metadata_constructor(FileMetadata);
+        //we are fine with default values for now
+        //2) construct file name
+        //3) don't worry about disk space for now, it will be managed by FileFlush()
+        //4) create a new file entry in the folder
+        vector_push(FolderNames, filenameString);
+        vector_push(FolderSectors, 0); // file does not yet have any disk allocated, also we can move it around this way
+        vector_push(FolderMetadata, FileMetadata);
+        FolderIndex = vector_size(FolderNames);
+        //create a new file handle
+        File = malloc(sizeof_fs_file_handle);
+        fs_file_handle_set_folder(File, Folder);
+        fs_file_handle_set_name(File, filenameString); 
+        fs_file_handle_set_metadata(File, FileMetadata);
+        fs_file_handle_set_read_allowed(File, allowRead);
+        fs_file_handle_set_write_allowed(File, allowWrite);
+        fs_file_handle_set_seek_allowed(File, allowSeek);
+        fs_file_handle_set_read_pos(File, 0);
+        fs_file_handle_set_write_pos(File, 0);
+        //do not buffer data, wait until read/write/flush
+        fs_file_handle_set_buffer(File, 0);
+        //FileData = malloc(sizeof_vector);
+        //vector_constructor(FileData, 1);
+        
+        //fs_file_handle_set_buffer(File, FileData);
+        
+        //put the file into the folder?
+        //we'll do this upon closing.
+    }else{//file does exist
+        P("FO: opening existing file\n");
+        File = malloc(sizeof_fs_file_handle);
+        P2("fo: File = ",File,"\n");
+        FileMetadata = malloc(sizeof_fs_file_metadata);
+        P2("fo: FileMetadata = ", FileMetadata,"\n");
+        vector_get(FolderMetadata, FileMetadata, FolderIndex);
+        //check permissions again
+        float canRead = fs_file_metadata_get_read_allowed(FileMetadata);
+        P2("fo: canRead = ",canRead,"\n");
+        float canWrite = fs_file_metadata_get_write_allowed(FileMetadata);
+        P2("fo: canWrite = ",canWrite,"\n");
+        if(allowRead && !canRead){Perr("FO: file does not allow reading\n");return 0;} //memory leak, fix it
+        if(allowWrite && !canWrite){Perr("FO: file does not allow writing\n");return 0;} //memory leak, fix it
+        sector = vector_get(FolderSectors, 0, FolderIndex);
+        //see if we need to overwrite data or load it
+        
+        fs_file_handle_set_folder(File, Folder);
+        fs_file_handle_set_name(File, filenameString);
+        fs_file_handle_set_metadata(File, FileMetadata);
+        
+        fs_file_handle_set_read_allowed(File, allowRead);
+        P2("fo: read allowed = ",allowRead,"\n");
+        fs_file_handle_set_write_allowed(File, allowWrite);
+        P2("fo: write allowed = ",allowWrite,"\n");
+        fs_file_handle_set_seek_allowed(File, allowSeek);
+        P2("fo: seek allowed = ",allowSeek,"\n");
+        fs_file_handle_set_execute_allowed(File,0);
+        fs_file_handle_set_write_pos(File,0);
+        fs_file_handle_set_read_pos(File,0);
+        fs_file_handle_set_buffer(File, 0);
+        float size = fs_file_metadata_get_size(FileMetadata);
+        fs_file_handle_set_size(File, size);
+        fs_file_handle_set_sector(File, sector);
+        
+        if(keepContent){
+            P("fo: keepContent\n");
+            //keep content = do nothing, data buffering will be done by the read/write/flush.
+        }else{
+            P("fo: overwrite\n");
+            //overwrite content;
+            fs_file_metadata_set_size(FileMetadata, 0);
+            fs_file_handle_set_read_pos(File, 0);
+            fs_file_handle_set_write_pos(File, 0);
+            fs_file_handle_set_sector(File, 0);
+            fs_free_sector_chain(sector);
+            vector_set(FolderSectors, 0, FolderIndex);
+        }
+        
+        if(!allowSeek || !strcmp(mode, fileopen_mode_ap)){
+            P("fo: restrict seek\n");
+            fs_file_handle_set_read_pos(File, size);
+            fs_file_handle_set_write_pos(File, size);
+        }
+    }
+    //checklist:
+    //- File handle allocated
+    //- File handle initialized
+    //- Checked if file exists
+    //- Checked if permissions check out
+    //- Folder up to date
+    
+    //ok I think we're done
+    P2("fo: return ",File,"\n");
+    return File;
+}
+
+#endif

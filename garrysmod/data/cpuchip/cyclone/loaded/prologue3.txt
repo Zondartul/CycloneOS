@@ -1,0 +1,73 @@
+//cyclone type-2 program prologue
+#define WRITE_OFFSET 7000000
+org WRITE_OFFSET; //7MB mark to identify constants that are code-addresses
+db programsize - WRITE_OFFSET;
+
+prologue_options_table:
+ db str_write_offset, WRITE_OFFSET; 
+ db str_prologue_end, prologue_end; //end of prologue is start of program
+
+//====================================================
+//  HELLO USER. DID YOU DEFINE AN ENTRY FUNCTION?
+//  ---------- v -------------
+ db str_main, main; 
+//  -----------^ -------------
+//  your program should have the main function
+//  defined. it looks like this (HL-ZASM):
+//  ***************************************
+//  * float main(float argc, float argv)  *
+//  * {                                   *
+//  *     /* your code here */            *
+//  *     return 0;                       *
+//  * }                                   *
+//  ***************************************
+//  or like this (assembly):
+//  ***************************************
+//  * main:                               *
+//  * /* your code here */                *
+//  * ret;                                *
+//  ***************************************
+//
+//====================================================
+//  to export some symbols, write "#define EXPORT_TABLE mytable"
+//  before including the prologue file.
+//  an export table is formatted as a series of "db str_func_or_var_name; db pointer_to_func_or_var;"
+//  and ends with "db 0,0;".
+//  this will allow external code to use functions and vars from your program.
+#ifndef EXPORT_TABLE
+#define EXPORT_TABLE 0
+#endif
+
+ db str_export_table, EXPORT_TABLE;
+
+//  to import specific symbols, define an import table.
+//  an import table is formatted like "label_functionname: db 0, db str_function_name;"
+//  and ends with "db 0,0;".
+//  calls to any functions from the import table will be replaced by calls to their actual address
+//  at program load-time. All the variables from the link table are pointers.
+//
+//  if no import table is provided, a default import table is used.
+//  it includes most of the kernel functions.
+#ifndef IMPORT_TABLE
+#define IMPORT_TABLE 0
+#define ADD_FUNC_IMPORT_TABLE
+ db str_old_func_import_table_start, func_import_table;
+ db str_old_func_import_table_end, var_import_table_end;
+#endif
+
+ db str_import_table, IMPORT_TABLE;
+ db 0,0;
+prologue_options_table_end:
+str_write_offset: db "write_offset",0;
+str_main: db "main",0;
+str_prologue_end: db "prologue_end",0;
+str_export_table: db "export_table",0;
+str_import_table: db "import_table",0;
+str_old_func_import_table_start: db "old_func_import_table_start",0;
+str_old_func_import_table_end: db "old_func_import_table_end",0;
+
+#ifdef ADD_FUNC_IMPORT_TABLE
+#include <cyclone/generated/func_import_table.txt>
+#endif
+
+prologue_end:

@@ -1,0 +1,7240 @@
+     0 org 7000000
+prologue_start:
+7000000 db 15379
+7000001 db 6007003,7000000
+7000003 db 6007006,7000540
+7000005 db 6007004,5003004
+7000007 db 6007005,5003010
+7000009 db 6007007
+7000010 db 7000015
+7000011 db 6007008
+7000012 db 7000107
+7000013 db 0,0
+prologue_end:
+reference_table:
+malloc:
+7000015 db 0
+7000016 db 7000107
+currentTimeStamp:
+7000017 db 0
+7000018 db 7000114
+typeof_exe:
+7000019 db 0
+7000020 db 7000131
+assert_type:
+7000021 db 0
+7000022 db 7000142
+sizeof_exe:
+7000023 db 0
+7000024 db 7000154
+strlen:
+7000025 db 0
+7000026 db 7000165
+typeof_section:
+7000027 db 0
+7000028 db 7000172
+vector_get_size:
+7000029 db 0
+7000030 db 7000187
+vector_get_array:
+7000031 db 0
+7000032 db 7000203
+sizeof_section:
+7000033 db 0
+7000034 db 7000220
+memcpy:
+7000035 db 0
+7000036 db 7000235
+vector_get:
+7000037 db 0
+7000038 db 7000242
+typeof_symbol:
+7000039 db 0
+7000040 db 7000253
+sizeof_vector:
+7000041 db 0
+7000042 db 7000267
+sizeof_symbol:
+7000043 db 0
+7000044 db 7000281
+typeof_vector:
+7000045 db 0
+7000046 db 7000295
+printf:
+7000047 db 0
+7000048 db 7000309
+Perr:
+7000049 db 0
+7000050 db 7000316
+shell_panic:
+7000051 db 0
+7000052 db 7000321
+concat:
+7000053 db 0
+7000054 db 7000333
+isNum:
+7000055 db 0
+7000056 db 7000340
+t:
+7000057 db 0
+7000058 db 7000346
+P:
+7000059 db 0
+7000060 db 7000348
+vector_constructor:
+7000061 db 0
+7000062 db 7000350
+vector_push:
+7000063 db 0
+7000064 db 7000369
+n:
+7000065 db 0
+7000066 db 7000381
+unescapeStr:
+7000067 db 0
+7000068 db 7000383
+vector_clear:
+7000069 db 0
+7000070 db 7000395
+free:
+7000071 db 0
+7000072 db 7000408
+seg1:
+7000073 db 0
+7000074 db 7000413
+op1:
+7000075 db 0
+7000076 db 7000418
+seg2:
+7000077 db 0
+7000078 db 7000422
+op2:
+7000079 db 0
+7000080 db 7000427
+str_alloc:
+7000081 db 0
+7000082 db 7000431
+strcmp:
+7000083 db 0
+7000084 db 7000441
+isAlpha:
+7000085 db 0
+7000086 db 7000448
+toLower:
+7000087 db 0
+7000088 db 7000456
+fopen:
+7000089 db 0
+7000090 db 7000464
+fgetstring:
+7000091 db 0
+7000092 db 7000470
+P2:
+7000093 db 0
+7000094 db 7000481
+Arr:
+7000095 db 0
+7000096 db 7000484
+Print:
+7000097 db 0
+7000098 db 7000488
+str2num:
+7000099 db 0
+7000100 db 7000494
+findSymbolByName:
+7000101 db 0
+7000102 db 7000502
+getSymbolName:
+7000103 db 0
+7000104 db 7000519
+fwrite:
+7000105 db 0
+7000106 db 7000533
+reference_table_end:
+reference_name_table:
+str2_malloc:
+7000107 db "malloc",0
+str2_currentTimeStamp:
+7000114 db "currentTimeStamp",0
+str2_typeof_exe:
+7000131 db "typeof_exe",0
+str2_assert_type:
+7000142 db "assert_type",0
+str2_sizeof_exe:
+7000154 db "sizeof_exe",0
+str2_strlen:
+7000165 db "strlen",0
+str2_typeof_section:
+7000172 db "typeof_section",0
+str2_vector_get_size:
+7000187 db "vector_get_size",0
+str2_vector_get_array:
+7000203 db "vector_get_array",0
+str2_sizeof_section:
+7000220 db "sizeof_section",0
+str2_memcpy:
+7000235 db "memcpy",0
+str2_vector_get:
+7000242 db "vector_get",0
+str2_typeof_symbol:
+7000253 db "typeof_symbol",0
+str2_sizeof_vector:
+7000267 db "sizeof_vector",0
+str2_sizeof_symbol:
+7000281 db "sizeof_symbol",0
+str2_typeof_vector:
+7000295 db "typeof_vector",0
+str2_printf:
+7000309 db "printf",0
+str2_Perr:
+7000316 db "Perr",0
+str2_shell_panic:
+7000321 db "shell_panic",0
+str2_concat:
+7000333 db "concat",0
+str2_isNum:
+7000340 db "isNum",0
+str2_t:
+7000346 db "t",0
+str2_P:
+7000348 db "P",0
+str2_vector_constructor:
+7000350 db "vector_constructor",0
+str2_vector_push:
+7000369 db "vector_push",0
+str2_n:
+7000381 db "n",0
+str2_unescapeStr:
+7000383 db "unescapeStr",0
+str2_vector_clear:
+7000395 db "vector_clear",0
+str2_free:
+7000408 db "free",0
+str2_seg1:
+7000413 db "seg1",0
+str2_op1:
+7000418 db "op1",0
+str2_seg2:
+7000422 db "seg2",0
+str2_op2:
+7000427 db "op2",0
+str2_str_alloc:
+7000431 db "str_alloc",0
+str2_strcmp:
+7000441 db "strcmp",0
+str2_isAlpha:
+7000448 db "isAlpha",0
+str2_toLower:
+7000456 db "toLower",0
+str2_fopen:
+7000464 db "fopen",0
+str2_fgetstring:
+7000470 db "fgetstring",0
+str2_P2:
+7000481 db "P2",0
+str2_Arr:
+7000484 db "Arr",0
+str2_Print:
+7000488 db "Print",0
+str2_str2num:
+7000494 db "str2num",0
+str2_findSymbolByName:
+7000502 db "findSymbolByName",0
+str2_getSymbolName:
+7000519 db "getSymbolName",0
+str2_fwrite:
+7000533 db "fwrite",0
+reference_name_table_end:
+asm_str1:
+7000540 alloc 80
+asm_ident:
+7000620 alloc 80
+str:
+7000700 alloc 1
+str2:
+7000701 alloc 1
+fpin:
+7000702 alloc 1
+fpout:
+7000703 alloc 1
+asm_abort:
+7000704 alloc 1
+asm_code:
+7000705 alloc 1
+cur_address:
+7000706 alloc 1
+make_exe:
+// make_exe()
+7000707 enter 6
+__1:
+7000710 push 6
+7000713 mov ECX,1
+// malloc(...)
+7000716 call #7000015
+7000719 add ESP,1
+7000722 sstack EBP:-1,EAX
+7000726 sstack EBP:-2,3
+7000731 sstack EBP:-3,2
+7000736 sstack EBP:-4,0
+7000741 mov ECX,0
+// currentTimeStamp(...)
+7000744 call #7000017
+7000747 sstack EBP:-5,EAX
+7000751 mov ECX,0
+// make_section_list(...)
+7000754 call 7001215
+7000757 sstack EBP:-6,EAX
+7000761 rstack EAX,EBP:-1
+7000765 add EAX,0
+7000768 mov EBX,EAX
+// exe[0]=typeof_exe
+7000770 mov #EBX,#7000019
+7000773 rstack EAX,EBP:-2
+7000777 rstack EBX,EBP:-1
+7000781 add EBX,1
+7000784 mov ECX,EBX
+// exe[1]=exe_style
+7000786 mov #ECX,EAX
+7000788 rstack EAX,EBP:-3
+7000792 rstack EBX,EBP:-1
+7000796 add EBX,2
+7000799 mov ECX,EBX
+// exe[2]=link_style
+7000801 mov #ECX,EAX
+7000803 rstack EAX,EBP:-4
+7000807 rstack EBX,EBP:-1
+7000811 add EBX,3
+7000814 mov ECX,EBX
+// exe[3]=has_static
+7000816 mov #ECX,EAX
+7000818 rstack EAX,EBP:-5
+7000822 rstack EBX,EBP:-1
+7000826 add EBX,4
+7000829 mov ECX,EBX
+// exe[4]=compile_timestamp
+7000831 mov #ECX,EAX
+7000833 rstack EAX,EBP:-6
+7000837 rstack EBX,EBP:-1
+7000841 add EBX,5
+7000844 mov ECX,EBX
+// exe[5]=section_list
+7000846 mov #ECX,EAX
+7000848 rstack EAX,EBP:-1
+7000852 leave 
+7000853 ret 
+__0:
+7000854 leave 
+7000855 ret 
+exe_get_linsize:
+// exe_get_linsize(exe)
+7000856 enter 3
+__3:
+7000859 push #7000019
+7000862 rstack EAX,EBP:2
+7000866 push EAX
+7000868 mov ECX,2
+// assert_type(...)
+7000871 call #7000021
+7000874 add ESP,2
+7000877 rstack EAX,EBP:2
+7000881 add EAX,5
+7000884 mov EBX,EAX
+7000886 sstack EBP:-1,#EBX
+7000890 rstack EAX,EBP:-1
+7000894 push EAX
+7000896 mov ECX,1
+// section_list_get_linsize(...)
+7000899 call 7001288
+7000902 add ESP,1
+7000905 sstack EBP:-2,EAX
+7000909 rstack EAX,EBP:-2
+7000913 mov EBX,#7000023
+7000916 add EBX,EAX
+7000918 sstack EBP:-3,EBX
+7000922 rstack EAX,EBP:-3
+7000926 leave 
+7000927 ret 
+__2:
+7000928 leave 
+7000929 ret 
+exe_linearize:
+// exe_linearize(exe,newpos,readoffset,writeoffset)
+7000930 enter 4
+__5:
+7000933 push #7000019
+7000936 rstack EAX,EBP:2
+7000940 push EAX
+7000942 mov ECX,2
+// assert_type(...)
+7000945 call #7000021
+7000948 add ESP,2
+7000951 rstack EAX,EBP:4
+7000955 neg EAX
+7000957 mov EBX,EAX
+7000959 rstack EAX,EBP:2
+7000963 add EAX,5
+7000966 mov ECX,EAX
+7000968 mov EAX,#ECX
+7000970 add EAX,EBX
+7000972 sstack EBP:-1,EAX
+7000976 rstack EAX,EBP:-1
+7000980 push EAX
+7000982 mov ECX,1
+// section_list_get_linsize(...)
+7000985 call 7001288
+7000988 add ESP,1
+7000991 sstack EBP:-2,EAX
+7000995 rstack EAX,EBP:-2
+7000999 mov EBX,#7000023
+7001002 add EBX,EAX
+7001004 sstack EBP:-3,EBX
+__7:
+7001008 rstack EAX,EBP:3
+7001012 lneg EAX
+7001014 mov EBX,EAX
+// if (!newpos)
+7001016 cmp 0,EBX
+7001019 jge 7001041
+7001022 rstack EAX,EBP:-3
+7001026 push EAX
+7001028 mov ECX,1
+// malloc(...)
+7001031 call #7000015
+7001034 add ESP,1
+// newpos=malloc(exe_size)
+7001037 sstack EBP:3,EAX
+__8:
+__6:
+7001041 rstack EAX,EBP:3
+7001045 add EAX,#7000023
+7001048 mov EBX,EAX
+7001050 sstack EBP:-4,EBX
+7001054 rstack EAX,EBP:3
+7001058 neg EAX
+7001060 mov EBX,EAX
+7001062 push EBX
+7001064 push 0
+7001067 rstack EAX,EBP:-4
+7001071 push EAX
+7001073 rstack EAX,EBP:-1
+7001077 push EAX
+7001079 mov ECX,4
+// section_list_linearize(...)
+7001082 call 7001444
+7001085 add ESP,4
+// section_list=section_list_linearize(section_list,new_section_list,0,-newpos)
+7001088 sstack EBP:-1,EAX
+7001092 rstack EAX,EBP:3
+7001096 add EAX,0
+7001099 mov EBX,EAX
+// newpos[0]=typeof_exe
+7001101 mov #EBX,#7000019
+7001104 rstack EAX,EBP:2
+7001108 add EAX,1
+7001111 mov EBX,EAX
+7001113 rstack EAX,EBP:3
+7001117 add EAX,1
+7001120 mov ECX,EAX
+// newpos[1]=exe[1]
+7001122 mov #ECX,#EBX
+7001124 rstack EAX,EBP:2
+7001128 add EAX,2
+7001131 mov EBX,EAX
+7001133 rstack EAX,EBP:3
+7001137 add EAX,2
+7001140 mov ECX,EAX
+// newpos[2]=exe[2]
+7001142 mov #ECX,#EBX
+7001144 rstack EAX,EBP:2
+7001148 add EAX,3
+7001151 mov EBX,EAX
+7001153 rstack EAX,EBP:3
+7001157 add EAX,3
+7001160 mov ECX,EAX
+// newpos[3]=exe[3]
+7001162 mov #ECX,#EBX
+7001164 rstack EAX,EBP:2
+7001168 add EAX,4
+7001171 mov EBX,EAX
+7001173 rstack EAX,EBP:3
+7001177 add EAX,4
+7001180 mov ECX,EAX
+// newpos[4]=exe[4]
+7001182 mov #ECX,#EBX
+7001184 rstack EAX,EBP:5
+7001188 rstack EBX,EBP:-1
+7001192 add EBX,EAX
+7001194 mov EAX,EBX
+7001196 rstack EBX,EBP:3
+7001200 add EBX,5
+7001203 mov ECX,EBX
+// newpos[5]=section_list+writeoffset
+7001205 mov #ECX,EAX
+7001207 rstack EAX,EBP:3
+7001211 leave 
+7001212 ret 
+__4:
+7001213 leave 
+7001214 ret 
+make_section_list:
+// make_section_list()
+7001215 enter 1
+__10:
+7001218 push 3
+7001221 mov ECX,1
+// malloc(...)
+7001224 call #7000015
+7001227 add ESP,1
+7001230 sstack EBP:-1,EAX
+7001234 mov ECX,0
+// make_section_symtable(...)
+7001237 call 7001747
+7001240 rstack EBX,EBP:-1
+7001244 add EBX,0
+7001247 mov ECX,EBX
+// section_list[0]=make_section_symtable()
+7001249 mov #ECX,EAX
+7001251 mov ECX,0
+// make_section_code(...)
+7001254 call 7001906
+7001257 rstack EBX,EBP:-1
+7001261 add EBX,1
+7001264 mov ECX,EBX
+// section_list[1]=make_section_code()
+7001266 mov #ECX,EAX
+7001268 rstack EAX,EBP:-1
+7001272 add EAX,2
+7001275 mov EBX,EAX
+// section_list[2]=0
+7001277 mov #EBX,0
+7001280 rstack EAX,EBP:-1
+7001284 leave 
+7001285 ret 
+__9:
+7001286 leave 
+7001287 ret 
+section_list_get_linsize:
+// section_list_get_linsize(sectionlist)
+7001288 enter 5
+__12:
+7001291 rstack EAX,EBP:2
+7001295 push EAX
+7001297 mov ECX,1
+// strlen(...)
+7001300 call #7000025
+7001303 add ESP,1
+7001306 sstack EBP:-1,EAX
+7001310 rstack EAX,EBP:-1
+7001314 add EAX,1
+7001317 mov EBX,EAX
+7001319 sstack EBP:-2,EBX
+7001323 sstack EBP:-3,0
+// init loop
+7001328 sstack EBP:-3,0
+__14:
+7001333 rstack EAX,EBP:-3
+7001337 rstack EBX,EBP:-1
+7001341 sub EBX,EAX
+7001343 mov EAX,EBX
+7001345 fsgn EAX,EAX
+// condition
+7001347 max EAX,0
+7001350 cmp 0,EAX
+7001353 jz 7001436
+7001356 rstack EAX,EBP:-3
+7001360 rstack EBX,EBP:2
+7001364 add EBX,EAX
+7001366 mov EAX,EBX
+7001368 sstack EBP:-4,#EAX
+7001372 push #7000027
+7001375 rstack EAX,EBP:-4
+7001379 push EAX
+7001381 mov ECX,2
+// assert_type(...)
+7001384 call #7000021
+7001387 add ESP,2
+7001390 rstack EAX,EBP:-4
+7001394 push EAX
+7001396 mov ECX,1
+// section_get_linsize(...)
+7001399 call 7002027
+7001402 add ESP,1
+7001405 sstack EBP:-5,EAX
+7001409 rstack EAX,EBP:-5
+7001413 rstack EBX,EBP:-2
+// size+=section_size
+7001417 add EBX,EAX
+7001419 sstack EBP:-2,EBX
+7001423 rstack EAX,EBP:-3
+// loop step
+7001427 inc EAX
+7001429 sstack EBP:-3,EAX
+7001433 jmp 7001333
+__13:
+7001436 rstack EAX,EBP:-2
+7001440 leave 
+7001441 ret 
+__11:
+7001442 leave 
+7001443 ret 
+section_list_linearize:
+// section_list_linearize(sectionlist,newpos,readoffset,writeoffset)
+7001444 enter 6
+__16:
+7001447 rstack EAX,EBP:2
+7001451 push EAX
+7001453 mov ECX,1
+// strlen(...)
+7001456 call #7000025
+7001459 add ESP,1
+7001462 sstack EBP:-1,EAX
+7001466 rstack EAX,EBP:2
+// section_list_get_linsize arg #1 (float sectionlist)
+7001470 push EAX
+7001472 mov ECX,1
+// section_list_get_linsize(...)
+7001475 call 7001288
+7001478 add ESP,1
+7001481 sstack EBP:-2,EAX
+__18:
+7001485 rstack EAX,EBP:3
+7001489 lneg EAX
+7001491 mov EBX,EAX
+// if (!newpos)
+7001493 cmp 0,EBX
+7001496 jge 7001518
+7001499 rstack EAX,EBP:-2
+7001503 push EAX
+7001505 mov ECX,1
+// malloc(...)
+7001508 call #7000015
+7001511 add ESP,1
+// newpos=malloc(size)
+7001514 sstack EBP:3,EAX
+__19:
+__17:
+7001518 rstack EAX,EBP:-1
+7001522 add EAX,1
+7001525 mov EBX,EAX
+7001527 rstack EAX,EBP:3
+7001531 add EAX,EBX
+7001533 mov EBX,EAX
+7001535 sstack EBP:-3,EBX
+7001539 sstack EBP:-4,0
+// init loop
+7001544 sstack EBP:-4,0
+__21:
+7001549 rstack EAX,EBP:-4
+7001553 rstack EBX,EBP:-1
+7001557 sub EBX,EAX
+7001559 mov EAX,EBX
+7001561 fsgn EAX,EAX
+// condition
+7001563 max EAX,0
+7001566 cmp 0,EAX
+7001569 jz 7001724
+7001572 rstack EAX,EBP:4
+7001576 neg EAX
+7001578 mov EBX,EAX
+7001580 rstack EAX,EBP:-4
+7001584 rstack ECX,EBP:2
+7001588 add ECX,EAX
+7001590 mov EAX,ECX
+7001592 mov ECX,#EAX
+7001594 add ECX,EBX
+7001596 sstack EBP:-5,ECX
+7001600 push #7000027
+7001603 rstack EAX,EBP:-5
+7001607 push EAX
+7001609 mov ECX,2
+// assert_type(...)
+7001612 call #7000021
+7001615 add ESP,2
+7001618 rstack EAX,EBP:-5
+7001622 push EAX
+7001624 mov ECX,1
+// section_get_linsize(...)
+7001627 call 7002027
+7001630 add ESP,1
+7001633 sstack EBP:-6,EAX
+7001637 rstack EAX,EBP:5
+7001641 push EAX
+7001643 push 0
+7001646 rstack EAX,EBP:-3
+7001650 push EAX
+7001652 rstack EAX,EBP:-5
+7001656 push EAX
+7001658 mov ECX,4
+// section_linearize(...)
+7001661 call 7002076
+7001664 add ESP,4
+// section=section_linearize(section,ptr,0,writeoffset)
+7001667 sstack EBP:-5,EAX
+7001671 rstack EAX,EBP:5
+7001675 rstack EBX,EBP:-5
+7001679 add EBX,EAX
+7001681 mov EAX,EBX
+7001683 rstack EBX,EBP:-4
+7001687 rstack ECX,EBP:3
+7001691 add ECX,EBX
+7001693 mov EBX,ECX
+// newpos[I]=section+writeoffset
+7001695 mov #EBX,EAX
+7001697 rstack EAX,EBP:-6
+7001701 rstack EBX,EBP:-3
+// ptr+=section_size
+7001705 add EBX,EAX
+7001707 sstack EBP:-3,EBX
+7001711 rstack EAX,EBP:-4
+// loop step
+7001715 inc EAX
+7001717 sstack EBP:-4,EAX
+7001721 jmp 7001549
+__20:
+7001724 rstack EAX,EBP:-1
+7001728 rstack EBX,EBP:3
+7001732 add EBX,EAX
+7001734 mov EAX,EBX
+// newpos[numsections]=0
+7001736 mov #EAX,0
+7001739 rstack EAX,EBP:3
+7001743 leave 
+7001744 ret 
+__15:
+7001745 leave 
+7001746 ret 
+make_section_symtable:
+// make_section_symtable()
+7001747 enter 5
+__23:
+7001750 push 4
+7001753 mov ECX,1
+// malloc(...)
+7001756 call #7000015
+7001759 add ESP,1
+7001762 sstack EBP:-1,EAX
+7001766 sstack EBP:-2,3
+7001771 push #7007806
+7001774 mov ECX,1
+// symtable_get_linsize(...)
+7001777 call 7002310
+7001780 add ESP,1
+7001783 sstack EBP:-3,EAX
+7001787 rstack EAX,EBP:-3
+7001791 push EAX
+7001793 mov ECX,1
+// malloc(...)
+7001796 call #7000015
+7001799 add ESP,1
+7001802 sstack EBP:-4,EAX
+7001806 rstack EAX,EBP:-4
+7001810 neg EAX
+7001812 mov EBX,EAX
+7001814 push EBX
+7001816 push 0
+7001819 rstack EAX,EBP:-4
+7001823 push EAX
+7001825 push #7007806
+7001828 mov ECX,4
+// symtable_linearize(...)
+7001831 call 7002476
+7001834 add ESP,4
+7001837 sstack EBP:-5,EAX
+7001841 rstack EAX,EBP:-1
+7001845 add EAX,0
+7001848 mov EBX,EAX
+// section[0]=typeof_section
+7001850 mov #EBX,#7000027
+7001853 rstack EAX,EBP:-2
+7001857 rstack EBX,EBP:-1
+7001861 add EBX,1
+7001864 mov ECX,EBX
+// section[1]=type
+7001866 mov #ECX,EAX
+7001868 rstack EAX,EBP:-3
+7001872 rstack EBX,EBP:-1
+7001876 add EBX,2
+7001879 mov ECX,EBX
+// section[2]=size
+7001881 mov #ECX,EAX
+7001883 rstack EAX,EBP:-5
+7001887 rstack EBX,EBP:-1
+7001891 add EBX,3
+7001894 mov ECX,EBX
+// section[3]=section_data
+7001896 mov #ECX,EAX
+7001898 rstack EAX,EBP:-1
+7001902 leave 
+7001903 ret 
+__22:
+7001904 leave 
+7001905 ret 
+make_section_code:
+// make_section_code()
+7001906 enter 4
+__25:
+7001909 push 4
+7001912 mov ECX,1
+// malloc(...)
+7001915 call #7000015
+7001918 add ESP,1
+7001921 sstack EBP:-1,EAX
+7001925 sstack EBP:-2,0
+7001930 push #7000705
+7001933 mov ECX,1
+// vector_get_size(...)
+7001936 call #7000029
+7001939 add ESP,1
+7001942 sstack EBP:-3,EAX
+7001946 push #7000705
+7001949 mov ECX,1
+// vector_get_array(...)
+7001952 call #7000031
+7001955 add ESP,1
+7001958 sstack EBP:-4,EAX
+7001962 rstack EAX,EBP:-1
+7001966 add EAX,0
+7001969 mov EBX,EAX
+// section[0]=typeof_section
+7001971 mov #EBX,#7000027
+7001974 rstack EAX,EBP:-2
+7001978 rstack EBX,EBP:-1
+7001982 add EBX,1
+7001985 mov ECX,EBX
+// section[1]=type
+7001987 mov #ECX,EAX
+7001989 rstack EAX,EBP:-3
+7001993 rstack EBX,EBP:-1
+7001997 add EBX,2
+7002000 mov ECX,EBX
+// section[2]=size
+7002002 mov #ECX,EAX
+7002004 rstack EAX,EBP:-4
+7002008 rstack EBX,EBP:-1
+7002012 add EBX,3
+7002015 mov ECX,EBX
+// section[3]=section_data
+7002017 mov #ECX,EAX
+7002019 rstack EAX,EBP:-1
+7002023 leave 
+7002024 ret 
+__24:
+7002025 leave 
+7002026 ret 
+section_get_linsize:
+// section_get_linsize(section)
+7002027 enter 1
+__27:
+7002030 push #7000027
+7002033 rstack EAX,EBP:2
+7002037 push EAX
+7002039 mov ECX,2
+// assert_type(...)
+7002042 call #7000021
+7002045 add ESP,2
+7002048 rstack EAX,EBP:2
+7002052 add EAX,2
+7002055 mov EBX,EAX
+7002057 sstack EBP:-1,#EBX
+7002061 rstack EAX,EBP:-1
+7002065 mov EBX,#7000033
+7002068 add EBX,EAX
+7002070 mov EAX,EBX
+7002072 leave 
+7002073 ret 
+__26:
+7002074 leave 
+7002075 ret 
+section_linearize:
+// section_linearize(section,newpos,readoffset,writeoffset)
+7002076 enter 4
+__29:
+7002079 push #7000027
+7002082 rstack EAX,EBP:2
+7002086 push EAX
+7002088 mov ECX,2
+// assert_type(...)
+7002091 call #7000021
+7002094 add ESP,2
+7002097 rstack EAX,EBP:2
+// section_get_linsize arg #1 (float section)
+7002101 push EAX
+7002103 mov ECX,1
+// section_get_linsize(...)
+7002106 call 7002027
+7002109 add ESP,1
+7002112 sstack EBP:-1,EAX
+__31:
+7002116 rstack EAX,EBP:3
+7002120 lneg EAX
+7002122 mov EBX,EAX
+// if (!newpos)
+7002124 cmp 0,EBX
+7002127 jge 7002149
+7002130 rstack EAX,EBP:-1
+7002134 push EAX
+7002136 mov ECX,1
+// malloc(...)
+7002139 call #7000015
+7002142 add ESP,1
+// newpos=malloc(newsize)
+7002145 sstack EBP:3,EAX
+__32:
+__30:
+7002149 rstack EAX,EBP:3
+7002153 add EAX,0
+7002156 mov EBX,EAX
+// newpos[0]=typeof_section
+7002158 mov #EBX,#7000027
+7002161 rstack EAX,EBP:2
+7002165 add EAX,1
+7002168 mov EBX,EAX
+7002170 rstack EAX,EBP:3
+7002174 add EAX,1
+7002177 mov ECX,EAX
+// newpos[1]=section[1]
+7002179 mov #ECX,#EBX
+7002181 rstack EAX,EBP:2
+7002185 add EAX,2
+7002188 mov EBX,EAX
+7002190 rstack EAX,EBP:3
+7002194 add EAX,2
+7002197 mov ECX,EAX
+// newpos[2]=section[2]
+7002199 mov #ECX,#EBX
+7002201 rstack EAX,EBP:3
+7002205 add EAX,#7000033
+7002208 mov EBX,EAX
+7002210 sstack EBP:-2,EBX
+7002214 rstack EAX,EBP:5
+7002218 rstack EBX,EBP:-2
+7002222 add EBX,EAX
+7002224 mov EAX,EBX
+7002226 rstack EBX,EBP:3
+7002230 add EBX,3
+7002233 mov ECX,EBX
+// newpos[3]=ptr+writeoffset
+7002235 mov #ECX,EAX
+7002237 rstack EAX,EBP:2
+7002241 add EAX,2
+7002244 mov EBX,EAX
+7002246 sstack EBP:-3,#EBX
+7002250 rstack EAX,EBP:4
+7002254 neg EAX
+7002256 mov EBX,EAX
+7002258 rstack EAX,EBP:2
+7002262 add EAX,3
+7002265 mov ECX,EAX
+7002267 mov EAX,#ECX
+7002269 add EAX,EBX
+7002271 sstack EBP:-4,EAX
+7002275 rstack EAX,EBP:-3
+7002279 push EAX
+7002281 rstack EAX,EBP:-4
+7002285 push EAX
+7002287 rstack EAX,EBP:-2
+7002291 push EAX
+7002293 mov ECX,3
+// memcpy(...)
+7002296 call #7000035
+7002299 add ESP,3
+7002302 rstack EAX,EBP:3
+7002306 leave 
+7002307 ret 
+__28:
+7002308 leave 
+7002309 ret 
+symtable_get_linsize:
+// symtable_get_linsize(symtable)
+7002310 enter 4
+__34:
+7002313 rstack EAX,EBP:2
+7002317 push EAX
+7002319 mov ECX,1
+// vector_get_size(...)
+7002322 call #7000029
+7002325 add ESP,1
+7002328 sstack EBP:-1,EAX
+7002332 rstack EAX,EBP:2
+7002336 push EAX
+7002338 mov ECX,1
+// vector_get_linsize(...)
+7002341 call 7003321
+7002344 add ESP,1
+7002347 sstack EBP:-2,EAX
+7002351 sstack EBP:-3,0
+// init loop
+7002356 sstack EBP:-3,0
+__36:
+7002361 rstack EAX,EBP:-3
+7002365 rstack EBX,EBP:-1
+7002369 sub EBX,EAX
+7002371 mov EAX,EBX
+7002373 fsgn EAX,EAX
+// condition
+7002375 max EAX,0
+7002378 cmp 0,EAX
+7002381 jz 7002468
+7002384 rstack EAX,EBP:-3
+7002388 push EAX
+7002390 push 0
+7002393 rstack EAX,EBP:2
+7002397 push EAX
+7002399 mov ECX,3
+// vector_get(...)
+7002402 call #7000037
+7002405 add ESP,3
+7002408 sstack EBP:-4,EAX
+7002412 push #7000039
+7002415 rstack EAX,EBP:-4
+7002419 push EAX
+7002421 mov ECX,2
+// assert_type(...)
+7002424 call #7000021
+7002427 add ESP,2
+7002430 rstack EAX,EBP:-4
+7002434 push EAX
+7002436 mov ECX,1
+// symbol_get_linsize(...)
+7002439 call 7002853
+7002442 add ESP,1
+7002445 rstack EBX,EBP:-2
+// size+=symbol_get_linsize(sym)
+7002449 add EBX,EAX
+7002451 sstack EBP:-2,EBX
+7002455 rstack EAX,EBP:-3
+// loop step
+7002459 inc EAX
+7002461 sstack EBP:-3,EAX
+7002465 jmp 7002361
+__35:
+7002468 rstack EAX,EBP:-2
+7002472 leave 
+7002473 ret 
+__33:
+7002474 leave 
+7002475 ret 
+symtable_linearize:
+// symtable_linearize(symtable,newpos,readoffset,writeoffset)
+7002476 enter 10
+__38:
+7002479 rstack EAX,EBP:2
+7002483 push EAX
+7002485 mov ECX,1
+// vector_get_size(...)
+7002488 call #7000029
+7002491 add ESP,1
+7002494 sstack EBP:-1,EAX
+7002498 rstack EAX,EBP:2
+// symtable_get_linsize arg #1 (float symtable)
+7002502 push EAX
+7002504 mov ECX,1
+// symtable_get_linsize(...)
+7002507 call 7002310
+7002510 add ESP,1
+7002513 sstack EBP:-2,EAX
+__40:
+7002517 rstack EAX,EBP:3
+7002521 lneg EAX
+7002523 mov EBX,EAX
+// if (!newpos)
+7002525 cmp 0,EBX
+7002528 jge 7002550
+7002531 rstack EAX,EBP:-2
+7002535 push EAX
+7002537 mov ECX,1
+// malloc(...)
+7002540 call #7000015
+7002543 add ESP,1
+// newpos=malloc(newsize)
+7002546 sstack EBP:3,EAX
+__41:
+__39:
+7002550 rstack EAX,EBP:3
+7002554 sstack EBP:-3,EAX
+7002558 rstack EAX,EBP:2
+7002562 push EAX
+7002564 mov ECX,1
+// vector_get_linsize(...)
+7002567 call 7003321
+7002570 add ESP,1
+7002573 sstack EBP:-4,EAX
+7002577 rstack EAX,EBP:5
+7002581 push EAX
+7002583 push 0
+7002586 rstack EAX,EBP:-3
+7002590 push EAX
+7002592 rstack EAX,EBP:2
+7002596 push EAX
+7002598 mov ECX,4
+// vector_linearize2(...)
+7002601 call 7003368
+7002604 add ESP,4
+7002607 rstack EAX,EBP:-3
+7002611 sstack EBP:-5,EAX
+7002615 rstack EAX,EBP:-5
+7002619 add EAX,#7000041
+7002622 mov EBX,EAX
+7002624 sstack EBP:-6,EBX
+7002628 rstack EAX,EBP:-4
+7002632 rstack EBX,EBP:-3
+// ptr+=vsize
+7002636 add EBX,EAX
+7002638 sstack EBP:-3,EBX
+7002642 sstack EBP:-7,0
+// init loop
+7002647 sstack EBP:-7,0
+__43:
+7002652 rstack EAX,EBP:-7
+7002656 rstack EBX,EBP:-1
+7002660 sub EBX,EAX
+7002662 mov EAX,EBX
+7002664 fsgn EAX,EAX
+// condition
+7002666 max EAX,0
+7002669 cmp 0,EAX
+7002672 jz 7002845
+7002675 rstack EAX,EBP:-7
+7002679 push EAX
+7002681 push 0
+7002684 rstack EAX,EBP:2
+7002688 push EAX
+7002690 mov ECX,3
+// vector_get(...)
+7002693 call #7000037
+7002696 add ESP,3
+7002699 sstack EBP:-8,EAX
+7002703 rstack EAX,EBP:4
+7002707 rstack EBX,EBP:-8
+// sym-=readoffset
+7002711 sub EBX,EAX
+7002713 sstack EBP:-8,EBX
+7002717 push #7000039
+7002720 rstack EAX,EBP:-8
+7002724 push EAX
+7002726 mov ECX,2
+// assert_type(...)
+7002729 call #7000021
+7002732 add ESP,2
+7002735 rstack EAX,EBP:-8
+7002739 push EAX
+7002741 mov ECX,1
+// symbol_get_linsize(...)
+7002744 call 7002853
+7002747 add ESP,1
+7002750 sstack EBP:-9,EAX
+7002754 rstack EAX,EBP:5
+7002758 push EAX
+7002760 push 0
+7002763 rstack EAX,EBP:-3
+7002767 push EAX
+7002769 rstack EAX,EBP:-8
+7002773 push EAX
+7002775 mov ECX,4
+// symbol_linearize(...)
+7002778 call 7002976
+7002781 add ESP,4
+7002784 rstack EAX,EBP:5
+7002788 rstack EBX,EBP:-3
+7002792 add EBX,EAX
+7002794 mov EAX,EBX
+7002796 sstack EBP:-10,EAX
+7002800 rstack EAX,EBP:-10
+7002804 rstack EBX,EBP:-7
+7002808 rstack ECX,EBP:-6
+7002812 add ECX,EBX
+7002814 mov EBX,ECX
+// vdata[I]=newptr
+7002816 mov #EBX,EAX
+7002818 rstack EAX,EBP:-9
+7002822 rstack EBX,EBP:-3
+// ptr+=symsize
+7002826 add EBX,EAX
+7002828 sstack EBP:-3,EBX
+7002832 rstack EAX,EBP:-7
+// loop step
+7002836 inc EAX
+7002838 sstack EBP:-7,EAX
+7002842 jmp 7002652
+__42:
+7002845 rstack EAX,EBP:3
+7002849 leave 
+7002850 ret 
+__37:
+7002851 leave 
+7002852 ret 
+symbol_get_linsize:
+// symbol_get_linsize(sym)
+7002853 enter 3
+__45:
+7002856 push #7000039
+7002859 rstack EAX,EBP:2
+7002863 push EAX
+7002865 mov ECX,2
+// assert_type(...)
+7002868 call #7000021
+7002871 add ESP,2
+7002874 rstack EAX,EBP:2
+7002878 add EAX,1
+7002881 mov EBX,EAX
+7002883 sstack EBP:-1,#EBX
+7002887 rstack EAX,EBP:2
+7002891 add EAX,3
+7002894 mov EBX,EAX
+7002896 sstack EBP:-2,#EBX
+7002900 sstack EBP:-3,#7000043
+7002905 rstack EAX,EBP:-1
+7002909 push EAX
+7002911 mov ECX,1
+// strlen(...)
+7002914 call #7000025
+7002917 add ESP,1
+7002920 add EAX,1
+7002923 rstack EBX,EBP:-3
+// size+=strlen(name)+1
+7002927 add EBX,EAX
+7002929 sstack EBP:-3,EBX
+__47:
+7002933 rstack EAX,EBP:-2
+// if (refs)
+7002937 cmp 0,EAX
+7002940 jge 7002968
+7002943 rstack EAX,EBP:-2
+7002947 push EAX
+7002949 mov ECX,1
+// vector_get_linsize(...)
+7002952 call 7003321
+7002955 add ESP,1
+7002958 rstack EBX,EBP:-3
+// size+=vector_get_linsize(refs)
+7002962 add EBX,EAX
+7002964 sstack EBP:-3,EBX
+__48:
+__46:
+7002968 rstack EAX,EBP:-3
+7002972 leave 
+7002973 ret 
+__44:
+7002974 leave 
+7002975 ret 
+symbol_linearize:
+// symbol_linearize(sym,newpos,readoffset,writeoffset)
+7002976 enter 6
+__50:
+7002979 push #7000039
+7002982 rstack EAX,EBP:2
+7002986 push EAX
+7002988 mov ECX,2
+// assert_type(...)
+7002991 call #7000021
+7002994 add ESP,2
+7002997 rstack EAX,EBP:2
+// symbol_get_linsize arg #1 (float sym)
+7003001 push EAX
+7003003 mov ECX,1
+// symbol_get_linsize(...)
+7003006 call 7002853
+7003009 add ESP,1
+7003012 sstack EBP:-1,EAX
+7003016 rstack EAX,EBP:2
+7003020 add EAX,1
+7003023 mov EBX,EAX
+7003025 sstack EBP:-2,#EBX
+7003029 rstack EAX,EBP:4
+7003033 neg EAX
+7003035 mov EBX,EAX
+7003037 rstack EAX,EBP:2
+7003041 add EAX,3
+7003044 mov ECX,EAX
+7003046 mov EAX,#ECX
+7003048 add EAX,EBX
+7003050 sstack EBP:-3,EAX
+__52:
+7003054 rstack EAX,EBP:3
+7003058 lneg EAX
+7003060 mov EBX,EAX
+// if (!newpos)
+7003062 cmp 0,EBX
+7003065 jge 7003087
+7003068 rstack EAX,EBP:-1
+7003072 push EAX
+7003074 mov ECX,1
+// malloc(...)
+7003077 call #7000015
+7003080 add ESP,1
+// newpos=malloc(size)
+7003083 sstack EBP:3,EAX
+__53:
+__51:
+7003087 rstack EAX,EBP:3
+7003091 add EAX,#7000043
+7003094 mov EBX,EAX
+7003096 sstack EBP:-4,EBX
+7003100 rstack EAX,EBP:-2
+7003104 push EAX
+7003106 mov ECX,1
+// strlen(...)
+7003109 call #7000025
+7003112 add ESP,1
+7003115 sstack EBP:-5,EAX
+7003119 rstack EAX,EBP:-5
+7003123 push EAX
+7003125 rstack EAX,EBP:-2
+7003129 push EAX
+7003131 rstack EAX,EBP:-4
+7003135 push EAX
+7003137 mov ECX,3
+// memcpy(...)
+7003140 call #7000035
+7003143 add ESP,3
+7003146 rstack EAX,EBP:-4
+7003150 sstack EBP:-6,EAX
+7003154 rstack EAX,EBP:-5
+7003158 rstack EBX,EBP:-4
+// ptr+=len
+7003162 add EBX,EAX
+7003164 sstack EBP:-4,EBX
+7003168 rstack EAX,EBP:-4
+7003172 mov EBX,EAX
+7003174 inc EAX
+7003176 sstack EBP:-4,EAX
+// *ptr++=0
+7003180 mov #EBX,0
+7003183 rstack EAX,EBP:3
+7003187 add EAX,3
+7003190 mov EBX,EAX
+// newpos[3]=0
+7003192 mov #EBX,0
+__55:
+7003195 rstack EAX,EBP:-3
+// if (refs)
+7003199 cmp 0,EAX
+7003202 jge 7003258
+7003205 rstack EAX,EBP:5
+7003209 push EAX
+7003211 push 0
+7003214 rstack EAX,EBP:-4
+7003218 push EAX
+7003220 rstack EAX,EBP:-3
+7003224 push EAX
+7003226 mov ECX,4
+// vector_linearize2(...)
+7003229 call 7003368
+7003232 add ESP,4
+7003235 rstack EAX,EBP:5
+7003239 rstack EBX,EBP:-4
+7003243 add EBX,EAX
+7003245 mov EAX,EBX
+7003247 rstack EBX,EBP:3
+7003251 add EBX,3
+7003254 mov ECX,EBX
+// newpos[3]=ptr+writeoffset
+7003256 mov #ECX,EAX
+__56:
+__54:
+7003258 rstack EAX,EBP:3
+7003262 add EAX,0
+7003265 mov EBX,EAX
+// newpos[0]=typeof_symbol
+7003267 mov #EBX,#7000039
+7003270 rstack EAX,EBP:5
+7003274 rstack EBX,EBP:-6
+7003278 add EBX,EAX
+7003280 mov EAX,EBX
+7003282 rstack EBX,EBP:3
+7003286 add EBX,1
+7003289 mov ECX,EBX
+// newpos[1]=name2+writeoffset
+7003291 mov #ECX,EAX
+7003293 rstack EAX,EBP:2
+7003297 add EAX,2
+7003300 mov EBX,EAX
+7003302 rstack EAX,EBP:3
+7003306 add EAX,2
+7003309 mov ECX,EAX
+// newpos[2]=sym[2]
+7003311 mov #ECX,#EBX
+7003313 rstack EAX,EBP:3
+7003317 leave 
+7003318 ret 
+__49:
+7003319 leave 
+7003320 ret 
+vector_get_linsize:
+// vector_get_linsize(v)
+7003321 enter -0
+__58:
+7003324 push #7000045
+7003327 rstack EAX,EBP:2
+7003331 push EAX
+7003333 mov ECX,2
+// assert_type(...)
+7003336 call #7000021
+7003339 add ESP,2
+7003342 rstack EAX,EBP:2
+7003346 push EAX
+7003348 mov ECX,1
+// vector_get_size(...)
+7003351 call #7000029
+7003354 add ESP,1
+7003357 mov EBX,#7000041
+7003360 add EBX,EAX
+7003362 mov EAX,EBX
+7003364 leave 
+7003365 ret 
+__57:
+7003366 leave 
+7003367 ret 
+vector_linearize2:
+// vector_linearize2(v,newpos,readoffset,writeoffset)
+7003368 enter 4
+__60:
+7003371 push #7000045
+7003374 rstack EAX,EBP:2
+7003378 push EAX
+7003380 mov ECX,2
+// assert_type(...)
+7003383 call #7000021
+7003386 add ESP,2
+7003389 rstack EAX,EBP:2
+7003393 push EAX
+7003395 mov ECX,1
+// vector_get_size(...)
+7003398 call #7000029
+7003401 add ESP,1
+7003404 sstack EBP:-1,EAX
+7003408 rstack EAX,EBP:2
+// vector_get_linsize arg #1 (float v)
+7003412 push EAX
+7003414 mov ECX,1
+// vector_get_linsize(...)
+7003417 call 7003321
+7003420 add ESP,1
+7003423 sstack EBP:-2,EAX
+__62:
+7003427 rstack EAX,EBP:3
+7003431 lneg EAX
+7003433 mov EBX,EAX
+// if (!newpos)
+7003435 cmp 0,EBX
+7003438 jge 7003460
+7003441 rstack EAX,EBP:-2
+7003445 push EAX
+7003447 mov ECX,1
+// malloc(...)
+7003450 call #7000015
+7003453 add ESP,1
+// newpos=malloc(size)
+7003456 sstack EBP:3,EAX
+__63:
+__61:
+7003460 rstack EAX,EBP:3
+7003464 add EAX,#7000041
+7003467 mov EBX,EAX
+7003469 sstack EBP:-3,EBX
+7003473 rstack EAX,EBP:4
+7003477 neg EAX
+7003479 mov EBX,EAX
+7003481 rstack EAX,EBP:2
+7003485 add EAX,1
+7003488 mov ECX,EAX
+7003490 mov EAX,#ECX
+7003492 add EAX,EBX
+7003494 sstack EBP:-4,EAX
+7003498 rstack EAX,EBP:3
+7003502 add EAX,0
+7003505 mov EBX,EAX
+// newpos[0]=typeof_vector
+7003507 mov #EBX,#7000045
+7003510 rstack EAX,EBP:5
+7003514 rstack EBX,EBP:-3
+7003518 add EBX,EAX
+7003520 mov EAX,EBX
+7003522 rstack EBX,EBP:3
+7003526 add EBX,1
+7003529 mov ECX,EBX
+// newpos[1]=ptr+writeoffset
+7003531 mov #ECX,EAX
+7003533 rstack EAX,EBP:-1
+7003537 rstack EBX,EBP:3
+7003541 add EBX,2
+7003544 mov ECX,EBX
+// newpos[2]=num
+7003546 mov #ECX,EAX
+7003548 rstack EAX,EBP:-1
+7003552 rstack EBX,EBP:3
+7003556 add EBX,3
+7003559 mov ECX,EBX
+// newpos[3]=num
+7003561 mov #ECX,EAX
+7003563 rstack EAX,EBP:3
+7003567 add EAX,4
+7003570 mov EBX,EAX
+// newpos[4]=1
+7003572 mov #EBX,1
+7003575 rstack EAX,EBP:-1
+7003579 push EAX
+7003581 rstack EAX,EBP:-4
+7003585 push EAX
+7003587 rstack EAX,EBP:-3
+7003591 push EAX
+7003593 mov ECX,3
+// memcpy(...)
+7003596 call #7000035
+7003599 add ESP,3
+7003602 rstack EAX,EBP:3
+7003606 leave 
+7003607 ret 
+__59:
+7003608 leave 
+7003609 ret 
+printVector:
+// printVector(v,readoffset)
+7003610 enter 4
+__65:
+7003613 rstack EAX,EBP:2
+7003617 push EAX
+7003619 mov ECX,1
+// vector_get_size(...)
+7003622 call #7000029
+7003625 add ESP,1
+7003628 sstack EBP:-1,EAX
+7003632 rstack EAX,EBP:3
+7003636 rstack EBX,EBP:2
+7003640 add EBX,1
+7003643 mov ECX,EBX
+// v[1]-=readoffset
+7003645 sub #ECX,EAX
+// init loop
+7003647 sstack EBP:-2,0
+__67:
+7003652 rstack EAX,EBP:-2
+7003656 rstack EBX,EBP:-1
+7003660 sub EBX,EAX
+7003662 mov EAX,EBX
+7003664 fsgn EAX,EAX
+// condition
+7003666 max EAX,0
+7003669 cmp 0,EAX
+7003672 jz 7003773
+7003675 rstack EAX,EBP:-2
+7003679 push EAX
+7003681 push 0
+7003684 rstack EAX,EBP:2
+7003688 push EAX
+7003690 mov ECX,3
+// vector_get(...)
+7003693 call #7000037
+7003696 add ESP,3
+7003699 sstack EBP:-3,EAX
+7003703 rstack EAX,EBP:2
+7003707 add EAX,1
+7003710 mov EBX,EAX
+7003712 sstack EBP:-4,#EBX
+7003716 rstack EAX,EBP:-2
+7003720 rstack EBX,EBP:-4
+// ptr+=I
+7003724 add EBX,EAX
+7003726 sstack EBP:-4,EBX
+7003730 rstack EAX,EBP:-3
+7003734 push EAX
+7003736 rstack EAX,EBP:-4
+7003740 push EAX
+7003742 rstack EAX,EBP:-2
+7003746 push EAX
+7003748 push 7003790
+7003751 mov ECX,4
+// printf(...)
+7003754 call #7000047
+7003757 add ESP,4
+7003760 rstack EAX,EBP:-2
+// loop step
+7003764 inc EAX
+7003766 sstack EBP:-2,EAX
+7003770 jmp 7003652
+__66:
+7003773 rstack EAX,EBP:3
+7003777 rstack EBX,EBP:2
+7003781 add EBX,1
+7003784 mov ECX,EBX
+// v[1]+=readoffset
+7003786 add #ECX,EAX
+__64:
+7003788 leave 
+7003789 ret 
+__68:
+7003790 db "%d @ %d %d
+",0
+expectedError:
+// expectedError(str)
+7003802 enter -0
+__70:
+7003805 mov ECX,0
+// pointOutErr(...)
+7003808 call 7013535
+7003811 rstack EAX,EBP:2
+7003815 push EAX
+7003817 mov ECX,1
+// Perr(...)
+7003820 call #7000049
+7003823 add ESP,1
+7003826 push 7003846
+7003829 mov ECX,1
+// Perr(...)
+7003832 call #7000049
+7003835 add ESP,1
+7003838 mov ECX,0
+// shell_panic(...)
+7003841 call #7000051
+__69:
+7003844 leave 
+7003845 ret 
+__71:
+7003846 db " expected
+",0
+str_expected:
+7003857 alloc 1
+parse_expect:
+// parse_expect(input,str)
+7003858 enter 1
+__73:
+7003861 rstack EAX,EBP:3
+// str_expected=str
+7003865 mov #7003857,EAX
+__75:
+7003868 rstack EAX,EBP:3
+7003872 push EAX
+7003874 rstack EAX,EBP:2
+7003878 push EAX
+7003880 mov ECX,2
+// parse_accept(...)
+7003883 call 7007694
+7003886 add ESP,2
+7003889 lneg EAX
+// if (!parse_accept(input,str))
+7003891 cmp 0,EAX
+7003894 jge 7003937
+7003897 push 7003939
+7003900 rstack EAX,EBP:3
+7003904 push EAX
+7003906 push 7003939
+7003909 mov ECX,3
+// concat(...)
+7003912 call #7000053
+7003915 add ESP,3
+7003918 sstack EBP:-1,EAX
+7003922 rstack EAX,EBP:-1
+// expectedError arg #1 (float str)
+7003926 push EAX
+7003928 mov ECX,1
+// expectedError(...)
+7003931 call 7003802
+7003934 add ESP,1
+__76:
+__74:
+__72:
+7003937 leave 
+7003938 ret 
+__77:
+7003939 db """,0
+parse_acceptNum:
+// parse_acceptNum(input,num)
+7003941 enter 3
+__79:
+7003944 rstack EAX,EBP:2
+7003948 sstack EBP:-1,#EAX
+7003952 sstack EBP:-2,0
+7003957 sstack EBP:-3,-999
+7003962 mov EAX,SS:ESP
+7003965 add EAX,-2
+7003968 push EAX
+7003970 rstack EAX,EBP:2
+7003974 push #EAX
+7003976 mov ECX,2
+// str2num2(...)
+7003979 call 7009055
+7003982 add ESP,2
+// n=str2num2(*input,&I)
+7003985 sstack EBP:-3,EAX
+__81:
+7003989 rstack EAX,EBP:-2
+// if (I)
+7003993 cmp 0,EAX
+7003996 jge 7004032
+7003999 rstack EAX,EBP:-3
+7004003 rstack EBX,EBP:3
+// *num=n
+7004007 mov #EBX,EAX
+7004009 rstack EAX,EBP:-2
+7004013 rstack EBX,EBP:2
+7004017 mov ECX,#EBX
+7004019 add ECX,EAX
+7004021 rstack EAX,EBP:2
+// *input=*input+I
+7004025 mov #EAX,ECX
+7004027 mov EAX,1
+7004030 leave 
+7004031 ret 
+__82:
+__80:
+7004032 rstack EAX,EBP:-1
+7004036 rstack EBX,EBP:2
+// *input=inp
+7004040 mov #EBX,EAX
+7004042 mov EAX,0
+7004045 leave 
+7004046 ret 
+__78:
+7004047 leave 
+7004048 ret 
+parse_expectNum:
+// parse_expectNum(input,num)
+7004049 enter -0
+__84:
+__86:
+7004052 rstack EAX,EBP:3
+// parse_acceptNum arg #2 (float* num)
+7004056 push EAX
+7004058 rstack EAX,EBP:2
+// parse_acceptNum arg #1 (float* input)
+7004062 push EAX
+7004064 mov ECX,2
+// parse_acceptNum(...)
+7004067 call 7003941
+7004070 add ESP,2
+7004073 lneg EAX
+// if (!parse_acceptNum(input,num))
+7004075 cmp 0,EAX
+7004078 jge 7004093
+// expectedError arg #1 (float str)
+7004081 push 7004095
+7004084 mov ECX,1
+// expectedError(...)
+7004087 call 7003802
+7004090 add ESP,1
+__87:
+__85:
+__83:
+7004093 leave 
+7004094 ret 
+__88:
+7004095 db "number",0
+parse_acceptSegment:
+// parse_acceptSegment(input,seg)
+7004102 enter 4
+__90:
+7004105 rstack EAX,EBP:2
+7004109 sstack EBP:-1,#EAX
+// init loop
+7004113 sstack EBP:-2,0
+__92:
+7004118 rstack EAX,EBP:-2
+7004122 mov EBX,16
+7004125 sub EBX,EAX
+7004127 fsgn EBX,EBX
+// condition
+7004129 max EBX,0
+7004132 cmp 0,EBX
+7004135 jz 7004259
+7004138 rstack EAX,EBP:-2
+7004142 mov EBX,7010952
+7004145 add EBX,EAX
+7004147 sstack EBP:-3,EBX
+7004151 rstack EAX,EBP:-3
+// seg_str=*seg_str
+7004155 sstack EBP:-3,#EAX
+__94:
+7004159 rstack EAX,EBP:-3
+7004163 push EAX
+7004165 rstack EAX,EBP:2
+7004169 push EAX
+7004171 mov ECX,2
+// parse_accept(...)
+7004174 call 7007694
+7004177 add ESP,2
+// if (parse_accept(input,seg_str))
+7004180 cmp 0,EAX
+7004183 jge 7004246
+__98:
+7004186 push 7004276
+7004189 rstack EAX,EBP:2
+7004193 push EAX
+7004195 mov ECX,2
+// parse_accept(...)
+7004198 call 7007694
+7004201 add ESP,2
+// if (parse_accept(input,":"))
+7004204 cmp 0,EAX
+7004207 jge 7004246
+7004210 rstack EAX,EBP:-2
+7004214 add EAX,1
+7004217 mov EBX,EAX
+7004219 sstack EBP:-4,EBX
+7004223 rstack EAX,EBP:-2
+7004227 add EAX,1
+7004230 mov EBX,EAX
+7004232 rstack EAX,EBP:3
+// *seg=I+1
+7004236 mov #EAX,EBX
+7004238 mov EAX,1
+7004241 leave 
+7004242 ret 
+7004243 jmp 7004246
+__100:
+__99:
+__102:
+__101:
+__97:
+__95:
+__93:
+7004246 rstack EAX,EBP:-2
+// loop step
+7004250 inc EAX
+7004252 sstack EBP:-2,EAX
+7004256 jmp 7004118
+__91:
+7004259 rstack EAX,EBP:-1
+7004263 rstack EBX,EBP:2
+// *input=inp
+7004267 mov #EBX,EAX
+7004269 mov EAX,0
+7004272 leave 
+7004273 ret 
+__89:
+7004274 leave 
+7004275 ret 
+__96:
+7004276 db ":",0
+parse_acceptReg:
+// parse_acceptReg(input,reg)
+7004278 enter 4
+__104:
+7004281 rstack EAX,EBP:2
+7004285 sstack EBP:-1,#EAX
+// init loop
+7004289 sstack EBP:-2,0
+__106:
+7004294 rstack EAX,EBP:-2
+7004298 mov EBX,16
+7004301 sub EBX,EAX
+7004303 fsgn EBX,EBX
+// condition
+7004305 max EBX,0
+7004308 cmp 0,EBX
+7004311 jz 7004403
+7004314 rstack EAX,EBP:-2
+7004318 mov EBX,7010969
+7004321 add EBX,EAX
+7004323 sstack EBP:-3,EBX
+7004327 rstack EAX,EBP:-3
+// reg_str=*reg_str
+7004331 sstack EBP:-3,#EAX
+__108:
+7004335 rstack EAX,EBP:-3
+7004339 push EAX
+7004341 rstack EAX,EBP:2
+7004345 push EAX
+7004347 mov ECX,2
+// parse_accept(...)
+7004350 call 7007694
+7004353 add ESP,2
+// if (parse_accept(input,reg_str))
+7004356 cmp 0,EAX
+7004359 jge 7004390
+7004362 rstack EAX,EBP:-2
+7004366 add EAX,1
+7004369 mov EBX,EAX
+7004371 rstack EAX,EBP:3
+// *reg=I+1
+7004375 mov #EAX,EBX
+7004377 rstack EAX,EBP:3
+7004381 sstack EBP:-4,#EAX
+7004385 mov EAX,1
+7004388 leave 
+7004389 ret 
+__109:
+__107:
+7004390 rstack EAX,EBP:-2
+// loop step
+7004394 inc EAX
+7004396 sstack EBP:-2,EAX
+7004400 jmp 7004294
+__105:
+7004403 rstack EAX,EBP:-1
+7004407 rstack EBX,EBP:2
+// *input=inp
+7004411 mov #EBX,EAX
+7004413 mov EAX,0
+7004416 leave 
+7004417 ret 
+__103:
+7004418 leave 
+7004419 ret 
+parse_acceptOperand:
+// parse_acceptOperand(input,rm,seg,op,errFunc,offs)
+7004420 enter 4
+__111:
+7004423 rstack EAX,EBP:2
+7004427 sstack EBP:-1,#EAX
+7004431 sstack EBP:-2,0
+7004436 sstack EBP:-3,0
+7004441 sstack EBP:-4,0
+7004446 rstack EAX,EBP:3
+// *rm=0
+7004450 mov #EAX,0
+7004453 rstack EAX,EBP:4
+// *seg=-4
+7004457 mov #EAX,-4
+7004460 rstack EAX,EBP:5
+// *op=0
+7004464 mov #EAX,0
+7004467 rstack EAX,EBP:4
+// parse_acceptSegment arg #2 (float* seg)
+7004471 push EAX
+7004473 rstack EAX,EBP:2
+// parse_acceptSegment arg #1 (float* input)
+7004477 push EAX
+7004479 mov ECX,2
+// parse_acceptSegment(...)
+7004482 call 7004102
+7004485 add ESP,2
+__114:
+7004488 push 7004895
+7004491 rstack EAX,EBP:2
+7004495 push EAX
+7004497 mov ECX,2
+// parse_accept(...)
+7004500 call 7007694
+7004503 add ESP,2
+// if (parse_accept(input,"#"))
+7004506 cmp 0,EAX
+7004509 jge 7004517
+// memcell=1
+7004512 sstack EBP:-2,1
+__115:
+__113:
+__117:
+7004517 rstack EAX,EBP:5
+// parse_acceptReg arg #2 (float* reg)
+7004521 push EAX
+7004523 rstack EAX,EBP:2
+// parse_acceptReg arg #1 (float* input)
+7004527 push EAX
+7004529 mov ECX,2
+// parse_acceptReg(...)
+7004532 call 7004278
+7004535 add ESP,2
+// if (parse_acceptReg(input,op))
+7004538 cmp 0,EAX
+7004541 jge 7004552
+// regnum=1
+7004544 sstack EBP:-4,1
+7004549 jmp 7004641
+__119:
+__118:
+__121:
+__123:
+7004552 rstack EAX,EBP:5
+// parse_acceptNum arg #2 (float* num)
+7004556 push EAX
+7004558 rstack EAX,EBP:2
+// parse_acceptNum arg #1 (float* input)
+7004562 push EAX
+7004564 mov ECX,2
+// parse_acceptNum(...)
+7004567 call 7003941
+7004570 add ESP,2
+// if (parse_acceptNum(input,op))
+7004573 cmp 0,EAX
+7004576 jge 7004587
+// constnum=1
+7004579 sstack EBP:-3,1
+7004584 jmp 7004641
+__125:
+__124:
+__127:
+__129:
+7004587 push 7000620
+7004590 rstack EAX,EBP:2
+7004594 push EAX
+7004596 mov ECX,2
+// parse_acceptIdent(...)
+7004599 call 7004990
+7004602 add ESP,2
+// if (parse_acceptIdent(input,asm_ident))
+7004605 cmp 0,EAX
+7004608 jge 7004641
+7004611 rstack EAX,EBP:5
+// *op=700001
+7004615 mov #EAX,700001
+// constnum=1
+7004618 sstack EBP:-3,1
+7004623 rstack EAX,EBP:7
+7004627 push EAX
+7004629 push 7000620
+7004632 mov ECX,2
+// addSymbolRef(...)
+7004635 call 7008094
+7004638 add ESP,2
+__130:
+__128:
+__126:
+__122:
+__120:
+__116:
+__132:
+7004641 rstack EAX,EBP:-3
+7004645 lneg EAX
+7004647 mov EBX,EAX
+7004649 rstack EAX,EBP:-4
+7004653 lneg EAX
+7004655 mov ECX,EAX
+7004657 and ECX,EBX
+// if (!regnum&&!constnum)
+7004659 cmp 0,ECX
+7004662 jge 7004680
+7004665 rstack EAX,EBP:-1
+7004669 rstack EBX,EBP:2
+// *input=inp
+7004673 mov #EBX,EAX
+7004675 mov EAX,0
+7004678 leave 
+7004679 ret 
+__133:
+__131:
+__135:
+7004680 rstack EAX,EBP:-3
+7004684 rstack EBX,EBP:-4
+7004688 and EBX,EAX
+7004690 mov EAX,EBX
+// if (regnum&&constnum)
+7004692 cmp 0,EAX
+7004695 jge 7004716
+7004698 push 7004897
+7004701 mov ECX,1
+// Perr(...)
+7004704 call #7000049
+7004707 add ESP,1
+7004710 mov ECX,0
+// shell_panic(...)
+7004713 call #7000051
+__136:
+__134:
+__139:
+7004716 rstack EAX,EBP:-3
+// if (constnum)
+7004720 cmp 0,EAX
+7004723 jge 7004782
+__142:
+7004726 rstack EAX,EBP:-2
+// if (memcell)
+7004730 cmp 0,EAX
+7004733 jge 7004746
+7004736 rstack EAX,EBP:3
+// *rm=25
+7004740 mov #EAX,25
+7004743 jmp 7004782
+__144:
+__143:
+__146:
+__148:
+7004746 rstack EAX,EBP:4
+7004750 mov EBX,-4
+7004753 sub EBX,#EAX
+7004755 fabs EBX,EBX
+7004757 fsgn EBX,EBX
+// if (*seg!=-4)
+7004759 cmp 0,EBX
+7004762 jge 7004775
+7004765 rstack EAX,EBP:3
+// *rm=50
+7004769 mov #EAX,50
+7004772 jmp 7004782
+__150:
+__149:
+__152:
+7004775 rstack EAX,EBP:3
+// *rm=0
+7004779 mov #EAX,0
+__151:
+__147:
+__145:
+__141:
+__140:
+__138:
+__154:
+7004782 rstack EAX,EBP:-4
+// if (regnum)
+7004786 cmp 0,EAX
+7004789 jge 7004888
+__157:
+7004792 rstack EAX,EBP:-2
+// if (memcell)
+7004796 cmp 0,EAX
+7004799 jge 7004827
+7004802 rstack EAX,EBP:5
+7004806 mov EBX,#EAX
+7004808 add EBX,16
+7004811 rstack EAX,EBP:3
+// *rm=*op+16
+7004815 mov #EAX,EBX
+7004817 rstack EAX,EBP:5
+// *op=0
+7004821 mov #EAX,0
+7004824 jmp 7004888
+__159:
+__158:
+__161:
+__163:
+7004827 rstack EAX,EBP:4
+7004831 mov EBX,-4
+7004834 sub EBX,#EAX
+7004836 fabs EBX,EBX
+7004838 fsgn EBX,EBX
+// if (*seg!=-4)
+7004840 cmp 0,EBX
+7004843 jge 7004871
+7004846 rstack EAX,EBP:5
+7004850 mov EBX,#EAX
+7004852 add EBX,25
+7004855 rstack EAX,EBP:3
+// *rm=*op+25
+7004859 mov #EAX,EBX
+7004861 rstack EAX,EBP:5
+// *op=0
+7004865 mov #EAX,0
+7004868 jmp 7004888
+__165:
+__164:
+__167:
+7004871 rstack EAX,EBP:5
+7004875 rstack EBX,EBP:3
+// *rm=*op
+7004879 mov #EBX,#EAX
+7004881 rstack EAX,EBP:5
+// *op=0
+7004885 mov #EAX,0
+__166:
+__162:
+__160:
+__156:
+__155:
+__153:
+7004888 mov EAX,1
+7004891 leave 
+7004892 ret 
+__110:
+7004893 leave 
+7004894 ret 
+__112:
+7004895 db "#",0
+__137:
+7004897 db "logic error",0
+parse_expectOperand:
+// parse_expectOperand(input,rm,seg,op,errfunc,offs)
+7004909 enter -0
+__169:
+// str_expected="<operand>"
+7004912 mov #7003857,7004980
+__172:
+7004916 rstack EAX,EBP:7
+// parse_acceptOperand arg #6 (float offs)
+7004920 push EAX
+7004922 rstack EAX,EBP:6
+// parse_acceptOperand arg #5 (float errFunc)
+7004926 push EAX
+7004928 rstack EAX,EBP:5
+// parse_acceptOperand arg #4 (float* op)
+7004932 push EAX
+7004934 rstack EAX,EBP:4
+// parse_acceptOperand arg #3 (float* seg)
+7004938 push EAX
+7004940 rstack EAX,EBP:3
+// parse_acceptOperand arg #2 (float* rm)
+7004944 push EAX
+7004946 rstack EAX,EBP:2
+// parse_acceptOperand arg #1 (float* input)
+7004950 push EAX
+7004952 mov ECX,6
+// parse_acceptOperand(...)
+7004955 call 7004420
+7004958 add ESP,6
+7004961 lneg EAX
+// if (!parse_acceptOperand(input,rm,seg,op,errfunc,offs))
+7004963 cmp 0,EAX
+7004966 jge 7004978
+7004969 mov ECX,0
+7004972 rstack EAX,EBP:6
+// errfunc(...)
+7004976 call EAX
+__173:
+__171:
+__168:
+7004978 leave 
+7004979 ret 
+__170:
+7004980 db "<operand>",0
+parse_acceptIdent:
+// parse_acceptIdent(input,id)
+7004990 enter 3
+__175:
+7004993 rstack EAX,EBP:2
+7004997 sstack EBP:-1,#EAX
+7005001 rstack EAX,EBP:2
+7005005 sstack EBP:-2,#EAX
+7005009 rstack EAX,EBP:3
+7005013 sstack EBP:-3,EAX
+__177:
+7005017 rstack EAX,EBP:-2
+7005021 push #EAX
+7005023 mov ECX,1
+// isIdent(...)
+7005026 call 7010688
+7005029 add ESP,1
+7005032 lneg EAX
+// if (!isIdent(*inp2))
+7005034 cmp 0,EAX
+7005037 jge 7005043
+7005040 jmp 7005139
+__178:
+__176:
+__180:
+7005043 rstack EAX,EBP:-2
+7005047 push #EAX
+7005049 mov ECX,1
+// isNum(...)
+7005052 call #7000055
+7005055 add ESP,1
+// if (isNum(*inp2))
+7005058 cmp 0,EAX
+7005061 jge 7005067
+7005064 jmp 7005139
+__181:
+__179:
+__183:
+7005067 rstack EAX,EBP:-2
+7005071 push #EAX
+7005073 mov ECX,1
+// isIdent(...)
+7005076 call 7010688
+7005079 add ESP,1
+// if (isIdent(*inp2)
+7005082 cmp 0,EAX
+7005085 jz 7005117
+7005088 rstack EAX,EBP:-2
+7005092 mov EBX,EAX
+7005094 inc EAX
+7005096 sstack EBP:-2,EAX
+7005100 rstack EAX,EBP:-3
+7005104 mov ECX,EAX
+7005106 inc EAX
+7005108 sstack EBP:-3,EAX
+// *ptr++=*inp2++
+7005112 mov #ECX,#EBX
+7005114 jmp 7005067
+__182:
+7005117 rstack EAX,EBP:-2
+7005121 rstack EBX,EBP:2
+// *input=inp2
+7005125 mov #EBX,EAX
+7005127 rstack EAX,EBP:-3
+// *ptr=0
+7005131 mov #EAX,0
+7005134 mov EAX,1
+7005137 leave 
+7005138 ret 
+pai_fail:
+7005139 rstack EAX,EBP:-1
+7005143 rstack EBX,EBP:2
+// *input=inp
+7005147 mov #EBX,EAX
+7005149 mov EAX,0
+7005152 leave 
+7005153 ret 
+__174:
+7005154 leave 
+7005155 ret 
+parse_acceptSpace:
+// parse_acceptSpace(input)
+7005156 enter 1
+__185:
+7005159 rstack EAX,EBP:2
+7005163 sstack EBP:-1,#EAX
+__187:
+7005167 rstack EAX,EBP:-1
+7005171 mov EBX,32
+7005174 sub EBX,#EAX
+7005176 fabs EBX,EBX
+7005178 fsgn EBX,EBX
+7005180 lneg EBX
+// if (*inp==' ')
+7005182 cmp 0,EBX
+7005185 jge 7005208
+7005188 rstack EAX,EBP:-1
+7005192 add EAX,1
+7005195 mov EBX,EAX
+7005197 rstack EAX,EBP:2
+// *input=inp+1
+7005201 mov #EAX,EBX
+7005203 mov EAX,1
+7005206 leave 
+7005207 ret 
+__188:
+__186:
+__190:
+7005208 rstack EAX,EBP:-1
+7005212 mov EBX,9
+7005215 sub EBX,#EAX
+7005217 fabs EBX,EBX
+7005219 fsgn EBX,EBX
+7005221 lneg EBX
+// if (*inp=='\9')
+7005223 cmp 0,EBX
+7005226 jge 7005249
+7005229 rstack EAX,EBP:-1
+7005233 add EAX,1
+7005236 mov EBX,EAX
+7005238 rstack EAX,EBP:2
+// *input=inp+1
+7005242 mov #EAX,EBX
+7005244 mov EAX,1
+7005247 leave 
+7005248 ret 
+__191:
+__189:
+7005249 mov EAX,0
+7005252 leave 
+7005253 ret 
+__184:
+7005254 leave 
+7005255 ret 
+parse_acceptComment:
+// parse_acceptComment(input)
+7005256 enter 1
+__193:
+7005259 rstack EAX,EBP:2
+7005263 sstack EBP:-1,#EAX
+__196:
+7005267 push 7005346
+7005270 rstack EAX,EBP:2
+7005274 push EAX
+7005276 mov ECX,2
+// parse_accept(...)
+7005279 call 7007694
+7005282 add ESP,2
+// if (parse_accept(input,"//"))
+7005285 cmp 0,EAX
+7005288 jge 7005329
+__199:
+7005291 rstack EAX,EBP:-1
+// if (*inp
+7005295 cmp 0,#EAX
+7005298 jz 7005314
+7005301 rstack EAX,EBP:-1
+// inp++
+7005305 inc EAX
+7005307 sstack EBP:-1,EAX
+7005311 jmp 7005291
+__198:
+7005314 rstack EAX,EBP:-1
+7005318 rstack EBX,EBP:2
+// *input=inp
+7005322 mov #EBX,EAX
+7005324 mov EAX,1
+7005327 leave 
+7005328 ret 
+__197:
+__195:
+7005329 rstack EAX,EBP:-1
+7005333 rstack EBX,EBP:2
+// *input=inp
+7005337 mov #EBX,EAX
+7005339 mov EAX,0
+7005342 leave 
+7005343 ret 
+__192:
+7005344 leave 
+7005345 ret 
+__194:
+7005346 db "//",0
+parse_acceptLabel:
+// parse_acceptLabel(input)
+7005349 enter 1
+__201:
+7005352 rstack EAX,EBP:2
+7005356 sstack EBP:-1,#EAX
+__203:
+// parse_acceptIdent arg #2 (float* id)
+7005360 push 7000620
+7005363 rstack EAX,EBP:2
+// parse_acceptIdent arg #1 (float* input)
+7005367 push EAX
+7005369 mov ECX,2
+// parse_acceptIdent(...)
+7005372 call 7004990
+7005375 add ESP,2
+// if (parse_acceptIdent(input,asm_ident))
+7005378 cmp 0,EAX
+7005381 jge 7005455
+__206:
+7005384 push 7004276
+7005387 rstack EAX,EBP:2
+7005391 push EAX
+7005393 mov ECX,2
+// parse_accept(...)
+7005396 call 7007694
+7005399 add ESP,2
+// if (parse_accept(input,":"))
+7005402 cmp 0,EAX
+7005405 jge 7005428
+7005408 push 7000620
+7005411 mov ECX,1
+// addSymbolDef(...)
+7005414 call 7007842
+7005417 add ESP,1
+7005420 mov EAX,1
+7005423 leave 
+7005424 ret 
+7005425 jmp 7005455
+__208:
+__207:
+__210:
+7005428 mov ECX,0
+// pointOutErr(...)
+7005431 call 7013535
+7005434 push 7005472
+7005437 mov ECX,1
+// P(...)
+7005440 call #7000059
+7005443 add ESP,1
+// asm_abort=1
+7005446 mov #7000704,1
+7005450 mov EAX,0
+7005453 leave 
+7005454 ret 
+__209:
+__205:
+__204:
+__202:
+7005455 rstack EAX,EBP:-1
+7005459 rstack EBX,EBP:2
+// *input=inp
+7005463 mov #EBX,EAX
+7005465 mov EAX,0
+7005468 leave 
+7005469 ret 
+__200:
+7005470 leave 
+7005471 ret 
+__211:
+7005472 db "expected ':'
+",0
+parse_acceptString:
+// parse_acceptString(input,str)
+7005486 enter 10
+__213:
+7005489 rstack EAX,EBP:2
+7005493 sstack EBP:-1,#EAX
+7005497 rstack EAX,EBP:2
+7005501 sstack EBP:-2,#EAX
+7005505 sstack EBP:-3,0
+7005510 sstack EBP:-4,0
+__215:
+7005515 rstack EAX,EBP:-2
+7005519 mov EBX,EAX
+7005521 inc EAX
+7005523 sstack EBP:-2,EAX
+7005527 mov EAX,34
+7005530 sub EAX,#EBX
+7005532 fabs EAX,EAX
+7005534 fsgn EAX,EAX
+7005536 lneg EAX
+// if (*I++=='"')
+7005538 cmp 0,EAX
+7005541 jge 7006178
+7005544 push #7000041
+7005547 mov ECX,1
+// malloc(...)
+7005550 call #7000015
+7005553 add ESP,1
+// V=malloc(sizeof_vector)
+7005556 sstack EBP:-4,EAX
+7005560 push 1
+7005563 rstack EAX,EBP:-4
+7005567 push EAX
+7005569 mov ECX,2
+// vector_constructor(...)
+7005572 call #7000061
+7005575 add ESP,2
+7005578 sstack EBP:-5,0
+astr_loop:
+7005583 rstack EAX,EBP:-2
+7005587 mov EBX,EAX
+7005589 inc EAX
+7005591 sstack EBP:-2,EAX
+7005595 sstack EBP:-6,#EBX
+__219:
+7005599 rstack EAX,EBP:-6
+7005603 mov EBX,7006235
+7005606 sub EBX,EAX
+7005608 fabs EBX,EBX
+7005610 fsgn EBX,EBX
+7005612 lneg EBX
+// if (C=="")
+7005614 cmp 0,EBX
+7005617 jge 7005628
+// escape=1
+7005620 sstack EBP:-5,1
+7005625 jmp 7005583
+__220:
+__218:
+__222:
+7005628 rstack EAX,EBP:-5
+// if (escape)
+7005632 cmp 0,EAX
+7005635 jge 7005890
+__225:
+7005638 rstack EAX,EBP:-6
+7005642 mov EBX,110
+7005645 sub EBX,EAX
+7005647 fabs EBX,EBX
+7005649 fsgn EBX,EBX
+7005651 lneg EBX
+// if (C=='n')
+7005653 cmp 0,EBX
+7005656 jge 7005680
+7005659 push 10
+7005662 rstack EAX,EBP:-4
+7005666 push EAX
+7005668 mov ECX,2
+// vector_push(...)
+7005671 call #7000063
+7005674 add ESP,2
+7005677 jmp 7005583
+__226:
+__224:
+__228:
+7005680 rstack EAX,EBP:-6
+7005684 mov EBX,48
+7005687 sub EBX,EAX
+7005689 fabs EBX,EBX
+7005691 fsgn EBX,EBX
+7005693 lneg EBX
+// if (C=='0')
+7005695 cmp 0,EBX
+7005698 jge 7005722
+7005701 push 0
+7005704 rstack EAX,EBP:-4
+7005708 push EAX
+7005710 mov ECX,2
+// vector_push(...)
+7005713 call #7000063
+7005716 add ESP,2
+7005719 jmp 7005583
+__229:
+__227:
+__231:
+7005722 rstack EAX,EBP:-6
+7005726 mov EBX,116
+7005729 sub EBX,EAX
+7005731 fabs EBX,EBX
+7005733 fsgn EBX,EBX
+7005735 lneg EBX
+// if (C=='t')
+7005737 cmp 0,EBX
+7005740 jge 7005764
+7005743 push 9
+7005746 rstack EAX,EBP:-4
+7005750 push EAX
+7005752 mov ECX,2
+// vector_push(...)
+7005755 call #7000063
+7005758 add ESP,2
+7005761 jmp 7005583
+__232:
+__230:
+__234:
+7005764 rstack EAX,EBP:-6
+7005768 mov EBX,34
+7005771 sub EBX,EAX
+7005773 fabs EBX,EBX
+7005775 fsgn EBX,EBX
+7005777 lneg EBX
+// if (C=='"')
+7005779 cmp 0,EBX
+7005782 jge 7005806
+7005785 push 34
+7005788 rstack EAX,EBP:-4
+7005792 push EAX
+7005794 mov ECX,2
+// vector_push(...)
+7005797 call #7000063
+7005800 add ESP,2
+7005803 jmp 7005583
+__235:
+__233:
+__237:
+7005806 rstack EAX,EBP:-6
+7005810 mov EBX,39
+7005813 sub EBX,EAX
+7005815 fabs EBX,EBX
+7005817 fsgn EBX,EBX
+7005819 lneg EBX
+// if (C==''')
+7005821 cmp 0,EBX
+7005824 jge 7005848
+7005827 push 39
+7005830 rstack EAX,EBP:-4
+7005834 push EAX
+7005836 mov ECX,2
+// vector_push(...)
+7005839 call #7000063
+7005842 add ESP,2
+7005845 jmp 7005583
+__238:
+__236:
+__240:
+7005848 rstack EAX,EBP:-6
+7005852 mov EBX,7006235
+7005855 sub EBX,EAX
+7005857 fabs EBX,EBX
+7005859 fsgn EBX,EBX
+7005861 lneg EBX
+// if (C=="")
+7005863 cmp 0,EBX
+7005866 jge 7005890
+7005869 push 7006235
+7005872 rstack EAX,EBP:-4
+7005876 push EAX
+7005878 mov ECX,2
+// vector_push(...)
+7005881 call #7000063
+7005884 add ESP,2
+7005887 jmp 7005583
+__241:
+__239:
+__223:
+__221:
+__243:
+7005890 rstack EAX,EBP:-6
+7005894 mov EBX,34
+7005897 sub EBX,EAX
+7005899 fabs EBX,EBX
+7005901 fsgn EBX,EBX
+7005903 lneg EBX
+// if (C=='"')
+7005905 cmp 0,EBX
+7005908 jge 7005914
+7005911 jmp 7005962
+__244:
+__242:
+__246:
+7005914 rstack EAX,EBP:-6
+7005918 mov EBX,0
+7005921 sub EBX,EAX
+7005923 fabs EBX,EBX
+7005925 fsgn EBX,EBX
+7005927 lneg EBX
+// if (C==0)
+7005929 cmp 0,EBX
+7005932 jge 7005938
+7005935 jmp 7006178
+__247:
+__245:
+7005938 rstack EAX,EBP:-6
+7005942 push EAX
+7005944 rstack EAX,EBP:-4
+7005948 push EAX
+7005950 mov ECX,2
+// vector_push(...)
+7005953 call #7000063
+7005956 add ESP,2
+7005959 jmp 7005583
+astr_endloop:
+7005962 rstack EAX,EBP:-2
+7005966 rstack EBX,EBP:2
+// *input=I
+7005970 mov #EBX,EAX
+7005972 push 0
+7005975 rstack EAX,EBP:-4
+7005979 push EAX
+7005981 mov ECX,2
+// vector_push(...)
+7005984 call #7000063
+7005987 add ESP,2
+7005990 rstack EAX,EBP:-4
+7005994 push EAX
+7005996 mov ECX,1
+// vector_get_array(...)
+7005999 call #7000031
+7006002 add ESP,1
+7006005 sstack EBP:-7,EAX
+7006009 rstack EAX,EBP:-7
+7006013 push EAX
+7006015 mov ECX,1
+// unescapeStr(...)
+7006018 call #7000067
+7006021 add ESP,1
+7006024 sstack EBP:-8,EAX
+7006028 rstack EAX,EBP:-4
+7006032 push EAX
+7006034 mov ECX,1
+// vector_clear(...)
+7006037 call #7000069
+7006040 add ESP,1
+7006043 sstack EBP:-9,0
+7006048 rstack EAX,EBP:-8
+7006052 push EAX
+7006054 mov ECX,1
+// strlen(...)
+7006057 call #7000025
+7006060 add ESP,1
+7006063 sstack EBP:-10,EAX
+// init loop
+7006067 sstack EBP:-9,0
+__249:
+7006072 rstack EAX,EBP:-9
+7006076 rstack EBX,EBP:-10
+7006080 sub EBX,EAX
+7006082 mov EAX,EBX
+7006084 fsgn EAX,EAX
+// condition
+7006086 max EAX,0
+7006089 cmp 0,EAX
+7006092 jz 7006145
+7006095 rstack EAX,EBP:-8
+7006099 mov EBX,EAX
+7006101 inc EAX
+7006103 sstack EBP:-8,EAX
+// C=*str2++
+7006107 sstack EBP:-6,#EBX
+7006111 rstack EAX,EBP:-6
+7006115 push EAX
+7006117 rstack EAX,EBP:-4
+7006121 push EAX
+7006123 mov ECX,2
+// vector_push(...)
+7006126 call #7000063
+7006129 add ESP,2
+7006132 rstack EAX,EBP:-9
+// loop step
+7006136 inc EAX
+7006138 sstack EBP:-9,EAX
+7006142 jmp 7006072
+__248:
+7006145 push 0
+7006148 rstack EAX,EBP:-4
+7006152 push EAX
+7006154 mov ECX,2
+// vector_push(...)
+7006157 call #7000063
+7006160 add ESP,2
+7006163 rstack EAX,EBP:-4
+7006167 rstack EBX,EBP:3
+// *str=V
+7006171 mov #EBX,EAX
+7006173 mov EAX,1
+7006176 leave 
+7006177 ret 
+__216:
+__214:
+astr_fail:
+__251:
+7006178 rstack EAX,EBP:-4
+// if (V)
+7006182 cmp 0,EAX
+7006185 jge 7006218
+7006188 rstack EAX,EBP:-4
+7006192 push EAX
+7006194 mov ECX,1
+// vector_clear(...)
+7006197 call #7000069
+7006200 add ESP,1
+7006203 rstack EAX,EBP:-4
+7006207 push EAX
+7006209 mov ECX,1
+// free(...)
+7006212 call #7000071
+7006215 add ESP,1
+__252:
+__250:
+7006218 rstack EAX,EBP:-1
+7006222 rstack EBX,EBP:2
+// *input=inp
+7006226 mov #EBX,EAX
+7006228 mov EAX,0
+7006231 leave 
+7006232 ret 
+__212:
+7006233 leave 
+7006234 ret 
+__217:
+7006235 db "",0
+parse_acceptDb:
+// parse_acceptDb(input)
+7006236 enter 14
+__254:
+7006239 rstack EAX,EBP:2
+7006243 sstack EBP:-1,#EAX
+7006247 push #7000041
+7006250 mov ECX,1
+// malloc(...)
+7006253 call #7000015
+7006256 add ESP,1
+7006259 sstack EBP:-2,EAX
+7006263 push 1
+7006266 rstack EAX,EBP:-2
+7006270 push EAX
+7006272 mov ECX,2
+// vector_constructor(...)
+7006275 call #7000061
+7006278 add ESP,2
+__257:
+7006281 push 7006896
+7006284 rstack EAX,EBP:2
+7006288 push EAX
+7006290 mov ECX,2
+// parse_accept(...)
+7006293 call 7007694
+7006296 add ESP,2
+// if (parse_accept(input,"db "))
+7006299 cmp 0,EAX
+7006302 jge 7006741
+7006305 push #7000701
+7006308 mov ECX,1
+// strlen(...)
+7006311 call #7000025
+7006314 add ESP,1
+7006317 sstack EBP:-3,EAX
+7006321 sstack EBP:-4,0
+7006326 sstack EBP:-5,0
+7006331 sstack EBP:-6,1
+__260:
+// if (1
+7006336 cmp 0,1
+7006340 jz 7006741
+__262:
+7006343 mov EAX,SS:ESP
+7006346 add EAX,-7
+// parse_acceptNum arg #2 (float* num)
+7006349 push EAX
+7006351 rstack EAX,EBP:2
+// parse_acceptNum arg #1 (float* input)
+7006355 push EAX
+7006357 mov ECX,2
+// parse_acceptNum(...)
+7006360 call 7003941
+7006363 add ESP,2
+// if (parse_acceptNum(input,&num))
+7006366 cmp 0,EAX
+7006369 jge 7006401
+7006372 rstack EAX,EBP:-7
+7006376 push EAX
+7006378 rstack EAX,EBP:-2
+7006382 push EAX
+7006384 mov ECX,2
+// vector_push(...)
+7006387 call #7000063
+7006390 add ESP,2
+// expected=0
+7006393 sstack EBP:-6,0
+7006398 jmp 7006675
+__264:
+__263:
+__266:
+__268:
+7006401 mov EAX,SS:ESP
+7006404 add EAX,-8
+// parse_acceptString arg #2 (float* str)
+7006407 push EAX
+7006409 rstack EAX,EBP:2
+// parse_acceptString arg #1 (float* input)
+7006413 push EAX
+7006415 mov ECX,2
+// parse_acceptString(...)
+7006418 call 7005486
+7006421 add ESP,2
+// if (parse_acceptString(input,&vstr))
+7006424 cmp 0,EAX
+7006427 jge 7006553
+7006430 rstack EAX,EBP:-8
+7006434 push EAX
+7006436 mov ECX,1
+// vector_get_array(...)
+7006439 call #7000031
+7006442 add ESP,1
+7006445 sstack EBP:-9,EAX
+7006449 rstack EAX,EBP:-9
+7006453 mov EBX,EAX
+7006455 inc EAX
+7006457 sstack EBP:-9,EAX
+7006461 sstack EBP:-10,#EBX
+__271:
+7006465 rstack EAX,EBP:-10
+// if (C
+7006469 cmp 0,EAX
+7006472 jz 7006515
+7006475 rstack EAX,EBP:-10
+7006479 push EAX
+7006481 rstack EAX,EBP:-2
+7006485 push EAX
+7006487 mov ECX,2
+// vector_push(...)
+7006490 call #7000063
+7006493 add ESP,2
+7006496 rstack EAX,EBP:-9
+7006500 mov EBX,EAX
+7006502 inc EAX
+7006504 sstack EBP:-9,EAX
+// C=*strdata++
+7006508 sstack EBP:-10,#EBX
+7006512 jmp 7006465
+__270:
+7006515 rstack EAX,EBP:-8
+7006519 push EAX
+7006521 mov ECX,1
+// vector_clear(...)
+7006524 call #7000069
+7006527 add ESP,1
+7006530 rstack EAX,EBP:-8
+7006534 push EAX
+7006536 mov ECX,1
+// free(...)
+7006539 call #7000071
+7006542 add ESP,1
+// expected=0
+7006545 sstack EBP:-6,0
+7006550 jmp 7006675
+__272:
+__269:
+__274:
+__276:
+// parse_acceptIdent arg #2 (float* id)
+7006553 push 7000620
+7006556 rstack EAX,EBP:2
+// parse_acceptIdent arg #1 (float* input)
+7006560 push EAX
+7006562 mov ECX,2
+// parse_acceptIdent(...)
+7006565 call 7004990
+7006568 add ESP,2
+// if (parse_acceptIdent(input,asm_ident))
+7006571 cmp 0,EAX
+7006574 jge 7006635
+7006577 rstack EAX,EBP:-2
+7006581 push EAX
+7006583 mov ECX,1
+// vector_get_size(...)
+7006586 call #7000029
+7006589 add ESP,1
+7006592 sstack EBP:-11,EAX
+7006596 push 0
+7006599 rstack EAX,EBP:-2
+7006603 push EAX
+7006605 mov ECX,2
+// vector_push(...)
+7006608 call #7000063
+7006611 add ESP,2
+7006614 rstack EAX,EBP:-11
+7006618 push EAX
+7006620 push 7000620
+7006623 mov ECX,2
+// addSymbolRef(...)
+7006626 call 7008094
+7006629 add ESP,2
+7006632 jmp 7006675
+__278:
+__277:
+__280:
+__282:
+7006635 rstack EAX,EBP:-6
+// if (expected)
+7006639 cmp 0,EAX
+7006642 jge 7006672
+7006645 mov ECX,0
+// pointOutErr(...)
+7006648 call 7013535
+7006651 push 7006900
+7006654 mov ECX,1
+// Perr(...)
+7006657 call #7000049
+7006660 add ESP,1
+7006663 mov ECX,0
+// shell_panic(...)
+7006666 call #7000051
+7006669 jmp 7006675
+__285:
+__283:
+__287:
+7006672 jmp 7006741
+__286:
+__281:
+__279:
+__275:
+__273:
+__267:
+__265:
+__261:
+7006675 rstack EAX,EBP:-4
+// nterms++
+7006679 inc EAX
+7006681 sstack EBP:-4,EAX
+__290:
+7006685 push 7006916
+7006688 rstack EAX,EBP:2
+7006692 push EAX
+7006694 mov ECX,2
+// parse_accept(...)
+7006697 call 7007694
+7006700 add ESP,2
+// if (parse_accept(input,","))
+7006703 cmp 0,EAX
+7006706 jge 7006714
+// expected=1
+7006709 sstack EBP:-6,1
+__291:
+__289:
+__292:
+7006714 rstack EAX,EBP:2
+// parse_acceptSpace arg #1 (float* input)
+7006718 push EAX
+7006720 mov ECX,1
+// parse_acceptSpace(...)
+7006723 call 7005156
+7006726 add ESP,1
+// if (parse_acceptSpace(input)
+7006729 cmp 0,EAX
+7006732 jz 7006738
+7006735 jmp 7006714
+__293:
+7006738 jmp 7006336
+__259:
+__258:
+__256:
+pa_db_exit:
+7006741 rstack EAX,EBP:-2
+7006745 push EAX
+7006747 mov ECX,1
+// vector_get_size(...)
+7006750 call #7000029
+7006753 add ESP,1
+7006756 sstack EBP:-12,EAX
+__295:
+7006760 rstack EAX,EBP:-12
+7006764 mov EBX,0
+7006767 sub EBX,EAX
+7006769 fabs EBX,EBX
+7006771 fsgn EBX,EBX
+7006773 lneg EBX
+// if (size==0)
+7006775 cmp 0,EBX
+7006778 jge 7006799
+7006781 rstack EAX,EBP:-1
+7006785 rstack EBX,EBP:2
+// *input=inp
+7006789 mov #EBX,EAX
+7006791 mov EAX,0
+7006794 leave 
+7006795 ret 
+7006796 jmp 7006894
+__297:
+__296:
+__299:
+7006799 sstack EBP:-13,0
+// init loop
+7006804 sstack EBP:-13,0
+__301:
+7006809 rstack EAX,EBP:-13
+7006813 rstack EBX,EBP:-12
+7006817 sub EBX,EAX
+7006819 mov EAX,EBX
+7006821 fsgn EAX,EAX
+// condition
+7006823 max EAX,0
+7006826 cmp 0,EAX
+7006829 jz 7006889
+7006832 rstack EAX,EBP:-13
+7006836 push EAX
+7006838 mov EAX,SS:ESP
+7006841 add EAX,-14
+7006844 push EAX
+7006846 rstack EAX,EBP:-2
+7006850 push EAX
+7006852 mov ECX,3
+// vector_get(...)
+7006855 call #7000037
+7006858 add ESP,3
+7006861 rstack EAX,EBP:-14
+7006865 push EAX
+7006867 mov ECX,1
+// emit_code(...)
+7006870 call 7013383
+7006873 add ESP,1
+7006876 rstack EAX,EBP:-13
+// loop step
+7006880 inc EAX
+7006882 sstack EBP:-13,EAX
+7006886 jmp 7006809
+__300:
+7006889 mov EAX,1
+7006892 leave 
+7006893 ret 
+__298:
+__294:
+__253:
+7006894 leave 
+7006895 ret 
+__255:
+7006896 db "db ",0
+__284:
+7006900 db "value expected
+",0
+__288:
+7006916 db ",",0
+parse_acceptAlloc:
+// parse_acceptAlloc(input)
+7006918 enter 2
+__303:
+7006921 rstack EAX,EBP:2
+7006925 sstack EBP:-1,#EAX
+__306:
+7006929 push 7007019
+7006932 rstack EAX,EBP:2
+7006936 push EAX
+7006938 mov ECX,2
+// parse_accept(...)
+7006941 call 7007694
+7006944 add ESP,2
+// if (parse_accept(input,"alloc "))
+7006947 cmp 0,EAX
+7006950 jge 7007002
+__309:
+7006953 mov EAX,SS:ESP
+7006956 add EAX,-2
+// parse_acceptNum arg #2 (float* num)
+7006959 push EAX
+7006961 rstack EAX,EBP:2
+// parse_acceptNum arg #1 (float* input)
+7006965 push EAX
+7006967 mov ECX,2
+// parse_acceptNum(...)
+7006970 call 7003941
+7006973 add ESP,2
+// if (parse_acceptNum(input,&num))
+7006976 cmp 0,EAX
+7006979 jge 7007002
+7006982 rstack EAX,EBP:-2
+7006986 push EAX
+7006988 mov ECX,1
+// emit_alloc(...)
+7006991 call 7013421
+7006994 add ESP,1
+7006997 mov EAX,1
+7007000 leave 
+7007001 ret 
+__310:
+__308:
+__307:
+__305:
+7007002 rstack EAX,EBP:-1
+7007006 rstack EBX,EBP:2
+// *input=inp
+7007010 mov #EBX,EAX
+7007012 mov EAX,0
+7007015 leave 
+7007016 ret 
+__302:
+7007017 leave 
+7007018 ret 
+__304:
+7007019 db "alloc ",0
+parse_acceptInstruction:
+// parse_acceptInstruction(input)
+7007026 enter 9
+__312:
+7007029 rstack EAX,EBP:2
+7007033 sstack EBP:-1,#EAX
+// cmd=0
+7007037 sstack EBP:-2,0
+7007042 mov EAX,0
+7007045 mov EBX,EAX
+// rm1=seg1=op1=0
+7007047 sstack EBP:-3,EBX
+7007051 mov EAX,0
+7007054 mov EBX,EAX
+// rm2=seg2=op2=0
+7007056 sstack EBP:-6,EBX
+__314:
+7007060 mov EAX,SS:ESP
+7007063 add EAX,-2
+7007066 push EAX
+7007068 rstack EAX,EBP:2
+7007072 push EAX
+7007074 mov ECX,2
+// parse_acceptCmd(...)
+7007077 call 7007404
+7007080 add ESP,2
+// if (parse_acceptCmd(input,&cmd))
+7007083 cmp 0,EAX
+7007086 jge 7007387
+__317:
+// parse_acceptSpace arg #1 (float* input)
+7007089 push 7000700
+7007092 mov ECX,1
+// parse_acceptSpace(...)
+7007095 call 7005156
+7007098 add ESP,1
+// if (parse_acceptSpace(&str)
+7007101 cmp 0,EAX
+7007104 jz 7007110
+7007107 jmp 7007089
+__316:
+// parse_acceptOperand arg #6 (float offs)
+7007110 push 4
+// parse_acceptOperand arg #5 (float errFunc)
+7007113 push 7013479
+7007116 mov EAX,SS:ESP
+7007119 add EAX,-5
+// parse_acceptOperand arg #4 (float* op)
+7007122 push EAX
+7007124 mov EAX,SS:ESP
+7007127 add EAX,-4
+// parse_acceptOperand arg #3 (float* seg)
+7007130 push EAX
+7007132 mov EAX,SS:ESP
+7007135 add EAX,-3
+// parse_acceptOperand arg #2 (float* rm)
+7007138 push EAX
+7007140 rstack EAX,EBP:2
+// parse_acceptOperand arg #1 (float* input)
+7007144 push EAX
+7007146 mov ECX,6
+// parse_acceptOperand(...)
+7007149 call 7004420
+7007152 add ESP,6
+__319:
+// parse_acceptSpace arg #1 (float* input)
+7007155 push 7000700
+7007158 mov ECX,1
+// parse_acceptSpace(...)
+7007161 call 7005156
+7007164 add ESP,1
+// if (parse_acceptSpace(&str)
+7007167 cmp 0,EAX
+7007170 jz 7007176
+7007173 jmp 7007155
+__318:
+__321:
+7007176 push 7006916
+7007179 rstack EAX,EBP:2
+7007183 push EAX
+7007185 mov ECX,2
+// parse_accept(...)
+7007188 call 7007694
+7007191 add ESP,2
+// if (parse_accept(input,","))
+7007194 cmp 0,EAX
+7007197 jge 7007266
+__324:
+// parse_acceptSpace arg #1 (float* input)
+7007200 push 7000700
+7007203 mov ECX,1
+// parse_acceptSpace(...)
+7007206 call 7005156
+7007209 add ESP,1
+// if (parse_acceptSpace(&str)
+7007212 cmp 0,EAX
+7007215 jz 7007221
+7007218 jmp 7007200
+__323:
+// parse_expectOperand arg #6 (float offs)
+7007221 push 5
+// parse_expectOperand arg #5 (float* errfunc)
+7007224 push 7013479
+7007227 mov EAX,SS:ESP
+7007230 add EAX,-8
+// parse_expectOperand arg #4 (float* op)
+7007233 push EAX
+7007235 mov EAX,SS:ESP
+7007238 add EAX,-7
+// parse_expectOperand arg #3 (float* seg)
+7007241 push EAX
+7007243 mov EAX,SS:ESP
+7007246 add EAX,-6
+// parse_expectOperand arg #2 (float* rm)
+7007249 push EAX
+7007251 rstack EAX,EBP:2
+// parse_expectOperand arg #1 (float* input)
+7007255 push EAX
+7007257 mov ECX,6
+// parse_expectOperand(...)
+7007260 call 7004909
+7007263 add ESP,6
+__322:
+__320:
+7007266 rstack EAX,EBP:-6
+7007270 mov EBX,10000
+7007273 mul EBX,EAX
+7007275 rstack EAX,EBP:-3
+7007279 add EAX,EBX
+7007281 mov EBX,EAX
+7007283 sstack EBP:-9,EBX
+7007287 rstack EAX,EBP:-2
+7007291 mov EBX,2000
+7007294 add EBX,EAX
+7007296 push EBX
+7007298 mov ECX,1
+// emit_code(...)
+7007301 call 7013383
+7007304 add ESP,1
+7007307 rstack EAX,EBP:-9
+7007311 push EAX
+7007313 mov ECX,1
+// emit_code(...)
+7007316 call 7013383
+7007319 add ESP,1
+7007322 rstack EAX,EBP:-4
+7007326 push EAX
+7007328 mov ECX,1
+// emit_code(...)
+7007331 call 7013383
+7007334 add ESP,1
+7007337 rstack EAX,EBP:-7
+7007341 push EAX
+7007343 mov ECX,1
+// emit_code(...)
+7007346 call 7013383
+7007349 add ESP,1
+7007352 rstack EAX,EBP:-5
+7007356 push EAX
+7007358 mov ECX,1
+// emit_code(...)
+7007361 call 7013383
+7007364 add ESP,1
+7007367 rstack EAX,EBP:-8
+7007371 push EAX
+7007373 mov ECX,1
+// emit_code(...)
+7007376 call 7013383
+7007379 add ESP,1
+7007382 mov EAX,1
+7007385 leave 
+7007386 ret 
+__315:
+__313:
+7007387 rstack EAX,EBP:-1
+7007391 rstack EBX,EBP:2
+// *input=inp
+7007395 mov #EBX,EAX
+7007397 mov EAX,0
+7007400 leave 
+7007401 ret 
+__311:
+7007402 leave 
+7007403 ret 
+parse_acceptCmd:
+// parse_acceptCmd(input,cmd)
+7007404 enter 5
+__326:
+7007407 rstack EAX,EBP:2
+7007411 sstack EBP:-1,#EAX
+// init loop
+7007415 sstack EBP:-2,0
+__328:
+7007420 rstack EAX,EBP:-2
+7007424 mov EBX,166
+7007427 sub EBX,EAX
+7007429 fsgn EBX,EBX
+// condition
+7007431 max EBX,0
+7007434 cmp 0,EBX
+7007437 jz 7007547
+7007440 rstack EAX,EBP:-2
+7007444 mov EBX,2
+7007447 mul EBX,EAX
+7007449 sstack EBP:-3,EBX
+7007453 rstack EAX,EBP:-3
+7007457 add EAX,1
+7007460 mov EBX,EAX
+7007462 mov EAX,7011042
+7007465 add EAX,EBX
+7007467 sstack EBP:-4,EAX
+7007471 rstack EAX,EBP:-4
+// cmd_str=*cmd_str
+7007475 sstack EBP:-4,#EAX
+__330:
+7007479 rstack EAX,EBP:-4
+7007483 push EAX
+7007485 rstack EAX,EBP:2
+7007489 push EAX
+7007491 mov ECX,2
+// parse_accept(...)
+7007494 call 7007694
+7007497 add ESP,2
+// if (parse_accept(input,cmd_str))
+7007500 cmp 0,EAX
+7007503 jge 7007534
+7007506 rstack EAX,EBP:-3
+7007510 add EAX,7011042
+7007513 mov EBX,EAX
+7007515 rstack EAX,EBP:3
+// *cmd=cmdTable[idx]
+7007519 mov #EAX,#EBX
+7007521 rstack EAX,EBP:3
+7007525 sstack EBP:-5,#EAX
+7007529 mov EAX,1
+7007532 leave 
+7007533 ret 
+__331:
+__329:
+7007534 rstack EAX,EBP:-2
+// loop step
+7007538 inc EAX
+7007540 sstack EBP:-2,EAX
+7007544 jmp 7007420
+__327:
+7007547 rstack EAX,EBP:-1
+7007551 rstack EBX,EBP:2
+// *input=inp
+7007555 mov #EBX,EAX
+7007557 mov EAX,0
+7007560 leave 
+7007561 ret 
+__325:
+7007562 leave 
+7007563 ret 
+numToOp:
+// numToOp(num)
+7007564 enter 4
+__333:
+// init loop
+7007567 sstack EBP:-1,0
+__335:
+7007572 rstack EAX,EBP:-1
+7007576 mov EBX,166
+7007579 sub EBX,EAX
+7007581 fsgn EBX,EBX
+// condition
+7007583 max EBX,0
+7007586 cmp 0,EBX
+7007589 jz 7007687
+7007592 rstack EAX,EBP:-1
+7007596 mov EBX,2
+7007599 mul EBX,EAX
+7007601 sstack EBP:-2,EBX
+7007605 rstack EAX,EBP:-2
+7007609 add EAX,1
+7007612 mov EBX,EAX
+7007614 mov EAX,7011042
+7007617 add EAX,EBX
+7007619 sstack EBP:-3,EAX
+7007623 rstack EAX,EBP:-3
+// cmd_str=*cmd_str
+7007627 sstack EBP:-3,#EAX
+7007631 rstack EAX,EBP:-2
+7007635 add EAX,7011042
+7007638 mov EBX,EAX
+7007640 sstack EBP:-4,#EBX
+__337:
+7007644 rstack EAX,EBP:-4
+7007648 rstack EBX,EBP:2
+7007652 sub EBX,EAX
+7007654 mov EAX,EBX
+7007656 fabs EAX,EAX
+7007658 fsgn EAX,EAX
+7007660 lneg EAX
+// if (cmd==num)
+7007662 cmp 0,EAX
+7007665 jge 7007674
+7007668 rstack EAX,EBP:-3
+7007672 leave 
+7007673 ret 
+__338:
+__336:
+7007674 rstack EAX,EBP:-1
+// loop step
+7007678 inc EAX
+7007680 sstack EBP:-1,EAX
+7007684 jmp 7007572
+__334:
+7007687 mov EAX,0
+7007690 leave 
+7007691 ret 
+__332:
+7007692 leave 
+7007693 ret 
+parse_accept:
+// parse_accept(input,str)
+7007694 enter 2
+__340:
+7007697 rstack EAX,EBP:2
+7007701 sstack EBP:-1,#EAX
+7007705 rstack EAX,EBP:3
+7007709 push EAX
+7007711 mov ECX,1
+// strlen(...)
+7007714 call #7000025
+7007717 add ESP,1
+7007720 sstack EBP:-2,EAX
+__342:
+7007724 rstack EAX,EBP:-2
+7007728 push EAX
+7007730 rstack EAX,EBP:3
+7007734 push EAX
+7007736 rstack EAX,EBP:-1
+7007740 push EAX
+7007742 mov ECX,3
+// caseless_strncmp(...)
+7007745 call 7010776
+7007748 add ESP,3
+7007751 mov EBX,0
+7007754 sub EBX,EAX
+7007756 fabs EBX,EBX
+7007758 fsgn EBX,EBX
+7007760 lneg EBX
+// if (caseless_strncmp(inp,str,len)==0)
+7007762 cmp 0,EBX
+7007765 jge 7007799
+7007768 rstack EAX,EBP:-2
+7007772 rstack EBX,EBP:-1
+7007776 add EBX,EAX
+7007778 mov EAX,EBX
+// inp=inp+len
+7007780 sstack EBP:-1,EAX
+7007784 rstack EAX,EBP:-1
+7007788 rstack EBX,EBP:2
+// *input=inp
+7007792 mov #EBX,EAX
+7007794 mov EAX,1
+7007797 leave 
+7007798 ret 
+__343:
+__341:
+7007799 mov EAX,0
+7007802 leave 
+7007803 ret 
+__339:
+7007804 leave 
+7007805 ret 
+asm_symTable:
+7007806 alloc 1
+initSymbolTable:
+// initSymbolTable()
+7007807 enter -0
+__345:
+7007810 push #7000041
+7007813 mov ECX,1
+// malloc(...)
+7007816 call #7000015
+7007819 add ESP,1
+// asm_symTable=malloc(sizeof_vector)
+7007822 mov #7007806,EAX
+7007825 push 1
+7007828 push #7007806
+7007831 mov ECX,2
+// vector_constructor(...)
+7007834 call #7000061
+7007837 add ESP,2
+__344:
+7007840 leave 
+7007841 ret 
+addSymbolDef:
+// addSymbolDef(str)
+7007842 enter 2
+__347:
+7007845 rstack EAX,EBP:2
+7007849 push EAX
+7007851 mov ECX,1
+// findSymbol(...)
+7007854 call 7008419
+7007857 add ESP,1
+7007860 sstack EBP:-1,EAX
+7007864 sstack EBP:-2,#7000706
+__349:
+7007869 rstack EAX,EBP:-1
+7007873 lneg EAX
+7007875 mov EBX,EAX
+// if (!sym)
+7007877 cmp 0,EBX
+7007880 jge 7007985
+7007883 push 4
+7007886 mov ECX,1
+// malloc(...)
+7007889 call #7000015
+7007892 add ESP,1
+// sym=malloc(4)
+7007895 sstack EBP:-1,EAX
+7007899 rstack EAX,EBP:-1
+7007903 add EAX,0
+7007906 mov EBX,EAX
+// sym[0]=typeof_symbol
+7007908 mov #EBX,#7000039
+7007911 rstack EAX,EBP:2
+7007915 push EAX
+7007917 mov ECX,1
+// str_alloc(...)
+7007920 call #7000081
+7007923 add ESP,1
+7007926 rstack EBX,EBP:-1
+7007930 add EBX,1
+7007933 mov ECX,EBX
+// sym[1]=str_alloc(str)
+7007935 mov #ECX,EAX
+7007937 rstack EAX,EBP:-2
+7007941 rstack EBX,EBP:-1
+7007945 add EBX,2
+7007948 mov ECX,EBX
+// sym[2]=symaddr
+7007950 mov #ECX,EAX
+7007952 rstack EAX,EBP:-1
+7007956 add EAX,3
+7007959 mov EBX,EAX
+// sym[3]=0
+7007961 mov #EBX,0
+7007964 rstack EAX,EBP:-1
+7007968 push EAX
+7007970 push #7007806
+7007973 mov ECX,2
+// vector_push(...)
+7007976 call #7000063
+7007979 add ESP,2
+7007982 jmp 7008066
+__351:
+__350:
+__353:
+__355:
+7007985 rstack EAX,EBP:-1
+7007989 add EAX,2
+7007992 mov EBX,EAX
+7007994 mov EAX,-1
+7007997 sub EAX,#EBX
+7007999 fabs EAX,EAX
+7008001 fsgn EAX,EAX
+// if (sym[2]!=-1)
+7008003 cmp 0,EAX
+7008006 jge 7008054
+7008009 push 7008086
+7008012 mov ECX,1
+// Perr(...)
+7008015 call #7000049
+7008018 add ESP,1
+7008021 rstack EAX,EBP:2
+7008025 push EAX
+7008027 mov ECX,1
+// Perr(...)
+7008030 call #7000049
+7008033 add ESP,1
+7008036 push 7008068
+7008039 mov ECX,1
+// Perr(...)
+7008042 call #7000049
+7008045 add ESP,1
+7008048 mov ECX,0
+// shell_panic(...)
+7008051 call #7000051
+__356:
+__354:
+7008054 rstack EAX,EBP:-1
+7008058 add EAX,2
+7008061 mov EBX,EAX
+// sym[2]=cur_address
+7008063 mov #EBX,#7000706
+__352:
+__348:
+__346:
+7008066 leave 
+7008067 ret 
+__358:
+7008068 db " already defined
+",0
+__357:
+7008086 db "symbol ",0
+addSymbolRef:
+// addSymbolRef(str,offs)
+7008094 enter 3
+__360:
+7008097 rstack EAX,EBP:2
+7008101 push EAX
+7008103 mov ECX,1
+// findSymbol(...)
+7008106 call 7008419
+7008109 add ESP,1
+7008112 sstack EBP:-1,EAX
+7008116 sstack EBP:-2,0
+7008121 rstack EAX,EBP:3
+7008125 mov EBX,#7000706
+7008128 add EBX,EAX
+7008130 sstack EBP:-3,EBX
+__362:
+7008134 rstack EAX,EBP:-1
+7008138 lneg EAX
+7008140 mov EBX,EAX
+// if (!sym)
+7008142 cmp 0,EBX
+7008145 jge 7008284
+7008148 push 4
+7008151 mov ECX,1
+// malloc(...)
+7008154 call #7000015
+7008157 add ESP,1
+// sym=malloc(4)
+7008160 sstack EBP:-1,EAX
+7008164 rstack EAX,EBP:-1
+7008168 add EAX,0
+7008171 mov EBX,EAX
+// sym[0]=typeof_symbol
+7008173 mov #EBX,#7000039
+7008176 rstack EAX,EBP:2
+7008180 push EAX
+7008182 mov ECX,1
+// str_alloc(...)
+7008185 call #7000081
+7008188 add ESP,1
+7008191 rstack EBX,EBP:-1
+7008195 add EBX,1
+7008198 mov ECX,EBX
+// sym[1]=str_alloc(str)
+7008200 mov #ECX,EAX
+7008202 rstack EAX,EBP:-1
+7008206 add EAX,2
+7008209 mov EBX,EAX
+// sym[2]=-1
+7008211 mov #EBX,-1
+7008214 push #7000041
+7008217 mov ECX,1
+// malloc(...)
+7008220 call #7000015
+7008223 add ESP,1
+// reftable=malloc(sizeof_vector)
+7008226 sstack EBP:-2,EAX
+7008230 push 1
+7008233 rstack EAX,EBP:-2
+7008237 push EAX
+7008239 mov ECX,2
+// vector_constructor(...)
+7008242 call #7000061
+7008245 add ESP,2
+7008248 rstack EAX,EBP:-2
+7008252 rstack EBX,EBP:-1
+7008256 add EBX,3
+7008259 mov ECX,EBX
+// sym[3]=reftable
+7008261 mov #ECX,EAX
+7008263 rstack EAX,EBP:-1
+7008267 push EAX
+7008269 push #7007806
+7008272 mov ECX,2
+// vector_push(...)
+7008275 call #7000063
+7008278 add ESP,2
+7008281 jmp 7008378
+__364:
+__363:
+__366:
+7008284 push #7000039
+7008287 rstack EAX,EBP:-1
+7008291 push EAX
+7008293 mov ECX,2
+// assert_type(...)
+7008296 call #7000021
+7008299 add ESP,2
+7008302 rstack EAX,EBP:-1
+7008306 add EAX,3
+7008309 mov EBX,EAX
+// reftable=sym[3]
+7008311 sstack EBP:-2,#EBX
+__368:
+7008315 rstack EAX,EBP:-2
+7008319 lneg EAX
+7008321 mov EBX,EAX
+// if (!reftable)
+7008323 cmp 0,EBX
+7008326 jge 7008378
+7008329 push #7000041
+7008332 mov ECX,1
+// malloc(...)
+7008335 call #7000015
+7008338 add ESP,1
+// reftable=malloc(sizeof_vector)
+7008341 sstack EBP:-2,EAX
+7008345 push 1
+7008348 rstack EAX,EBP:-2
+7008352 push EAX
+7008354 mov ECX,2
+// vector_constructor(...)
+7008357 call #7000061
+7008360 add ESP,2
+7008363 rstack EAX,EBP:-2
+7008367 rstack EBX,EBP:-1
+7008371 add EBX,3
+7008374 mov ECX,EBX
+// sym[3]=reftable
+7008376 mov #ECX,EAX
+__369:
+__367:
+__365:
+__361:
+7008378 push #7000045
+7008381 rstack EAX,EBP:-2
+7008385 push EAX
+7008387 mov ECX,2
+// assert_type(...)
+7008390 call #7000021
+7008393 add ESP,2
+7008396 rstack EAX,EBP:-3
+7008400 push EAX
+7008402 rstack EAX,EBP:-2
+7008406 push EAX
+7008408 mov ECX,2
+// vector_push(...)
+7008411 call #7000063
+7008414 add ESP,2
+__359:
+7008417 leave 
+7008418 ret 
+findSymbol:
+// findSymbol(str)
+7008419 enter 4
+__371:
+7008422 sstack EBP:-1,0
+7008427 push #7007806
+7008430 mov ECX,1
+// vector_get_size(...)
+7008433 call #7000029
+7008436 add ESP,1
+7008439 sstack EBP:-2,EAX
+// init loop
+7008443 sstack EBP:-1,0
+__373:
+7008448 rstack EAX,EBP:-1
+7008452 rstack EBX,EBP:-2
+7008456 sub EBX,EAX
+7008458 mov EAX,EBX
+7008460 fsgn EAX,EAX
+// condition
+7008462 max EAX,0
+7008465 cmp 0,EAX
+7008468 jz 7008584
+7008471 rstack EAX,EBP:-1
+7008475 push EAX
+7008477 push 0
+7008480 push #7007806
+7008483 mov ECX,3
+// vector_get(...)
+7008486 call #7000037
+7008489 add ESP,3
+7008492 sstack EBP:-3,EAX
+7008496 push #7000039
+7008499 rstack EAX,EBP:-3
+7008503 push EAX
+7008505 mov ECX,2
+// assert_type(...)
+7008508 call #7000021
+7008511 add ESP,2
+7008514 rstack EAX,EBP:-3
+7008518 add EAX,1
+7008521 mov EBX,EAX
+7008523 sstack EBP:-4,#EBX
+__375:
+7008527 rstack EAX,EBP:-4
+7008531 push EAX
+7008533 rstack EAX,EBP:2
+7008537 push EAX
+7008539 mov ECX,2
+// strcmp(...)
+7008542 call #7000083
+7008545 add ESP,2
+7008548 mov EBX,0
+7008551 sub EBX,EAX
+7008553 fabs EBX,EBX
+7008555 fsgn EBX,EBX
+7008557 lneg EBX
+// if (strcmp(str,str2)==0)
+7008559 cmp 0,EBX
+7008562 jge 7008571
+7008565 rstack EAX,EBP:-3
+7008569 leave 
+7008570 ret 
+__376:
+__374:
+7008571 rstack EAX,EBP:-1
+// loop step
+7008575 inc EAX
+7008577 sstack EBP:-1,EAX
+7008581 jmp 7008448
+__372:
+7008584 mov EAX,0
+7008587 leave 
+7008588 ret 
+__370:
+7008589 leave 
+7008590 ret 
+printSymbol:
+// printSymbol(sym)
+7008591 enter 6
+__378:
+7008594 push #7000039
+7008597 rstack EAX,EBP:2
+7008601 push EAX
+7008603 mov ECX,2
+// assert_type(...)
+7008606 call #7000021
+7008609 add ESP,2
+7008612 rstack EAX,EBP:2
+7008616 add EAX,1
+7008619 mov EBX,EAX
+7008621 sstack EBP:-1,#EBX
+7008625 rstack EAX,EBP:2
+7008629 add EAX,2
+7008632 mov EBX,EAX
+7008634 sstack EBP:-2,#EBX
+7008638 rstack EAX,EBP:2
+7008642 add EAX,3
+7008645 mov EBX,EAX
+7008647 sstack EBP:-3,#EBX
+7008651 rstack EAX,EBP:-1
+7008655 push EAX
+7008657 push 7008894
+7008660 mov ECX,2
+// printf(...)
+7008663 call #7000047
+7008666 add ESP,2
+__381:
+7008669 rstack EAX,EBP:-2
+7008673 mov EBX,-1
+7008676 sub EBX,EAX
+7008678 fabs EBX,EBX
+7008680 fsgn EBX,EBX
+// if (def!=-1)
+7008682 cmp 0,EBX
+7008685 jge 7008709
+7008688 rstack EAX,EBP:-2
+7008692 push EAX
+7008694 push 7008907
+7008697 mov ECX,2
+// printf(...)
+7008700 call #7000047
+7008703 add ESP,2
+7008706 jmp 7008721
+__384:
+__382:
+__386:
+7008709 push 7008877
+7008712 mov ECX,1
+// printf(...)
+7008715 call #7000047
+7008718 add ESP,1
+__385:
+__380:
+__389:
+7008721 rstack EAX,EBP:-3
+// if (refs)
+7008725 cmp 0,EAX
+7008728 jge 7008863
+7008731 rstack EAX,EBP:-3
+7008735 push EAX
+7008737 mov ECX,1
+// vector_get_size(...)
+7008740 call #7000029
+7008743 add ESP,1
+7008746 sstack EBP:-4,EAX
+7008750 rstack EAX,EBP:-4
+7008754 push EAX
+7008756 push 7008931
+7008759 mov ECX,2
+// printf(...)
+7008762 call #7000047
+7008765 add ESP,2
+7008768 sstack EBP:-5,0
+// init loop
+7008773 sstack EBP:-5,0
+__393:
+7008778 rstack EAX,EBP:-5
+7008782 rstack EBX,EBP:-4
+7008786 sub EBX,EAX
+7008788 mov EAX,EBX
+7008790 fsgn EAX,EAX
+// condition
+7008792 max EAX,0
+7008795 cmp 0,EAX
+7008798 jz 7008860
+7008801 rstack EAX,EBP:-5
+7008805 push EAX
+7008807 push 0
+7008810 rstack EAX,EBP:-3
+7008814 push EAX
+7008816 mov ECX,3
+// vector_get(...)
+7008819 call #7000037
+7008822 add ESP,3
+7008825 sstack EBP:-6,EAX
+7008829 rstack EAX,EBP:-6
+7008833 push EAX
+7008835 push 7008886
+7008838 mov ECX,2
+// printf(...)
+7008841 call #7000047
+7008844 add ESP,2
+7008847 rstack EAX,EBP:-5
+// loop step
+7008851 inc EAX
+7008853 sstack EBP:-5,EAX
+7008857 jmp 7008778
+__392:
+7008860 jmp 7008875
+__395:
+__390:
+__397:
+7008863 push 7008921
+7008866 mov ECX,1
+// printf(...)
+7008869 call #7000047
+7008872 add ESP,1
+__396:
+__388:
+__377:
+7008875 leave 
+7008876 ret 
+__387:
+7008877 db " no def
+",0
+__394:
+7008886 db "  @ %d
+",0
+__379:
+7008894 db "symbol [%s]
+",0
+__383:
+7008907 db " defined: %d
+",0
+__398:
+7008921 db " no refs
+",0
+__391:
+7008931 db " %d refs:
+",0
+printSymbolTable:
+// printSymbolTable(symtable)
+7008942 enter 3
+__400:
+7008945 sstack EBP:-1,0
+7008950 rstack EAX,EBP:2
+7008954 push EAX
+7008956 mov ECX,1
+// vector_get_size(...)
+7008959 call #7000029
+7008962 add ESP,1
+7008965 sstack EBP:-2,EAX
+// init loop
+7008969 sstack EBP:-1,0
+__402:
+7008974 rstack EAX,EBP:-1
+7008978 rstack EBX,EBP:-2
+7008982 sub EBX,EAX
+7008984 mov EAX,EBX
+7008986 fsgn EAX,EAX
+// condition
+7008988 max EAX,0
+7008991 cmp 0,EAX
+7008994 jz 7009053
+7008997 rstack EAX,EBP:-1
+7009001 push EAX
+7009003 push 0
+7009006 rstack EAX,EBP:2
+7009010 push EAX
+7009012 mov ECX,3
+// vector_get(...)
+7009015 call #7000037
+7009018 add ESP,3
+7009021 sstack EBP:-3,EAX
+7009025 rstack EAX,EBP:-3
+// printSymbol arg #1 (float sym)
+7009029 push EAX
+7009031 mov ECX,1
+// printSymbol(...)
+7009034 call 7008591
+7009037 add ESP,1
+7009040 rstack EAX,EBP:-1
+// loop step
+7009044 inc EAX
+7009046 sstack EBP:-1,EAX
+7009050 jmp 7008974
+__401:
+__399:
+7009053 leave 
+7009054 ret 
+str2num2:
+// str2num2(str,Iout)
+7009055 enter 8
+__404:
+7009058 sstack EBP:-1,0
+7009063 sstack EBP:-2,0
+7009068 sstack EBP:-3,0
+7009073 sstack EBP:-4,0
+7009078 sstack EBP:-5,0
+7009083 sstack EBP:-6,0
+7009088 sstack EBP:-7,10
+7009093 rstack EAX,EBP:-2
+7009097 rstack EBX,EBP:2
+7009101 add EBX,EAX
+7009103 mov EAX,EBX
+7009105 sstack EBP:-8,#EAX
+__406:
+7009109 rstack EAX,EBP:-8
+7009113 mov EBX,0
+7009116 sub EBX,EAX
+7009118 fabs EBX,EBX
+7009120 fsgn EBX,EBX
+7009122 lneg EBX
+// if (C==0)
+7009124 cmp 0,EBX
+7009127 jge 7009136
+7009130 jmp 7010665
+7009133 jmp 7009344
+__408:
+__407:
+__410:
+__412:
+7009136 rstack EAX,EBP:-8
+7009140 mov EBX,45
+7009143 sub EBX,EAX
+7009145 fabs EBX,EBX
+7009147 fsgn EBX,EBX
+7009149 lneg EBX
+// if (C=='-')
+7009151 cmp 0,EBX
+7009154 jge 7009173
+// Minus=1
+7009157 sstack EBP:-4,1
+7009162 rstack EAX,EBP:-2
+// I+=1
+7009166 add EAX,1
+7009169 sstack EBP:-2,EAX
+__413:
+__411:
+__415:
+7009173 rstack EAX,EBP:-8
+7009177 mov EBX,48
+7009180 sub EBX,EAX
+7009182 fabs EBX,EBX
+7009184 fsgn EBX,EBX
+7009186 lneg EBX
+// if (C=='0')
+7009188 cmp 0,EBX
+7009191 jge 7009344
+__418:
+7009194 rstack EAX,EBP:-2
+7009198 add EAX,1
+7009201 mov EBX,EAX
+7009203 rstack EAX,EBP:2
+7009207 add EAX,EBX
+7009209 mov EBX,EAX
+7009211 mov EAX,98
+7009214 sub EAX,#EBX
+7009216 fabs EAX,EAX
+7009218 fsgn EAX,EAX
+7009220 lneg EAX
+// if (str[I+1]=='b')
+7009222 cmp 0,EAX
+7009225 jge 7009244
+// Base=2
+7009228 sstack EBP:-7,2
+7009233 rstack EAX,EBP:-2
+// I+=2
+7009237 add EAX,2
+7009240 sstack EBP:-2,EAX
+__419:
+__417:
+__421:
+7009244 rstack EAX,EBP:-2
+7009248 add EAX,1
+7009251 mov EBX,EAX
+7009253 rstack EAX,EBP:2
+7009257 add EAX,EBX
+7009259 mov EBX,EAX
+7009261 mov EAX,111
+7009264 sub EAX,#EBX
+7009266 fabs EAX,EAX
+7009268 fsgn EAX,EAX
+7009270 lneg EAX
+// if (str[I+1]=='o')
+7009272 cmp 0,EAX
+7009275 jge 7009294
+// Base=8
+7009278 sstack EBP:-7,8
+7009283 rstack EAX,EBP:-2
+// I+=2
+7009287 add EAX,2
+7009290 sstack EBP:-2,EAX
+__422:
+__420:
+__424:
+7009294 rstack EAX,EBP:-2
+7009298 add EAX,1
+7009301 mov EBX,EAX
+7009303 rstack EAX,EBP:2
+7009307 add EAX,EBX
+7009309 mov EBX,EAX
+7009311 mov EAX,120
+7009314 sub EAX,#EBX
+7009316 fabs EAX,EAX
+7009318 fsgn EAX,EAX
+7009320 lneg EAX
+// if (str[I+1]=='x')
+7009322 cmp 0,EAX
+7009325 jge 7009344
+// Base=16
+7009328 sstack EBP:-7,16
+7009333 rstack EAX,EBP:-2
+// I+=2
+7009337 add EAX,2
+7009340 sstack EBP:-2,EAX
+__425:
+__423:
+__416:
+__414:
+__409:
+__405:
+__427:
+7009344 rstack EAX,EBP:-1
+7009348 lneg EAX
+7009350 mov EBX,EAX
+// if (!End
+7009352 cmp 0,EBX
+7009355 jz 7009991
+7009358 rstack EAX,EBP:-2
+7009362 mov EBX,EAX
+7009364 inc EAX
+7009366 sstack EBP:-2,EAX
+7009370 rstack EAX,EBP:2
+7009374 add EAX,EBX
+7009376 mov EBX,EAX
+// C=str[I++]
+7009378 sstack EBP:-8,#EBX
+__429:
+7009382 rstack EAX,EBP:-8
+7009386 mov EBX,0
+7009389 sub EBX,EAX
+7009391 fabs EBX,EBX
+7009393 fsgn EBX,EBX
+7009395 lneg EBX
+// if (C==0)
+7009397 cmp 0,EBX
+7009400 jge 7009411
+// End=1
+7009403 sstack EBP:-1,1
+7009408 jmp 7009988
+__431:
+__430:
+__433:
+__435:
+7009411 rstack EAX,EBP:-8
+7009415 mov EBX,46
+7009418 sub EBX,EAX
+7009420 fabs EBX,EBX
+7009422 fsgn EBX,EBX
+7009424 lneg EBX
+// if (C=='.')
+7009426 cmp 0,EBX
+7009429 jge 7009445
+// End=1
+7009432 sstack EBP:-1,1
+// Frac=1
+7009437 sstack EBP:-5,1
+7009442 jmp 7009988
+__437:
+__436:
+__439:
+// N=-1
+7009445 sstack EBP:-6,-1
+__441:
+7009450 rstack EAX,EBP:-8
+7009454 mov EBX,48
+7009457 sub EBX,EAX
+7009459 fabs EBX,EBX
+7009461 fsgn EBX,EBX
+7009463 lneg EBX
+// if (C=='0')
+7009465 cmp 0,EBX
+7009468 jge 7009476
+// N=0
+7009471 sstack EBP:-6,0
+__442:
+__440:
+__444:
+7009476 rstack EAX,EBP:-8
+7009480 mov EBX,49
+7009483 sub EBX,EAX
+7009485 fabs EBX,EBX
+7009487 fsgn EBX,EBX
+7009489 lneg EBX
+// if (C=='1')
+7009491 cmp 0,EBX
+7009494 jge 7009502
+// N=1
+7009497 sstack EBP:-6,1
+__445:
+__443:
+__447:
+7009502 rstack EAX,EBP:-7
+7009506 mov EBX,2
+7009509 sub EBX,EAX
+7009511 neg EBX
+7009513 fsgn EBX,EBX
+7009515 max EBX,0
+// if (Base>2)
+7009518 cmp 0,EBX
+7009521 jge 7009932
+__450:
+7009524 rstack EAX,EBP:-8
+7009528 mov EBX,50
+7009531 sub EBX,EAX
+7009533 fabs EBX,EBX
+7009535 fsgn EBX,EBX
+7009537 lneg EBX
+// if (C=='2')
+7009539 cmp 0,EBX
+7009542 jge 7009550
+// N=2
+7009545 sstack EBP:-6,2
+__451:
+__449:
+__453:
+7009550 rstack EAX,EBP:-8
+7009554 mov EBX,51
+7009557 sub EBX,EAX
+7009559 fabs EBX,EBX
+7009561 fsgn EBX,EBX
+7009563 lneg EBX
+// if (C=='3')
+7009565 cmp 0,EBX
+7009568 jge 7009576
+// N=3
+7009571 sstack EBP:-6,3
+__454:
+__452:
+__456:
+7009576 rstack EAX,EBP:-8
+7009580 mov EBX,52
+7009583 sub EBX,EAX
+7009585 fabs EBX,EBX
+7009587 fsgn EBX,EBX
+7009589 lneg EBX
+// if (C=='4')
+7009591 cmp 0,EBX
+7009594 jge 7009602
+// N=4
+7009597 sstack EBP:-6,4
+__457:
+__455:
+__459:
+7009602 rstack EAX,EBP:-8
+7009606 mov EBX,53
+7009609 sub EBX,EAX
+7009611 fabs EBX,EBX
+7009613 fsgn EBX,EBX
+7009615 lneg EBX
+// if (C=='5')
+7009617 cmp 0,EBX
+7009620 jge 7009628
+// N=5
+7009623 sstack EBP:-6,5
+__460:
+__458:
+__462:
+7009628 rstack EAX,EBP:-8
+7009632 mov EBX,54
+7009635 sub EBX,EAX
+7009637 fabs EBX,EBX
+7009639 fsgn EBX,EBX
+7009641 lneg EBX
+// if (C=='6')
+7009643 cmp 0,EBX
+7009646 jge 7009654
+// N=6
+7009649 sstack EBP:-6,6
+__463:
+__461:
+__465:
+7009654 rstack EAX,EBP:-8
+7009658 mov EBX,55
+7009661 sub EBX,EAX
+7009663 fabs EBX,EBX
+7009665 fsgn EBX,EBX
+7009667 lneg EBX
+// if (C=='7')
+7009669 cmp 0,EBX
+7009672 jge 7009680
+// N=7
+7009675 sstack EBP:-6,7
+__466:
+__464:
+__468:
+7009680 rstack EAX,EBP:-7
+7009684 mov EBX,8
+7009687 sub EBX,EAX
+7009689 neg EBX
+7009691 fsgn EBX,EBX
+7009693 max EBX,0
+// if (Base>8)
+7009696 cmp 0,EBX
+7009699 jge 7009932
+__471:
+7009702 rstack EAX,EBP:-8
+7009706 mov EBX,56
+7009709 sub EBX,EAX
+7009711 fabs EBX,EBX
+7009713 fsgn EBX,EBX
+7009715 lneg EBX
+// if (C=='8')
+7009717 cmp 0,EBX
+7009720 jge 7009728
+// N=8
+7009723 sstack EBP:-6,8
+__472:
+__470:
+__474:
+7009728 rstack EAX,EBP:-8
+7009732 mov EBX,57
+7009735 sub EBX,EAX
+7009737 fabs EBX,EBX
+7009739 fsgn EBX,EBX
+7009741 lneg EBX
+// if (C=='9')
+7009743 cmp 0,EBX
+7009746 jge 7009754
+// N=9
+7009749 sstack EBP:-6,9
+__475:
+__473:
+__477:
+7009754 rstack EAX,EBP:-7
+7009758 mov EBX,10
+7009761 sub EBX,EAX
+7009763 neg EBX
+7009765 fsgn EBX,EBX
+7009767 max EBX,0
+// if (Base>10)
+7009770 cmp 0,EBX
+7009773 jge 7009932
+__480:
+7009776 rstack EAX,EBP:-8
+7009780 mov EBX,65
+7009783 sub EBX,EAX
+7009785 fabs EBX,EBX
+7009787 fsgn EBX,EBX
+7009789 lneg EBX
+// if (C=='A')
+7009791 cmp 0,EBX
+7009794 jge 7009802
+// N=10
+7009797 sstack EBP:-6,10
+__481:
+__479:
+__483:
+7009802 rstack EAX,EBP:-8
+7009806 mov EBX,66
+7009809 sub EBX,EAX
+7009811 fabs EBX,EBX
+7009813 fsgn EBX,EBX
+7009815 lneg EBX
+// if (C=='B')
+7009817 cmp 0,EBX
+7009820 jge 7009828
+// N=11
+7009823 sstack EBP:-6,11
+__484:
+__482:
+__486:
+7009828 rstack EAX,EBP:-8
+7009832 mov EBX,67
+7009835 sub EBX,EAX
+7009837 fabs EBX,EBX
+7009839 fsgn EBX,EBX
+7009841 lneg EBX
+// if (C=='C')
+7009843 cmp 0,EBX
+7009846 jge 7009854
+// N=12
+7009849 sstack EBP:-6,12
+__487:
+__485:
+__489:
+7009854 rstack EAX,EBP:-8
+7009858 mov EBX,68
+7009861 sub EBX,EAX
+7009863 fabs EBX,EBX
+7009865 fsgn EBX,EBX
+7009867 lneg EBX
+// if (C=='D')
+7009869 cmp 0,EBX
+7009872 jge 7009880
+// N=13
+7009875 sstack EBP:-6,13
+__490:
+__488:
+__492:
+7009880 rstack EAX,EBP:-8
+7009884 mov EBX,69
+7009887 sub EBX,EAX
+7009889 fabs EBX,EBX
+7009891 fsgn EBX,EBX
+7009893 lneg EBX
+// if (C=='E')
+7009895 cmp 0,EBX
+7009898 jge 7009906
+// N=14
+7009901 sstack EBP:-6,14
+__493:
+__491:
+__495:
+7009906 rstack EAX,EBP:-8
+7009910 mov EBX,70
+7009913 sub EBX,EAX
+7009915 fabs EBX,EBX
+7009917 fsgn EBX,EBX
+7009919 lneg EBX
+// if (C=='F')
+7009921 cmp 0,EBX
+7009924 jge 7009932
+// N=15
+7009927 sstack EBP:-6,15
+__496:
+__494:
+__478:
+__476:
+__469:
+__467:
+__448:
+__446:
+__498:
+7009932 rstack EAX,EBP:-6
+7009936 mov EBX,-1
+7009939 sub EBX,EAX
+7009941 fabs EBX,EBX
+7009943 fsgn EBX,EBX
+7009945 lneg EBX
+// if (N==-1)
+7009947 cmp 0,EBX
+7009950 jge 7009966
+// End=1
+7009953 sstack EBP:-1,1
+// Frac=0
+7009958 sstack EBP:-5,0
+7009963 jmp 7009988
+__500:
+__499:
+__502:
+7009966 rstack EAX,EBP:-6
+7009970 rstack EBX,EBP:-7
+7009974 rstack ECX,EBP:-3
+7009978 mul ECX,EBX
+7009980 mov EBX,ECX
+7009982 add EBX,EAX
+// Num=Num*Base+N
+7009984 sstack EBP:-3,EBX
+__501:
+__497:
+__438:
+__434:
+__432:
+__428:
+7009988 jmp 7009344
+__426:
+__504:
+7009991 rstack EAX,EBP:-5
+7009995 mov EBX,1
+7009998 sub EBX,EAX
+7010000 fabs EBX,EBX
+7010002 fsgn EBX,EBX
+7010004 lneg EBX
+// if (Frac==1)
+7010006 cmp 0,EBX
+7010009 jge 7010606
+// End=0
+7010012 sstack EBP:-1,0
+__507:
+7010017 rstack EAX,EBP:-1
+7010021 lneg EAX
+7010023 mov EBX,EAX
+// if (!End
+7010025 cmp 0,EBX
+7010028 jz 7010606
+7010031 rstack EAX,EBP:-2
+7010035 mov EBX,EAX
+7010037 inc EAX
+7010039 sstack EBP:-2,EAX
+7010043 rstack EAX,EBP:2
+7010047 add EAX,EBX
+7010049 mov EBX,EAX
+// C=str[I++]
+7010051 sstack EBP:-8,#EBX
+__509:
+7010055 rstack EAX,EBP:-8
+7010059 mov EBX,0
+7010062 sub EBX,EAX
+7010064 fabs EBX,EBX
+7010066 fsgn EBX,EBX
+7010068 lneg EBX
+// if (C==0)
+7010070 cmp 0,EBX
+7010073 jge 7010084
+// End=1
+7010076 sstack EBP:-1,1
+7010081 jmp 7010603
+__511:
+__510:
+__513:
+// N=0
+7010084 sstack EBP:-6,0
+__515:
+7010089 rstack EAX,EBP:-8
+7010093 mov EBX,48
+7010096 sub EBX,EAX
+7010098 fabs EBX,EBX
+7010100 fsgn EBX,EBX
+7010102 lneg EBX
+// if (C=='0')
+7010104 cmp 0,EBX
+7010107 jge 7010115
+// N=0
+7010110 sstack EBP:-6,0
+__516:
+__514:
+__518:
+7010115 rstack EAX,EBP:-8
+7010119 mov EBX,49
+7010122 sub EBX,EAX
+7010124 fabs EBX,EBX
+7010126 fsgn EBX,EBX
+7010128 lneg EBX
+// if (C=='1')
+7010130 cmp 0,EBX
+7010133 jge 7010141
+// N=1
+7010136 sstack EBP:-6,1
+__519:
+__517:
+__521:
+7010141 rstack EAX,EBP:-7
+7010145 mov EBX,2
+7010148 sub EBX,EAX
+7010150 neg EBX
+7010152 fsgn EBX,EBX
+7010154 max EBX,0
+// if (Base>2)
+7010157 cmp 0,EBX
+7010160 jge 7010571
+__524:
+7010163 rstack EAX,EBP:-8
+7010167 mov EBX,50
+7010170 sub EBX,EAX
+7010172 fabs EBX,EBX
+7010174 fsgn EBX,EBX
+7010176 lneg EBX
+// if (C=='2')
+7010178 cmp 0,EBX
+7010181 jge 7010189
+// N=2
+7010184 sstack EBP:-6,2
+__525:
+__523:
+__527:
+7010189 rstack EAX,EBP:-8
+7010193 mov EBX,51
+7010196 sub EBX,EAX
+7010198 fabs EBX,EBX
+7010200 fsgn EBX,EBX
+7010202 lneg EBX
+// if (C=='3')
+7010204 cmp 0,EBX
+7010207 jge 7010215
+// N=3
+7010210 sstack EBP:-6,3
+__528:
+__526:
+__530:
+7010215 rstack EAX,EBP:-8
+7010219 mov EBX,52
+7010222 sub EBX,EAX
+7010224 fabs EBX,EBX
+7010226 fsgn EBX,EBX
+7010228 lneg EBX
+// if (C=='4')
+7010230 cmp 0,EBX
+7010233 jge 7010241
+// N=4
+7010236 sstack EBP:-6,4
+__531:
+__529:
+__533:
+7010241 rstack EAX,EBP:-8
+7010245 mov EBX,53
+7010248 sub EBX,EAX
+7010250 fabs EBX,EBX
+7010252 fsgn EBX,EBX
+7010254 lneg EBX
+// if (C=='5')
+7010256 cmp 0,EBX
+7010259 jge 7010267
+// N=5
+7010262 sstack EBP:-6,5
+__534:
+__532:
+__536:
+7010267 rstack EAX,EBP:-8
+7010271 mov EBX,54
+7010274 sub EBX,EAX
+7010276 fabs EBX,EBX
+7010278 fsgn EBX,EBX
+7010280 lneg EBX
+// if (C=='6')
+7010282 cmp 0,EBX
+7010285 jge 7010293
+// N=6
+7010288 sstack EBP:-6,6
+__537:
+__535:
+__539:
+7010293 rstack EAX,EBP:-8
+7010297 mov EBX,55
+7010300 sub EBX,EAX
+7010302 fabs EBX,EBX
+7010304 fsgn EBX,EBX
+7010306 lneg EBX
+// if (C=='7')
+7010308 cmp 0,EBX
+7010311 jge 7010319
+// N=7
+7010314 sstack EBP:-6,7
+__540:
+__538:
+__542:
+7010319 rstack EAX,EBP:-7
+7010323 mov EBX,8
+7010326 sub EBX,EAX
+7010328 neg EBX
+7010330 fsgn EBX,EBX
+7010332 max EBX,0
+// if (Base>8)
+7010335 cmp 0,EBX
+7010338 jge 7010571
+__545:
+7010341 rstack EAX,EBP:-8
+7010345 mov EBX,56
+7010348 sub EBX,EAX
+7010350 fabs EBX,EBX
+7010352 fsgn EBX,EBX
+7010354 lneg EBX
+// if (C=='8')
+7010356 cmp 0,EBX
+7010359 jge 7010367
+// N=8
+7010362 sstack EBP:-6,8
+__546:
+__544:
+__548:
+7010367 rstack EAX,EBP:-8
+7010371 mov EBX,57
+7010374 sub EBX,EAX
+7010376 fabs EBX,EBX
+7010378 fsgn EBX,EBX
+7010380 lneg EBX
+// if (C=='9')
+7010382 cmp 0,EBX
+7010385 jge 7010393
+// N=9
+7010388 sstack EBP:-6,9
+__549:
+__547:
+__551:
+7010393 rstack EAX,EBP:-7
+7010397 mov EBX,10
+7010400 sub EBX,EAX
+7010402 neg EBX
+7010404 fsgn EBX,EBX
+7010406 max EBX,0
+// if (Base>10)
+7010409 cmp 0,EBX
+7010412 jge 7010571
+__554:
+7010415 rstack EAX,EBP:-8
+7010419 mov EBX,65
+7010422 sub EBX,EAX
+7010424 fabs EBX,EBX
+7010426 fsgn EBX,EBX
+7010428 lneg EBX
+// if (C=='A')
+7010430 cmp 0,EBX
+7010433 jge 7010441
+// N=10
+7010436 sstack EBP:-6,10
+__555:
+__553:
+__557:
+7010441 rstack EAX,EBP:-8
+7010445 mov EBX,66
+7010448 sub EBX,EAX
+7010450 fabs EBX,EBX
+7010452 fsgn EBX,EBX
+7010454 lneg EBX
+// if (C=='B')
+7010456 cmp 0,EBX
+7010459 jge 7010467
+// N=11
+7010462 sstack EBP:-6,11
+__558:
+__556:
+__560:
+7010467 rstack EAX,EBP:-8
+7010471 mov EBX,67
+7010474 sub EBX,EAX
+7010476 fabs EBX,EBX
+7010478 fsgn EBX,EBX
+7010480 lneg EBX
+// if (C=='C')
+7010482 cmp 0,EBX
+7010485 jge 7010493
+// N=12
+7010488 sstack EBP:-6,12
+__561:
+__559:
+__563:
+7010493 rstack EAX,EBP:-8
+7010497 mov EBX,68
+7010500 sub EBX,EAX
+7010502 fabs EBX,EBX
+7010504 fsgn EBX,EBX
+7010506 lneg EBX
+// if (C=='D')
+7010508 cmp 0,EBX
+7010511 jge 7010519
+// N=13
+7010514 sstack EBP:-6,13
+__564:
+__562:
+__566:
+7010519 rstack EAX,EBP:-8
+7010523 mov EBX,69
+7010526 sub EBX,EAX
+7010528 fabs EBX,EBX
+7010530 fsgn EBX,EBX
+7010532 lneg EBX
+// if (C=='E')
+7010534 cmp 0,EBX
+7010537 jge 7010545
+// N=14
+7010540 sstack EBP:-6,14
+__567:
+__565:
+__569:
+7010545 rstack EAX,EBP:-8
+7010549 mov EBX,70
+7010552 sub EBX,EAX
+7010554 fabs EBX,EBX
+7010556 fsgn EBX,EBX
+7010558 lneg EBX
+// if (C=='F')
+7010560 cmp 0,EBX
+7010563 jge 7010571
+// N=15
+7010566 sstack EBP:-6,15
+__570:
+__568:
+__552:
+__550:
+__543:
+__541:
+__522:
+__520:
+7010571 rstack EAX,EBP:-6
+7010575 rstack EBX,EBP:-7
+7010579 rstack ECX,EBP:-3
+7010583 mul ECX,EBX
+7010585 mov EBX,ECX
+7010587 add EBX,EAX
+// Num=Num*Base+N
+7010589 sstack EBP:-3,EBX
+7010593 rstack EAX,EBP:-5
+// Frac++
+7010597 inc EAX
+7010599 sstack EBP:-5,EAX
+__512:
+__508:
+7010603 jmp 7010017
+__506:
+__505:
+__503:
+__572:
+7010606 rstack EAX,EBP:-5
+// if (Frac)
+7010610 cmp 0,EAX
+7010613 jge 7010643
+7010616 rstack EAX,EBP:-5
+7010620 add EAX,-1
+7010623 mov EBX,EAX
+7010625 rstack EAX,EBP:-7
+7010629 fpwr EAX,EBX
+7010631 mov EBX,EAX
+7010633 rstack EAX,EBP:-3
+// Num/=(Base^^(Frac-1))
+7010637 div EAX,EBX
+7010639 sstack EBP:-3,EAX
+__573:
+__571:
+__575:
+7010643 rstack EAX,EBP:-4
+// if (Minus)
+7010647 cmp 0,EAX
+7010650 jge 7010665
+7010653 rstack EAX,EBP:-3
+7010657 neg EAX
+7010659 mov EBX,EAX
+// Num=-Num
+7010661 sstack EBP:-3,EBX
+__576:
+__574:
+s2n2_exit:
+7010665 rstack EAX,EBP:-2
+7010669 add EAX,-1
+7010672 mov EBX,EAX
+7010674 rstack EAX,EBP:3
+// *Iout=I-1
+7010678 mov #EAX,EBX
+7010680 rstack EAX,EBP:-3
+7010684 leave 
+7010685 ret 
+__403:
+7010686 leave 
+7010687 ret 
+isIdent:
+// isIdent(C)
+7010688 enter -0
+__578:
+__580:
+7010691 rstack EAX,EBP:2
+7010695 push EAX
+7010697 mov ECX,1
+// isAlpha(...)
+7010700 call #7000085
+7010703 add ESP,1
+// if (isAlpha(C))
+7010706 cmp 0,EAX
+7010709 jge 7010717
+7010712 mov EAX,1
+7010715 leave 
+7010716 ret 
+__581:
+__579:
+__583:
+7010717 rstack EAX,EBP:2
+7010721 push EAX
+7010723 mov ECX,1
+// isNum(...)
+7010726 call #7000055
+7010729 add ESP,1
+// if (isNum(C))
+7010732 cmp 0,EAX
+7010735 jge 7010743
+7010738 mov EAX,1
+7010741 leave 
+7010742 ret 
+__584:
+__582:
+__586:
+7010743 rstack EAX,EBP:2
+7010747 mov EBX,95
+7010750 sub EBX,EAX
+7010752 fabs EBX,EBX
+7010754 fsgn EBX,EBX
+7010756 lneg EBX
+// if (C=='_')
+7010758 cmp 0,EBX
+7010761 jge 7010769
+7010764 mov EAX,1
+7010767 leave 
+7010768 ret 
+__587:
+__585:
+7010769 mov EAX,0
+7010772 leave 
+7010773 ret 
+__577:
+7010774 leave 
+7010775 ret 
+caseless_strncmp:
+// caseless_strncmp(str1,str2,n)
+7010776 enter 5
+__589:
+7010779 rstack EAX,EBP:2
+7010783 sstack EBP:-1,EAX
+7010787 rstack EAX,EBP:3
+7010791 sstack EBP:-2,EAX
+__591:
+7010795 rstack EAX,EBP:4
+7010799 mov EBX,0
+7010802 sub EBX,EAX
+7010804 neg EBX
+7010806 fsgn EBX,EBX
+7010808 max EBX,0
+// if (n>0
+7010811 cmp 0,EBX
+7010814 jz 7010945
+7010817 rstack EAX,EBP:-1
+7010821 mov EBX,EAX
+7010823 inc EAX
+7010825 sstack EBP:-1,EAX
+7010829 sstack EBP:-3,#EBX
+7010833 rstack EAX,EBP:-2
+7010837 mov EBX,EAX
+7010839 inc EAX
+7010841 sstack EBP:-2,EAX
+7010845 sstack EBP:-4,#EBX
+7010849 rstack EAX,EBP:-3
+7010853 push EAX
+7010855 mov ECX,1
+// toLower(...)
+7010858 call #7000087
+7010861 add ESP,1
+// C1=toLower(C1)
+7010864 sstack EBP:-3,EAX
+7010868 rstack EAX,EBP:-4
+7010872 push EAX
+7010874 mov ECX,1
+// toLower(...)
+7010877 call #7000087
+7010880 add ESP,1
+// C2=toLower(C2)
+7010883 sstack EBP:-4,EAX
+7010887 rstack EAX,EBP:-4
+7010891 neg EAX
+7010893 mov EBX,EAX
+7010895 rstack EAX,EBP:-3
+7010899 add EAX,EBX
+7010901 mov EBX,EAX
+7010903 sstack EBP:-5,EBX
+__593:
+7010907 rstack EAX,EBP:-5
+7010911 mov EBX,0
+7010914 sub EBX,EAX
+7010916 fabs EBX,EBX
+7010918 fsgn EBX,EBX
+// if (diff!=0)
+7010920 cmp 0,EBX
+7010923 jge 7010932
+7010926 rstack EAX,EBP:-5
+7010930 leave 
+7010931 ret 
+__594:
+__592:
+7010932 rstack EAX,EBP:4
+// n--
+7010936 dec EAX
+7010938 sstack EBP:4,EAX
+7010942 jmp 7010795
+__590:
+7010945 mov EAX,0
+7010948 leave 
+7010949 ret 
+__588:
+7010950 leave 
+7010951 ret 
+segTable:
+7010952 db 7011018
+7010953 db 7011021
+7010954 db 7011024
+7010955 db 7011027
+7010956 db 7011030
+7010957 db 7011033
+7010958 db 7011036
+7010959 db 7011039
+7010960 db 7010986
+7010961 db 7010990
+7010962 db 7010994
+7010963 db 7010998
+7010964 db 7011002
+7010965 db 7011006
+7010966 db 7011010
+7010967 db 7011014
+7010968 db 0
+regTable:
+7010969 db 7010986
+7010970 db 7010990
+7010971 db 7010994
+7010972 db 7010998
+7010973 db 7011002
+7010974 db 7011006
+7010975 db 7011010
+7010976 db 7011014
+7010977 db 7011018
+7010978 db 7011021
+7010979 db 7011024
+7010980 db 7011027
+7010981 db 7011030
+7010982 db 7011033
+7010983 db 7011036
+7010984 db 7011039
+7010985 db 0
+str_eax:
+7010986 db "EAX",0
+str_ebx:
+7010990 db "EBX",0
+str_ecx:
+7010994 db "ECX",0
+str_edx:
+7010998 db "EDX",0
+str_esi:
+7011002 db "ESI",0
+str_edi:
+7011006 db "EDI",0
+str_esp:
+7011010 db "ESP",0
+str_ebp:
+7011014 db "EBP",0
+str_cs:
+7011018 db "CS",0
+str_ss:
+7011021 db "SS",0
+str_ds:
+7011024 db "DS",0
+str_es:
+7011027 db "ES",0
+str_gs:
+7011030 db "GS",0
+str_fs:
+7011033 db "FS",0
+str_ks:
+7011036 db "KS",0
+str_ls:
+7011039 db "LS",0
+cmdTable:
+7011042 db 0
+7011043 db 7011378
+7011044 db 1
+7011045 db 7011383
+7011046 db 1
+7011047 db 7011387
+7011048 db 2
+7011049 db 7011391
+7011050 db 3
+7011051 db 7011395
+7011052 db 3
+7011053 db 7011398
+7011054 db 4
+7011055 db 7011403
+7011056 db 4
+7011057 db 7011407
+7011058 db 5
+7011059 db 7011411
+7011060 db 5
+7011061 db 7011414
+7011062 db 6
+7011063 db 7011419
+7011064 db 6
+7011065 db 7011423
+7011066 db 7
+7011067 db 7011427
+7011068 db 7
+7011069 db 7011430
+7011070 db 8
+7011071 db 7011433
+7011072 db 9
+7011073 db 7011439
+7011074 db 10
+7011075 db 7011444
+7011076 db 11
+7011077 db 7011448
+7011078 db 12
+7011079 db 7011452
+7011080 db 13
+7011081 db 7011456
+7011082 db 14
+7011083 db 7011460
+7011084 db 15
+7011085 db 7011464
+7011086 db 18
+7011087 db 7011468
+7011088 db 19
+7011089 db 7011472
+7011090 db 20
+7011091 db 7011476
+7011092 db 21
+7011093 db 7011480
+7011094 db 22
+7011095 db 7011484
+7011096 db 23
+7011097 db 7011488
+7011098 db 24
+7011099 db 7011493
+7011100 db 25
+7011101 db 7011498
+7011102 db 26
+7011103 db 7011504
+7011104 db 27
+7011105 db 7011510
+7011106 db 28
+7011107 db 7011516
+7011108 db 29
+7011109 db 7011520
+7011110 db 30
+7011111 db 7011524
+7011112 db 31
+7011113 db 7011528
+7011114 db 32
+7011115 db 7011533
+7011116 db 33
+7011117 db 7011538
+7011118 db 34
+7011119 db 7011543
+7011120 db 35
+7011121 db 7011548
+7011122 db 36
+7011123 db 7011554
+7011124 db 38
+7011125 db 7011559
+7011126 db 39
+7011127 db 7011564
+7011128 db 40
+7011129 db 7011569
+7011130 db 41
+7011131 db 7011573
+7011132 db 42
+7011133 db 7011578
+7011134 db 43
+7011135 db 7011582
+7011136 db 47
+7011137 db 7011586
+7011138 db 48
+7011139 db 7011591
+7011140 db 49
+7011141 db 7011596
+7011142 db 50
+7011143 db 7011601
+7011144 db 51
+7011145 db 7011605
+7011146 db 52
+7011147 db 7011608
+7011148 db 53
+7011149 db 7011612
+7011150 db 54
+7011151 db 7011617
+7011152 db 55
+7011153 db 7011622
+7011154 db 56
+7011155 db 7011627
+7011156 db 57
+7011157 db 7011633
+7011158 db 58
+7011159 db 7011639
+7011160 db 59
+7011161 db 7011645
+7011162 db 60
+7011163 db 7011649
+7011164 db 61
+7011165 db 7011653
+7011166 db 62
+7011167 db 7011658
+7011168 db 63
+7011169 db 7011663
+7011170 db 64
+7011171 db 7011668
+7011172 db 65
+7011173 db 7011673
+7011174 db 66
+7011175 db 7011677
+7011176 db 67
+7011177 db 7011682
+7011178 db 68
+7011179 db 7011687
+7011180 db 69
+7011181 db 7011692
+7011182 db 70
+7011183 db 7011697
+7011184 db 71
+7011185 db 7011704
+7011186 db 73
+7011187 db 7011708
+7011188 db 73
+7011189 db 7011711
+7011190 db 74
+7011191 db 7011716
+7011192 db 74
+7011193 db 7011720
+7011194 db 75
+7011195 db 7011724
+7011196 db 75
+7011197 db 7011727
+7011198 db 76
+7011199 db 7011732
+7011200 db 76
+7011201 db 7011736
+7011202 db 77
+7011203 db 7011740
+7011204 db 77
+7011205 db 7011743
+7011206 db 78
+7011207 db 7011746
+7011208 db 79
+7011209 db 7011752
+7011210 db 80
+7011211 db 7011758
+7011212 db 81
+7011213 db 7011763
+7011214 db 82
+7011215 db 7011768
+7011216 db 83
+7011217 db 7011772
+7011218 db 84
+7011219 db 7011779
+7011220 db 85
+7011221 db 7011782
+7011222 db 86
+7011223 db 7011786
+7011224 db 87
+7011225 db 7011791
+7011226 db 88
+7011227 db 7011796
+7011228 db 89
+7011229 db 7011801
+7011230 db 90
+7011231 db 7011807
+7011232 db 91
+7011233 db 7011811
+7011234 db 92
+7011235 db 7011814
+7011236 db 93
+7011237 db 7011818
+7011238 db 94
+7011239 db 7011822
+7011240 db 95
+7011241 db 7011828
+7011242 db 96
+7011243 db 7011833
+7011244 db 97
+7011245 db 7011838
+7011246 db 98
+7011247 db 7011843
+7011248 db 99
+7011249 db 7011849
+7011250 db 101
+7011251 db 7011855
+7011252 db 101
+7011253 db 7011860
+7011254 db 102
+7011255 db 7011865
+7011256 db 103
+7011257 db 7011870
+7011258 db 103
+7011259 db 7011874
+7011260 db 104
+7011261 db 7011880
+7011262 db 104
+7011263 db 7011885
+7011264 db 105
+7011265 db 7011890
+7011266 db 105
+7011267 db 7011894
+7011268 db 106
+7011269 db 7011900
+7011270 db 106
+7011271 db 7011905
+7011272 db 107
+7011273 db 7011910
+7011274 db 107
+7011275 db 7011914
+7011276 db 108
+7011277 db 7011918
+7011278 db 110
+7011279 db 7011923
+7011280 db 111
+7011281 db 7011930
+7011282 db 112
+7011283 db 7011935
+7011284 db 114
+7011285 db 7011939
+7011286 db 115
+7011287 db 7011945
+7011288 db 116
+7011289 db 7011950
+7011290 db 117
+7011291 db 7011955
+7011292 db 118
+7011293 db 7011961
+7011294 db 119
+7011295 db 7011965
+7011296 db 120
+7011297 db 7011969
+7011298 db 121
+7011299 db 7011976
+7011300 db 122
+7011301 db 7011983
+7011302 db 123
+7011303 db 7011987
+7011304 db 124
+7011305 db 7011991
+7011306 db 125
+7011307 db 7011995
+7011308 db 126
+7011309 db 7011999
+7011310 db 127
+7011311 db 7012003
+7011312 db 128
+7011313 db 7012009
+7011314 db 129
+7011315 db 7012016
+7011316 db 130
+7011317 db 7012022
+7011318 db 131
+7011319 db 7012029
+7011320 db 132
+7011321 db 7012034
+7011322 db 133
+7011323 db 7012039
+7011324 db 134
+7011325 db 7012046
+7011326 db 135
+7011327 db 7012053
+7011328 db 250
+7011329 db 7012059
+7011330 db 251
+7011331 db 7012064
+7011332 db 252
+7011333 db 7012069
+7011334 db 253
+7011335 db 7012074
+7011336 db 254
+7011337 db 7012079
+7011338 db 255
+7011339 db 7012086
+7011340 db 256
+7011341 db 7012091
+7011342 db 257
+7011343 db 7012097
+7011344 db 259
+7011345 db 7012108
+7011346 db 260
+7011347 db 7012115
+7011348 db 261
+7011349 db 7012120
+7011350 db 262
+7011351 db 7012125
+7011352 db 263
+7011353 db 7012130
+7011354 db 264
+7011355 db 7012138
+7011356 db 265
+7011357 db 7012145
+7011358 db 266
+7011359 db 7012158
+7011360 db 267
+7011361 db 7012169
+7011362 db 268
+7011363 db 7012177
+7011364 db 269
+7011365 db 7012182
+7011366 db 270
+7011367 db 7012187
+7011368 db 273
+7011369 db 7012194
+7011370 db 295
+7011371 db 7012200
+7011372 db 296
+7011373 db 7012205
+7011374 db 0,0,0,0
+str_stop:
+7011378 db "stop"
+7011382 db 0
+str_jne:
+7011383 db "jne"
+7011386 db 0
+str_jnz:
+7011387 db "jnz"
+7011390 db 0
+str_jmp:
+7011391 db "jmp"
+7011394 db 0
+str_jg:
+7011395 db "jg"
+7011397 db 0
+str_jnle:
+7011398 db "jnle"
+7011402 db 0
+str_jge:
+7011403 db "jge"
+7011406 db 0
+str_jnl:
+7011407 db "jnl"
+7011410 db 0
+str_jl:
+7011411 db "jl"
+7011413 db 0
+str_jnge:
+7011414 db "jnge"
+7011418 db 0
+str_jle:
+7011419 db "jle"
+7011422 db 0
+str_jng:
+7011423 db "jng"
+7011426 db 0
+str_je:
+7011427 db "je"
+7011429 db 0
+str_jz:
+7011430 db "jz"
+7011432 db 0
+str_cpuid:
+7011433 db "cpuid"
+7011438 db 0
+str_push:
+7011439 db "push"
+7011443 db 0
+str_add:
+7011444 db "add"
+7011447 db 0
+str_sub:
+7011448 db "sub"
+7011451 db 0
+str_mul:
+7011452 db "mul"
+7011455 db 0
+str_div:
+7011456 db "div"
+7011459 db 0
+str_mov:
+7011460 db "mov"
+7011463 db 0
+str_cmp:
+7011464 db "cmp"
+7011467 db 0
+str_min:
+7011468 db "min"
+7011471 db 0
+str_max:
+7011472 db "max"
+7011475 db 0
+str_inc:
+7011476 db "inc"
+7011479 db 0
+str_dec:
+7011480 db "dec"
+7011483 db 0
+str_neg:
+7011484 db "neg"
+7011487 db 0
+str_rand:
+7011488 db "rand"
+7011492 db 0
+str_loop:
+7011493 db "loop"
+7011497 db 0
+str_loopa:
+7011498 db "loopa"
+7011503 db 0
+str_loopb:
+7011504 db "loopb"
+7011509 db 0
+str_loopd:
+7011510 db "loopd"
+7011515 db 0
+str_spg:
+7011516 db "spg"
+7011519 db 0
+str_cpg:
+7011520 db "cpg"
+7011523 db 0
+str_pop:
+7011524 db "pop"
+7011527 db 0
+str_call:
+7011528 db "call"
+7011532 db 0
+str_bnot:
+7011533 db "bnot"
+7011537 db 0
+str_fint:
+7011538 db "fint"
+7011542 db 0
+str_frnd:
+7011543 db "frnd"
+7011547 db 0
+str_ffrac:
+7011548 db "ffrac"
+7011553 db 0
+str_finv:
+7011554 db "finv"
+7011558 db 0
+str_fshl:
+7011559 db "fshl"
+7011563 db 0
+str_fshr:
+7011564 db "fshr"
+7011568 db 0
+str_ret:
+7011569 db "ret"
+7011572 db 0
+str_iret:
+7011573 db "iret"
+7011577 db 0
+str_sti:
+7011578 db "sti"
+7011581 db 0
+str_cli:
+7011582 db "cli"
+7011585 db 0
+str_retf:
+7011586 db "retf"
+7011590 db 0
+str_stef:
+7011591 db "stef"
+7011595 db 0
+str_clef:
+7011596 db "clef"
+7011600 db 0
+str_and:
+7011601 db "and"
+7011604 db 0
+str_or:
+7011605 db "or"
+7011607 db 0
+str_xor:
+7011608 db "xor"
+7011611 db 0
+str_fsin:
+7011612 db "fsin"
+7011616 db 0
+str_fcos:
+7011617 db "fcos"
+7011621 db 0
+str_ftan:
+7011622 db "ftan"
+7011626 db 0
+str_fasin:
+7011627 db "fasin"
+7011632 db 0
+str_facos:
+7011633 db "facos"
+7011638 db 0
+str_fatan:
+7011639 db "fatan"
+7011644 db 0
+str_mod:
+7011645 db "mod"
+7011648 db 0
+str_bit:
+7011649 db "bit"
+7011652 db 0
+str_sbit:
+7011653 db "sbit"
+7011657 db 0
+str_cbit:
+7011658 db "cbit"
+7011662 db 0
+str_tbit:
+7011663 db "tbit"
+7011667 db 0
+str_band:
+7011668 db "band"
+7011672 db 0
+str_bor:
+7011673 db "bor"
+7011676 db 0
+str_bxor:
+7011677 db "bxor"
+7011681 db 0
+str_bshl:
+7011682 db "bshl"
+7011686 db 0
+str_bshr:
+7011687 db "bshr"
+7011691 db 0
+str_jmpf:
+7011692 db "jmpf"
+7011696 db 0
+str_extint:
+7011697 db "extint"
+7011703 db 0
+str_cne:
+7011704 db "cne"
+7011707 db 0
+str_cg:
+7011708 db "cg"
+7011710 db 0
+str_cnle:
+7011711 db "cnle"
+7011715 db 0
+str_cge:
+7011716 db "cge"
+7011719 db 0
+str_cnl:
+7011720 db "cnl"
+7011723 db 0
+str_cl:
+7011724 db "cl"
+7011726 db 0
+str_cnge:
+7011727 db "cnge"
+7011731 db 0
+str_cle:
+7011732 db "cle"
+7011735 db 0
+str_cng:
+7011736 db "cng"
+7011739 db 0
+str_ce:
+7011740 db "ce"
+7011742 db 0
+str_cz:
+7011743 db "cz"
+7011745 db 0
+str_mcopy:
+7011746 db "mcopy"
+7011751 db 0
+str_mxchg:
+7011752 db "mxchg"
+7011757 db 0
+str_fpwr:
+7011758 db "fpwr"
+7011762 db 0
+str_xchg:
+7011763 db "xchg"
+7011767 db 0
+str_fln:
+7011768 db "fln"
+7011771 db 0
+str_flog10:
+7011772 db "flog10"
+7011778 db 0
+str_in:
+7011779 db "in"
+7011781 db 0
+str_out:
+7011782 db "out"
+7011785 db 0
+str_fabs:
+7011786 db "fabs"
+7011790 db 0
+str_fsgn:
+7011791 db "fsgn"
+7011795 db 0
+str_fexp:
+7011796 db "fexp"
+7011800 db 0
+str_callf:
+7011801 db "callf"
+7011806 db 0
+str_fpi:
+7011807 db "fpi"
+7011810 db 0
+str_fe:
+7011811 db "fe"
+7011813 db 0
+str_int:
+7011814 db "int"
+7011817 db 0
+str_tpg:
+7011818 db "tpg"
+7011821 db 0
+str_fceil:
+7011822 db "fceil"
+7011827 db 0
+str_erpg:
+7011828 db "erpg"
+7011832 db 0
+str_wrpg:
+7011833 db "wrpg"
+7011837 db 0
+str_rdpg:
+7011838 db "rdpg"
+7011842 db 0
+str_timer:
+7011843 db "timer"
+7011848 db 0
+str_lidtr:
+7011849 db "lidtr"
+7011854 db 0
+str_jner:
+7011855 db "jner"
+7011859 db 0
+str_jnzr:
+7011860 db "jnzr"
+7011864 db 0
+str_jmpr:
+7011865 db "jmpr"
+7011869 db 0
+str_jgr:
+7011870 db "jgr"
+7011873 db 0
+str_jnler:
+7011874 db "jnler"
+7011879 db 0
+str_jger:
+7011880 db "jger"
+7011884 db 0
+str_jnlr:
+7011885 db "jnlr"
+7011889 db 0
+str_jlr:
+7011890 db "jlr"
+7011893 db 0
+str_jnger:
+7011894 db "jnger"
+7011899 db 0
+str_jler:
+7011900 db "jler"
+7011904 db 0
+str_jngr:
+7011905 db "jngr"
+7011909 db 0
+str_jer:
+7011910 db "jer"
+7011913 db 0
+str_jzr:
+7011914 db "jzr"
+7011917 db 0
+str_lneg:
+7011918 db "lneg"
+7011922 db 0
+str_extret:
+7011923 db "extret"
+7011929 db 0
+str_idle:
+7011930 db "idle"
+7011934 db 0
+str_nop:
+7011935 db "nop"
+7011938 db 0
+str_pusha:
+7011939 db "pusha"
+7011944 db 0
+str_popa:
+7011945 db "popa"
+7011949 db 0
+str_std2:
+7011950 db "std2"
+7011954 db 0
+str_leave:
+7011955 db "leave"
+7011960 db 0
+str_stm:
+7011961 db "stm"
+7011964 db 0
+str_clm:
+7011965 db "clm"
+7011968 db 0
+str_cpuget:
+7011969 db "cpuget"
+7011975 db 0
+str_cpuset:
+7011976 db "cpuset"
+7011982 db 0
+str_spp:
+7011983 db "spp"
+7011986 db 0
+str_cpp:
+7011987 db "cpp"
+7011990 db 0
+str_srl:
+7011991 db "srl"
+7011994 db 0
+str_grl:
+7011995 db "grl"
+7011998 db 0
+str_lea:
+7011999 db "lea"
+7012002 db 0
+str_block:
+7012003 db "block"
+7012008 db 0
+str_cmpand:
+7012009 db "cmpand"
+7012015 db 0
+str_cmpor:
+7012016 db "cmpor"
+7012021 db 0
+str_mshift:
+7012022 db "mshift"
+7012028 db 0
+str_smap:
+7012029 db "smap"
+7012033 db 0
+str_gmap:
+7012034 db "gmap"
+7012038 db 0
+str_rstack:
+7012039 db "rstack"
+7012045 db 0
+str_sstack:
+7012046 db "sstack"
+7012052 db 0
+str_enter:
+7012053 db "enter"
+7012058 db 0
+str_vadd:
+7012059 db "vadd"
+7012063 db 0
+str_vsub:
+7012064 db "vsub"
+7012068 db 0
+str_vmul:
+7012069 db "vmul"
+7012073 db 0
+str_vdot:
+7012074 db "vdot"
+7012078 db 0
+str_vcross:
+7012079 db "vcross"
+7012085 db 0
+str_vmov:
+7012086 db "vmov"
+7012090 db 0
+str_vnorm:
+7012091 db "vnorm"
+7012096 db 0
+str_vcolornorm:
+7012097 db "vcolornorm"
+7012107 db 0
+str_loopxy:
+7012108 db "loopxy"
+7012114 db 0
+str_madd:
+7012115 db "madd"
+7012119 db 0
+str_msub:
+7012120 db "msub"
+7012124 db 0
+str_mmul:
+7012125 db "mmul"
+7012129 db 0
+str_mrotate:
+7012130 db "mrotate"
+7012137 db 0
+str_mscale:
+7012138 db "mscale"
+7012144 db 0
+str_mperspective:
+7012145 db "mperspective"
+7012157 db 0
+str_mtranslate:
+7012158 db "mtranslate"
+7012168 db 0
+str_mlookat:
+7012169 db "mlookat"
+7012176 db 0
+str_mmov:
+7012177 db "mmov"
+7012181 db 0
+str_vlen:
+7012182 db "vlen"
+7012186 db 0
+str_mident:
+7012187 db "mident"
+7012193 db 0
+str_vmode:
+7012194 db "vmode"
+7012199 db 0
+str_vdiv:
+7012200 db "vdiv"
+7012204 db 0
+str_vtransform:
+7012205 db "vtransform"
+7012215 db 0
+assembler:
+// assembler(infilepath,outfilepath)
+7012216 enter 6
+__596:
+7012219 push 7012978
+7012222 rstack EAX,EBP:2
+7012226 push EAX
+7012228 mov ECX,2
+// fopen(...)
+7012231 call #7000089
+7012234 add ESP,2
+// fpin=fopen(infilepath,"r")
+7012237 mov #7000702,EAX
+__599:
+7012240 mov EAX,#7000702
+7012243 lneg EAX
+// if (!fpin)
+7012245 cmp 0,EAX
+7012248 jge 7012265
+7012251 push 7013006
+7012254 mov ECX,1
+// Perr(...)
+7012257 call #7000049
+7012260 add ESP,1
+7012263 leave 
+7012264 ret 
+__600:
+__598:
+7012265 push 7012980
+7012268 rstack EAX,EBP:3
+7012272 push EAX
+7012274 mov ECX,2
+// fopen(...)
+7012277 call #7000089
+7012280 add ESP,2
+// fpout=fopen(outfilepath,"w")
+7012283 mov #7000703,EAX
+__604:
+7012286 mov EAX,#7000703
+7012289 lneg EAX
+// if (!fpout)
+7012291 cmp 0,EAX
+7012294 jge 7012311
+7012297 push 7013029
+7012300 mov ECX,1
+// Perr(...)
+7012303 call #7000049
+7012306 add ESP,1
+7012309 leave 
+7012310 ret 
+__605:
+__603:
+7012311 mov ECX,0
+// initEmit(...)
+7012314 call 7013344
+7012317 mov ECX,0
+// initSymbolTable(...)
+7012320 call 7007807
+// asm_abort=0
+7012323 mov #7000704,0
+7012327 sstack EBP:-1,0
+7012332 sstack EBP:-2,0
+7012337 sstack EBP:-3,9999
+7012342 push 80
+7012345 push 7000540
+7012348 push #7000702
+7012351 mov ECX,3
+// fgetstring(...)
+7012354 call #7000091
+7012357 add ESP,3
+// str=fgetstring(fpin,asm_str1,80)
+7012360 mov #7000700,EAX
+// str2=str
+7012363 mov #7000701,#7000700
+// init loop
+7012367 sstack EBP:-1,0
+__608:
+7012372 rstack EAX,EBP:-1
+7012376 rstack EBX,EBP:-2
+7012380 sub EBX,EAX
+7012382 mov EAX,EBX
+7012384 fsgn EAX,EAX
+// condition
+7012386 max EAX,0
+7012389 cmp 0,EAX
+7012392 jz 7012433
+7012395 push 80
+7012398 push 7000540
+7012401 push #7000702
+7012404 mov ECX,3
+// fgetstring(...)
+7012407 call #7000091
+7012410 add ESP,3
+// str=fgetstring(fpin,asm_str1,80)
+7012413 mov #7000700,EAX
+// str2=str
+7012416 mov #7000701,#7000700
+7012420 rstack EAX,EBP:-1
+// loop step
+7012424 inc EAX
+7012426 sstack EBP:-1,EAX
+7012430 jmp 7012372
+__607:
+__610:
+// if (str
+7012433 cmp 0,#7000700
+7012437 jz 7012770
+7012440 push 7012933
+7012443 rstack EAX,EBP:-1
+7012447 push EAX
+7012449 push 7012912
+7012452 mov ECX,3
+// P2(...)
+7012455 call #7000093
+7012458 add ESP,3
+7012461 push #7000700
+7012464 mov ECX,1
+// P(...)
+7012467 call #7000059
+7012470 add ESP,1
+7012473 push 7012909
+7012476 mov ECX,1
+// P(...)
+7012479 call #7000059
+7012482 add ESP,1
+parse_string_loop:
+// str_last=str
+7012485 sstack EBP:-4,#7000700
+__615:
+// parse_acceptSpace arg #1 (float* input)
+7012490 push 7000700
+7012493 mov ECX,1
+// parse_acceptSpace(...)
+7012496 call 7005156
+7012499 add ESP,1
+// if (parse_acceptSpace(&str)
+7012502 cmp 0,EAX
+7012505 jz 7012511
+7012508 jmp 7012490
+__614:
+__617:
+7012511 push 7006235
+7012514 push #7000700
+7012517 mov ECX,2
+// strcmp(...)
+7012520 call #7000083
+7012523 add ESP,2
+7012526 mov EBX,0
+7012529 sub EBX,EAX
+7012531 fabs EBX,EBX
+7012533 fsgn EBX,EBX
+7012535 lneg EBX
+// if (strcmp(str,"")==0)
+7012537 cmp 0,EBX
+7012540 jge 7012546
+7012543 jmp 7012705
+__618:
+__616:
+// parse_acceptComment arg #1 (float* input)
+7012546 push 7000700
+7012549 mov ECX,1
+// parse_acceptComment(...)
+7012552 call 7005256
+7012555 add ESP,1
+// parse_acceptInstruction arg #1 (float* input)
+7012558 push 7000700
+7012561 mov ECX,1
+// parse_acceptInstruction(...)
+7012564 call 7007026
+7012567 add ESP,1
+// parse_acceptDb arg #1 (float* input)
+7012570 push 7000700
+7012573 mov ECX,1
+// parse_acceptDb(...)
+7012576 call 7006236
+7012579 add ESP,1
+// parse_acceptAlloc arg #1 (float* input)
+7012582 push 7000700
+7012585 mov ECX,1
+// parse_acceptAlloc(...)
+7012588 call 7006918
+7012591 add ESP,1
+// parse_acceptLabel arg #1 (float* input)
+7012594 push 7000700
+7012597 mov ECX,1
+// parse_acceptLabel(...)
+7012600 call 7005349
+7012603 add ESP,1
+// parse_accept arg #2 (float str)
+7012606 push 7012982
+// parse_accept arg #1 (float* input)
+7012609 push 7000700
+7012612 mov ECX,2
+// parse_accept(...)
+7012615 call 7007694
+7012618 add ESP,2
+__621:
+// if (asm_abort)
+7012621 cmp 0,#7000704
+7012625 jge 7012633
+7012628 mov EAX,1
+7012631 leave 
+7012632 ret 
+__622:
+__620:
+__624:
+7012633 rstack EAX,EBP:-4
+7012637 sub EAX,#7000700
+7012640 mov EBX,EAX
+7012642 fabs EBX,EBX
+7012644 fsgn EBX,EBX
+7012646 lneg EBX
+// if (str==str_last)
+7012648 cmp 0,EBX
+7012651 jge 7012660
+7012654 jmp 7012663
+7012657 jmp 7012663
+__626:
+__625:
+__628:
+7012660 jmp 7012485
+__627:
+__623:
+parse_string_bad:
+7012663 push 7012984
+7012666 mov ECX,1
+// Perr(...)
+7012669 call #7000049
+7012672 add ESP,1
+7012675 push #7000700
+7012678 mov ECX,1
+// Perr(...)
+7012681 call #7000049
+7012684 add ESP,1
+7012687 push 7012909
+7012690 mov ECX,1
+// Perr(...)
+7012693 call #7000049
+7012696 add ESP,1
+7012699 mov ECX,0
+// shell_panic(...)
+7012702 call #7000051
+parse_string_good:
+7012705 rstack EAX,EBP:-1
+// I++
+7012709 inc EAX
+7012711 sstack EBP:-1,EAX
+__631:
+7012715 rstack EAX,EBP:-1
+7012719 rstack EBX,EBP:-3
+7012723 sub EBX,EAX
+7012725 mov EAX,EBX
+7012727 neg EAX
+7012729 fsgn EAX,EAX
+7012731 max EAX,0
+// if (I>line_to)
+7012734 cmp 0,EAX
+7012737 jge 7012742
+7012740 leave 
+7012741 ret 
+__632:
+__630:
+7012742 push 80
+7012745 push 7000540
+7012748 push #7000702
+7012751 mov ECX,3
+// fgetstring(...)
+7012754 call #7000091
+7012757 add ESP,3
+// str=fgetstring(fpin,asm_str1,80)
+7012760 mov #7000700,EAX
+// str2=str
+7012763 mov #7000701,#7000700
+7012767 jmp 7012433
+__609:
+7012770 push 7012952
+7012773 mov ECX,1
+// printf(...)
+7012776 call #7000047
+7012779 add ESP,1
+7012782 push 7012937
+7012785 mov ECX,1
+// printf(...)
+7012788 call #7000047
+7012791 add ESP,1
+// printSymbolTable arg #1 (float symtable)
+7012794 push #7007806
+7012797 mov ECX,1
+// printSymbolTable(...)
+7012800 call 7008942
+7012803 add ESP,1
+7012806 push 7012952
+7012809 mov ECX,1
+// printf(...)
+7012812 call #7000047
+7012815 add ESP,1
+7012818 push #7000703
+7012821 mov ECX,1
+// writeOFile(...)
+7012824 call 7015153
+7012827 add ESP,1
+7012830 push 7012952
+7012833 mov ECX,1
+// printf(...)
+7012836 call #7000047
+7012839 add ESP,1
+7012842 push 7012918
+7012845 mov ECX,1
+// printf(...)
+7012848 call #7000047
+7012851 add ESP,1
+7012854 push #7000705
+7012857 mov ECX,1
+// vector_get_array(...)
+7012860 call #7000031
+7012863 add ESP,1
+7012866 sstack EBP:-5,EAX
+7012870 push #7000705
+7012873 mov ECX,1
+// vector_get_size(...)
+7012876 call #7000029
+7012879 add ESP,1
+7012882 sstack EBP:-6,EAX
+7012886 rstack EAX,EBP:-6
+7012890 push EAX
+7012892 rstack EAX,EBP:-5
+7012896 push EAX
+7012898 mov ECX,2
+// printCodeListing(...)
+7012901 call 7013053
+7012904 add ESP,2
+__595:
+7012907 leave 
+7012908 ret 
+__613:
+7012909 db "]
+",0
+__611:
+7012912 db "line ",0
+__635:
+7012918 db "code listing:
+",0
+__612:
+7012933 db ": [",0
+__634:
+7012937 db "symbol table:
+",0
+__633:
+7012952 db "
+-----------------------
+",0
+__597:
+7012978 db "r",0
+__602:
+7012980 db "w",0
+__619:
+7012982 db ";",0
+__629:
+7012984 db "can't parse string: [",0
+__601:
+7013006 db "can't open input file
+",0
+__606:
+7013029 db "can't open output file
+",0
+printCodeListing:
+// printCodeListing(ptr,size)
+7013053 enter 5
+__637:
+7013056 sstack EBP:-1,0
+7013061 sstack EBP:-2,0
+// init loop
+7013066 sstack EBP:-1,0
+__639:
+7013071 rstack EAX,EBP:-1
+7013075 rstack EBX,EBP:3
+7013079 sub EBX,EAX
+7013081 mov EAX,EBX
+7013083 fsgn EAX,EAX
+// condition
+7013085 max EAX,0
+7013088 cmp 0,EAX
+7013091 jz 7013315
+7013094 rstack EAX,EBP:-1
+7013098 rstack EBX,EBP:2
+7013102 add EBX,EAX
+7013104 mov EAX,EBX
+7013106 sstack EBP:-3,#EAX
+__641:
+7013110 rstack EAX,EBP:-2
+7013114 mov EBX,0
+7013117 sub EBX,EAX
+7013119 fabs EBX,EBX
+7013121 fsgn EBX,EBX
+7013123 lneg EBX
+// if (J==0)
+7013125 cmp 0,EBX
+7013128 jge 7013233
+7013131 rstack EAX,EBP:-1
+7013135 push EAX
+7013137 push 7013329
+7013140 mov ECX,2
+// printf(...)
+7013143 call #7000047
+7013146 add ESP,2
+7013149 rstack EAX,EBP:-3
+7013153 add EAX,-2000
+7013156 mov EBX,EAX
+7013158 sstack EBP:-4,EBX
+7013162 rstack EAX,EBP:-4
+// numToOp arg #1 (float num)
+7013166 push EAX
+7013168 mov ECX,1
+// numToOp(...)
+7013171 call 7007564
+7013174 add ESP,1
+7013177 sstack EBP:-5,EAX
+__645:
+7013181 rstack EAX,EBP:-5
+// if (op)
+7013185 cmp 0,EAX
+7013188 jge 7013212
+7013191 rstack EAX,EBP:-5
+7013195 push EAX
+7013197 push 7013334
+7013200 mov ECX,2
+// printf(...)
+7013203 call #7000047
+7013206 add ESP,2
+7013209 jmp 7013230
+__648:
+__646:
+__650:
+7013212 rstack EAX,EBP:-3
+7013216 push EAX
+7013218 push 7013340
+7013221 mov ECX,2
+// printf(...)
+7013224 call #7000047
+7013227 add ESP,2
+__649:
+__644:
+7013230 jmp 7013251
+__652:
+__642:
+__654:
+7013233 rstack EAX,EBP:-3
+7013237 push EAX
+7013239 push 7013340
+7013242 mov ECX,2
+// printf(...)
+7013245 call #7000047
+7013248 add ESP,2
+__653:
+__640:
+__656:
+7013251 rstack EAX,EBP:-2
+7013255 mov EBX,5
+7013258 sub EBX,EAX
+7013260 fabs EBX,EBX
+7013262 fsgn EBX,EBX
+7013264 lneg EBX
+// if (J==5)
+7013266 cmp 0,EBX
+7013269 jge 7013292
+7013272 push 7013338
+7013275 mov ECX,1
+// printf(...)
+7013278 call #7000047
+7013281 add ESP,1
+// J=0
+7013284 sstack EBP:-2,0
+7013289 jmp 7013302
+__659:
+__657:
+__661:
+7013292 rstack EAX,EBP:-2
+// J++
+7013296 inc EAX
+7013298 sstack EBP:-2,EAX
+__660:
+__655:
+7013302 rstack EAX,EBP:-1
+// loop step
+7013306 inc EAX
+7013308 sstack EBP:-1,EAX
+7013312 jmp 7013071
+__638:
+7013315 push 7013338
+7013318 mov ECX,1
+// printf(...)
+7013321 call #7000047
+7013324 add ESP,1
+__636:
+7013327 leave 
+7013328 ret 
+__643:
+7013329 db "%d: ",0
+__647:
+7013334 db "%s ",0
+__658:
+7013338 db "
+",0
+__651:
+7013340 db "%d ",0
+initEmit:
+// initEmit()
+7013344 enter -0
+__663:
+7013347 push #7000041
+7013350 mov ECX,1
+// malloc(...)
+7013353 call #7000015
+7013356 add ESP,1
+// asm_code=malloc(sizeof_vector)
+7013359 mov #7000705,EAX
+7013362 push 1
+7013365 push #7000705
+7013368 mov ECX,2
+// vector_constructor(...)
+7013371 call #7000061
+7013374 add ESP,2
+// cur_address=0
+7013377 mov #7000706,0
+__662:
+7013381 leave 
+7013382 ret 
+emit_code:
+// emit_code(num)
+7013383 enter -0
+__665:
+7013386 rstack EAX,EBP:2
+7013390 push EAX
+7013392 push #7000705
+7013395 mov ECX,2
+// vector_push(...)
+7013398 call #7000063
+7013401 add ESP,2
+7013404 push #7000705
+7013407 mov ECX,1
+// vector_get_size(...)
+7013410 call #7000029
+7013413 add ESP,1
+// cur_address=vector_get_size(asm_code)
+7013416 mov #7000706,EAX
+__664:
+7013419 leave 
+7013420 ret 
+emit_alloc:
+// emit_alloc(num)
+7013421 enter 1
+__667:
+// init loop
+7013424 sstack EBP:-1,0
+__669:
+7013429 rstack EAX,EBP:-1
+7013433 rstack EBX,EBP:2
+7013437 sub EBX,EAX
+7013439 mov EAX,EBX
+7013441 fsgn EAX,EAX
+// condition
+7013443 max EAX,0
+7013446 cmp 0,EAX
+7013449 jz 7013477
+// emit_code arg #1 (float num)
+7013452 push 0
+7013455 mov ECX,1
+// emit_code(...)
+7013458 call 7013383
+7013461 add ESP,1
+7013464 rstack EAX,EBP:-1
+// loop step
+7013468 inc EAX
+7013470 sstack EBP:-1,EAX
+7013474 jmp 7013429
+__668:
+__666:
+7013477 leave 
+7013478 ret 
+errDefault:
+// errDefault()
+7013479 enter -0
+__671:
+7013482 push 7013524
+7013485 mov ECX,1
+// P(...)
+7013488 call #7000059
+7013491 add ESP,1
+7013494 push #7003857
+7013497 mov ECX,1
+// P(...)
+7013500 call #7000059
+7013503 add ESP,1
+7013506 push 7012909
+7013509 mov ECX,1
+// P(...)
+7013512 call #7000059
+7013515 add ESP,1
+// asm_abort=1
+7013518 mov #7000704,1
+__670:
+7013522 leave 
+7013523 ret 
+__672:
+7013524 db "expected [",0
+pointOutErr:
+// pointOutErr()
+7013535 enter 1
+__674:
+7013538 mov EAX,#7000700
+7013541 add EAX,-7000540
+7013544 sstack EBP:-1,EAX
+7013548 push 7013338
+7013551 rstack EAX,EBP:-1
+7013555 push EAX
+7013557 push 7013643
+7013560 mov ECX,3
+// P2(...)
+7013563 call #7000093
+7013566 add ESP,3
+7013569 push 7000540
+7013572 mov ECX,1
+// P(...)
+7013575 call #7000059
+7013578 add ESP,1
+7013581 push 7013338
+7013584 mov ECX,1
+// P(...)
+7013587 call #7000059
+7013590 add ESP,1
+__677:
+7013593 rstack EAX,EBP:-1
+7013597 mov EBX,EAX
+7013599 dec EAX
+7013601 sstack EBP:-1,EAX
+// if (len--
+7013605 cmp 0,EBX
+7013608 jz 7013626
+7013611 push 7013650
+7013614 mov ECX,1
+// P(...)
+7013617 call #7000059
+7013620 add ESP,1
+7013623 jmp 7013593
+__676:
+7013626 push 7013640
+7013629 mov ECX,1
+// P(...)
+7013632 call #7000059
+7013635 add ESP,1
+__673:
+7013638 leave 
+7013639 ret 
+__679:
+7013640 db "^
+",0
+__675:
+7013643 db "len = ",0
+__678:
+7013650 db " ",0
+cmd_asm:
+// cmd_asm()
+7013652 enter 1
+__681:
+7013655 push #7000095
+7013658 mov ECX,1
+// strlen(...)
+7013661 call #7000025
+7013664 add ESP,1
+7013667 sstack EBP:-1,EAX
+__683:
+7013671 rstack EAX,EBP:-1
+7013675 mov EBX,3
+7013678 sub EBX,EAX
+7013680 fabs EBX,EBX
+7013682 fsgn EBX,EBX
+// if (argc!=3)
+7013684 cmp 0,EBX
+7013687 jge 7013704
+7013690 push 7013802
+7013693 mov ECX,1
+// P(...)
+7013696 call #7000059
+7013699 add ESP,1
+7013702 leave 
+7013703 ret 
+__684:
+__682:
+7013704 push 90
+7013707 push 7013828
+7013710 mov ECX,2
+// Print(...)
+7013713 call #7000097
+7013716 add ESP,2
+7013719 push 90
+7013722 mov EAX,1
+7013725 add EAX,#7000095
+7013728 push #EAX
+7013730 mov ECX,2
+// Print(...)
+7013733 call #7000097
+7013736 add ESP,2
+7013739 push 90
+7013742 push 7013338
+7013745 mov ECX,2
+// Print(...)
+7013748 call #7000097
+7013751 add ESP,2
+7013754 mov EAX,2
+7013757 add EAX,#7000095
+// assembler arg #2 (float outfilepath)
+7013760 push #EAX
+7013762 mov EAX,1
+7013765 add EAX,#7000095
+// assembler arg #1 (float infilepath)
+7013768 push #EAX
+7013770 mov ECX,2
+// assembler(...)
+7013773 call 7012216
+7013776 add ESP,2
+7013779 push 90
+7013782 push 7013796
+7013785 mov ECX,2
+// Print(...)
+7013788 call #7000097
+7013791 add ESP,2
+__680:
+7013794 leave 
+7013795 ret 
+__687:
+7013796 db "Done
+",0
+__685:
+7013802 db "Usage: asm in.asm out.exe",0
+__686:
+7013828 db "Assembling ",0
+asm_help:
+7013840 db ""asm <input file> <output file>" to compile assembly from input into machine code at output.
+"
+7013933 db 0
+cmd_disasm:
+// cmd_disasm()
+7013934 enter 24
+__689:
+7013937 push #7000095
+7013940 mov ECX,1
+// strlen(...)
+7013943 call #7000025
+7013946 add ESP,1
+7013949 sstack EBP:-1,EAX
+7013953 rstack EAX,EBP:-1
+// argc--
+7013957 dec EAX
+7013959 sstack EBP:-1,EAX
+__691:
+7013963 rstack EAX,EBP:-1
+// if (argc)
+7013967 cmp 0,EAX
+7013970 jge 7014882
+7013973 mov EAX,#7000095
+7013976 add EAX,1
+7013979 sstack EBP:-2,EAX
+7013983 rstack EAX,EBP:-2
+7013987 sstack EBP:-3,#EAX
+7013991 sstack EBP:-4,0
+7013996 sstack EBP:-5,0
+__695:
+7014001 push 7014896
+7014004 rstack EAX,EBP:-3
+7014008 push EAX
+7014010 mov ECX,2
+// strcmp(...)
+7014013 call #7000083
+7014016 add ESP,2
+7014019 mov EBX,0
+7014022 sub EBX,EAX
+7014024 fabs EBX,EBX
+7014026 fsgn EBX,EBX
+7014028 lneg EBX
+// if (strcmp(flag,"-s")==0)
+7014030 cmp 0,EBX
+7014033 jge 7014061
+// short=1
+7014036 sstack EBP:-4,1
+7014041 rstack EAX,EBP:-1
+// argc--
+7014045 dec EAX
+7014047 sstack EBP:-1,EAX
+7014051 rstack EAX,EBP:-2
+// cmd++
+7014055 inc EAX
+7014057 sstack EBP:-2,EAX
+__696:
+__694:
+__699:
+7014061 push 7014954
+7014064 rstack EAX,EBP:-3
+7014068 push EAX
+7014070 mov ECX,2
+// strcmp(...)
+7014073 call #7000083
+7014076 add ESP,2
+7014079 mov EBX,0
+7014082 sub EBX,EAX
+7014084 fabs EBX,EBX
+7014086 fsgn EBX,EBX
+7014088 lneg EBX
+// if (strcmp(flag,"-f")==0)
+7014090 cmp 0,EBX
+7014093 jge 7014121
+// fast=1
+7014096 sstack EBP:-5,1
+7014101 rstack EAX,EBP:-1
+// argc--
+7014105 dec EAX
+7014107 sstack EBP:-1,EAX
+7014111 rstack EAX,EBP:-2
+// cmd++
+7014115 inc EAX
+7014117 sstack EBP:-2,EAX
+__700:
+__698:
+7014121 sstack EBP:-6,0
+__702:
+7014126 rstack EAX,EBP:-1
+7014130 mov EBX,EAX
+7014132 dec EAX
+7014134 sstack EBP:-1,EAX
+// if (argc--)
+7014138 cmp 0,EBX
+7014141 jge 7014166
+7014144 rstack EAX,EBP:-2
+7014148 push #EAX
+7014150 mov ECX,1
+// str2num(...)
+7014153 call #7000099
+7014156 add ESP,1
+// ptr=str2num(*cmd)
+7014159 sstack EBP:-6,EAX
+7014163 jmp 7014171
+__704:
+__703:
+__706:
+7014166 mov EAX,0
+7014169 leave 
+7014170 ret 
+__705:
+__701:
+__708:
+7014171 rstack EAX,EBP:-6
+7014175 mov EBX,0
+7014178 sub EBX,EAX
+7014180 fabs EBX,EBX
+7014182 fsgn EBX,EBX
+7014184 lneg EBX
+// if (ptr==0)
+7014186 cmp 0,EBX
+7014189 jge 7014249
+7014192 rstack EAX,EBP:-2
+7014196 push #EAX
+7014198 mov ECX,1
+// findSymbolByName(...)
+7014201 call #7000101
+7014204 add ESP,1
+// ptr=findSymbolByName(*cmd)
+7014207 sstack EBP:-6,EAX
+__711:
+7014211 rstack EAX,EBP:-6
+7014215 mov EBX,0
+7014218 sub EBX,EAX
+7014220 fabs EBX,EBX
+7014222 fsgn EBX,EBX
+7014224 lneg EBX
+// if (ptr==0)
+7014226 cmp 0,EBX
+7014229 jge 7014249
+7014232 push 7014957
+7014235 mov ECX,1
+// printf(...)
+7014238 call #7000047
+7014241 add ESP,1
+7014244 mov EAX,0
+7014247 leave 
+7014248 ret 
+__712:
+__710:
+__709:
+__707:
+7014249 rstack EAX,EBP:-2
+// cmd++
+7014253 inc EAX
+7014255 sstack EBP:-2,EAX
+7014259 sstack EBP:-7,0
+__715:
+7014264 rstack EAX,EBP:-1
+7014268 mov EBX,EAX
+7014270 dec EAX
+7014272 sstack EBP:-1,EAX
+// if (argc--)
+7014276 cmp 0,EBX
+7014279 jge 7014340
+7014282 rstack EAX,EBP:-2
+7014286 mov EBX,EAX
+7014288 inc EAX
+7014290 sstack EBP:-2,EAX
+7014294 push #EBX
+7014296 mov ECX,1
+// str2num(...)
+7014299 call #7000099
+7014302 add ESP,1
+// size=str2num(*cmd++)
+7014305 sstack EBP:-7,EAX
+__718:
+7014309 rstack EAX,EBP:-7
+7014313 lneg EAX
+7014315 mov EBX,EAX
+// if (!size)
+7014317 cmp 0,EBX
+7014320 jge 7014340
+7014323 push 7014909
+7014326 mov ECX,1
+// printf(...)
+7014329 call #7000047
+7014332 add ESP,1
+7014335 mov EAX,0
+7014338 leave 
+7014339 ret 
+__719:
+__717:
+__716:
+__714:
+7014340 sstack EBP:-14,0
+__722:
+// if (1
+7014345 cmp 0,1
+7014349 jz 7014879
+7014352 push 6
+7014355 rstack EAX,EBP:-6
+7014359 push EAX
+7014361 mov EAX,SS:ESP
+7014364 add EAX,-13
+7014367 push EAX
+7014369 mov ECX,3
+// memcpy(...)
+7014372 call #7000035
+7014375 add ESP,3
+7014378 rstack EAX,EBP:-13
+7014382 sstack EBP:-15,EAX
+7014386 rstack EAX,EBP:-15
+7014390 add EAX,-2000
+7014393 mov EBX,EAX
+7014395 sstack EBP:-16,EBX
+7014399 rstack EAX,EBP:-15
+// numToOp arg #1 (float num)
+7014403 push EAX
+7014405 mov ECX,1
+// numToOp(...)
+7014408 call 7007564
+7014411 add ESP,1
+7014414 sstack EBP:-17,EAX
+__724:
+7014418 rstack EAX,EBP:-17
+7014422 lneg EAX
+7014424 mov EBX,EAX
+// if (!opname)
+7014426 cmp 0,EBX
+7014429 jge 7014451
+7014432 rstack EAX,EBP:-16
+// numToOp arg #1 (float num)
+7014436 push EAX
+7014438 mov ECX,1
+// numToOp(...)
+7014441 call 7007564
+7014444 add ESP,1
+// opname=numToOp(cmd2)
+7014447 sstack EBP:-17,EAX
+__725:
+__723:
+7014451 rstack EAX,EBP:-12
+7014455 sstack EBP:-18,EAX
+7014459 rstack EAX,EBP:-11
+7014463 sstack EBP:-19,EAX
+7014467 rstack EAX,EBP:-10
+7014471 sstack EBP:-20,EAX
+7014475 rstack EAX,EBP:-9
+7014479 sstack EBP:-21,EAX
+7014483 rstack EAX,EBP:-8
+7014487 sstack EBP:-22,EAX
+7014491 rstack EAX,EBP:-6
+7014495 push EAX
+7014497 push 7013329
+7014500 mov ECX,2
+// printf(...)
+7014503 call #7000047
+7014506 add ESP,2
+__727:
+7014509 rstack EAX,EBP:-17
+// if (opname)
+7014513 cmp 0,EAX
+7014516 jge 7014540
+7014519 rstack EAX,EBP:-17
+7014523 push EAX
+7014525 push 7013334
+7014528 mov ECX,2
+// printf(...)
+7014531 call #7000047
+7014534 add ESP,2
+7014537 jmp 7014558
+__729:
+__728:
+__731:
+7014540 rstack EAX,EBP:-15
+7014544 push EAX
+7014546 push 7013340
+7014549 mov ECX,2
+// printf(...)
+7014552 call #7000047
+7014555 add ESP,2
+__730:
+__726:
+__733:
+7014558 rstack EAX,EBP:-4
+7014562 lneg EAX
+7014564 mov EBX,EAX
+// if (!short)
+7014566 cmp 0,EBX
+7014569 jge 7014602
+7014572 rstack EAX,EBP:-20
+7014576 push EAX
+7014578 rstack EAX,EBP:-19
+7014582 push EAX
+7014584 rstack EAX,EBP:-18
+7014588 push EAX
+7014590 push 7014899
+7014593 mov ECX,4
+// printf(...)
+7014596 call #7000047
+7014599 add ESP,4
+__734:
+__732:
+7014602 sstack EBP:-23,0
+7014607 sstack EBP:-24,0
+__737:
+7014612 rstack EAX,EBP:-5
+7014616 lneg EAX
+7014618 mov EBX,EAX
+// if (!fast)
+7014620 cmp 0,EBX
+7014623 jge 7014664
+7014626 rstack EAX,EBP:-21
+7014630 push EAX
+7014632 mov ECX,1
+// getSymbolName(...)
+7014635 call #7000103
+7014638 add ESP,1
+// sym1name=getSymbolName(op1)
+7014641 sstack EBP:-23,EAX
+7014645 rstack EAX,EBP:-22
+7014649 push EAX
+7014651 mov ECX,1
+// getSymbolName(...)
+7014654 call #7000103
+7014657 add ESP,1
+// sym2name=getSymbolname(op2)
+7014660 sstack EBP:-24,EAX
+__738:
+__736:
+__740:
+7014664 rstack EAX,EBP:-23
+// if (sym1name)
+7014668 cmp 0,EAX
+7014671 jge 7014695
+7014674 rstack EAX,EBP:-23
+7014678 push EAX
+7014680 push 7013334
+7014683 mov ECX,2
+// printf(...)
+7014686 call #7000047
+7014689 add ESP,2
+7014692 jmp 7014713
+__742:
+__741:
+__744:
+7014695 rstack EAX,EBP:-21
+7014699 push EAX
+7014701 push 7013340
+7014704 mov ECX,2
+// printf(...)
+7014707 call #7000047
+7014710 add ESP,2
+__743:
+__739:
+__746:
+7014713 rstack EAX,EBP:-24
+// if (sym2name)
+7014717 cmp 0,EAX
+7014720 jge 7014744
+7014723 rstack EAX,EBP:-24
+7014727 push EAX
+7014729 push 7013334
+7014732 mov ECX,2
+// printf(...)
+7014735 call #7000047
+7014738 add ESP,2
+7014741 jmp 7014762
+__748:
+__747:
+__750:
+7014744 rstack EAX,EBP:-22
+7014748 push EAX
+7014750 push 7013340
+7014753 mov ECX,2
+// printf(...)
+7014756 call #7000047
+7014759 add ESP,2
+__749:
+__745:
+7014762 push 7013338
+7014765 mov ECX,1
+// printf(...)
+7014768 call #7000047
+7014771 add ESP,1
+7014774 rstack EAX,EBP:-6
+// ptr+=6
+7014778 add EAX,6
+7014781 sstack EBP:-6,EAX
+7014785 rstack EAX,EBP:-14
+// I++
+7014789 inc EAX
+7014791 sstack EBP:-14,EAX
+__752:
+7014795 rstack EAX,EBP:-7
+// if (size)
+7014799 cmp 0,EAX
+7014802 jge 7014835
+__755:
+7014805 rstack EAX,EBP:-14
+7014809 rstack EBX,EBP:-7
+7014813 sub EBX,EAX
+7014815 mov EAX,EBX
+7014817 fabs EAX,EAX
+7014819 fsgn EAX,EAX
+7014821 lneg EAX
+// if (I==size)
+7014823 cmp 0,EAX
+7014826 jge 7014832
+7014829 jmp 7014879
+__756:
+__754:
+7014832 jmp 7014876
+__757:
+__753:
+__759:
+__761:
+7014835 rstack EAX,EBP:-15
+7014839 mov EBX,2040
+7014842 sub EBX,EAX
+7014844 fabs EBX,EBX
+7014846 fsgn EBX,EBX
+7014848 lneg EBX
+7014850 rstack EAX,EBP:-15
+7014854 mov ECX,40
+7014857 sub ECX,EAX
+7014859 fabs ECX,ECX
+7014861 fsgn ECX,ECX
+7014863 lneg ECX
+7014865 or ECX,EBX
+// if (((cmd1==40)||(cmd1==2040)))
+7014867 cmp 0,ECX
+7014870 jge 7014876
+7014873 jmp 7014879
+__762:
+__760:
+__758:
+__751:
+7014876 jmp 7014345
+__721:
+7014879 jmp 7014894
+__763:
+__692:
+__765:
+7014882 push 7014926
+7014885 mov ECX,1
+// P(...)
+7014888 call #7000059
+7014891 add ESP,1
+__764:
+__690:
+__688:
+7014894 leave 
+7014895 ret 
+__693:
+7014896 db "-s",0
+__735:
+7014899 db "%d %d %d ",0
+__720:
+7014909 db "can't read size
+",0
+__766:
+7014926 db "usage: disasm <ptr> [size]
+",0
+__697:
+7014954 db "-f",0
+__713:
+7014957 db "can't read start address
+",0
+disasm_help:
+7014983 db ""disasm [-s][-f] <ptr> [size]" prints the disassembly of code at ptr. If size is not specified, prints until "ret" is found.
+"
+7015108 db "flags:
+-s for shorter output
+-f to go faster"
+7015152 db 0
+writeOFile:
+// writeOFile(fpout)
+7015153 enter 4
+__768:
+7015156 push #7000705
+7015159 mov ECX,1
+// vector_get_size(...)
+7015162 call #7000029
+7015165 add ESP,1
+7015168 sstack EBP:-1,EAX
+7015172 mov ECX,0
+// make_exe(...)
+7015175 call 7000707
+7015178 sstack EBP:-2,EAX
+7015182 rstack EAX,EBP:-2
+// exe_get_linsize arg #1 (float exe)
+7015186 push EAX
+7015188 mov ECX,1
+// exe_get_linsize(...)
+7015191 call 7000856
+7015194 add ESP,1
+7015197 sstack EBP:-3,EAX
+7015201 rstack EAX,EBP:-3
+7015205 push EAX
+7015207 mov ECX,1
+// malloc(...)
+7015210 call #7000015
+7015213 add ESP,1
+7015216 sstack EBP:-4,EAX
+7015220 rstack EAX,EBP:-4
+7015224 neg EAX
+7015226 mov EBX,EAX
+// exe_linearize arg #4 (float writeoffset)
+7015228 push EBX
+// exe_linearize arg #3 (float readoffset)
+7015230 push 0
+7015233 rstack EAX,EBP:-4
+// exe_linearize arg #2 (float newpos)
+7015237 push EAX
+7015239 rstack EAX,EBP:-2
+// exe_linearize arg #1 (float exe)
+7015243 push EAX
+7015245 mov ECX,4
+// exe_linearize(...)
+7015248 call 7000930
+7015251 add ESP,4
+// struct_exe=exe_linearize(struct_exe,new_exe,0,-new_exe)
+7015254 sstack EBP:-2,EAX
+7015258 rstack EAX,EBP:-1
+7015262 push EAX
+7015264 push 7015355
+7015267 mov ECX,2
+// printf(...)
+7015270 call #7000047
+7015273 add ESP,2
+7015276 rstack EAX,EBP:-3
+7015280 push EAX
+7015282 rstack EAX,EBP:-2
+7015286 push EAX
+7015288 push 7015329
+7015291 mov ECX,3
+// printf(...)
+7015294 call #7000047
+7015297 add ESP,3
+7015300 rstack EAX,EBP:2
+7015304 push EAX
+7015306 rstack EAX,EBP:-3
+7015310 push EAX
+7015312 rstack EAX,EBP:-2
+7015316 push EAX
+7015318 mov ECX,3
+// fwrite(...)
+7015321 call #7000105
+7015324 add ESP,3
+__767:
+7015327 leave 
+7015328 ret 
+__770:
+7015329 db "writing exe %d / size %d
+",0
+__769:
+7015355 db "
+code size actual = %d
+",0
+epilogue_start:
+epilogue_end:

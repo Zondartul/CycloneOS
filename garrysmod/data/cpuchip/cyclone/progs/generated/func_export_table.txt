@@ -1,0 +1,71 @@
+#ifndef CYCLONE_BUILDER
+func_export_table:
+db make_exe;
+db exe_get_linsize;
+db exe_linearize;
+db make_section_list;
+db section_list_get_linsize;
+db section_list_linearize;
+db make_section_symtable;
+db make_section_code;
+db section_get_linsize;
+db section_linearize;
+db symtable_get_linsize;
+db symtable_linearize;
+db symbol_get_linsize;
+db symbol_linearize;
+db vector_get_linsize;
+db vector_linearize2;
+db printVector;
+db expectedError;
+db parse_expect;
+db parse_acceptNum;
+db parse_expectNum;
+db parse_acceptSegment;
+db parse_acceptReg;
+db parse_acceptOperand;
+db parse_expectOperand;
+db parse_acceptIdent;
+db parse_acceptSpace;
+db parse_acceptComment;
+db parse_acceptLabel;
+db parse_acceptString;
+db parse_acceptDb;
+db parse_acceptAlloc;
+db parse_acceptInstruction;
+db parse_acceptCmd;
+db numToOp;
+db parse_accept;
+db initSymbolTable;
+db addSymbolDef;
+db addSymbolRef;
+db findSymbol;
+db printSymbol;
+db printSymbolTable;
+db str2num2;
+db isIdent;
+db caseless_strncmp;
+db assembler;
+db printCodeListing;
+db initEmit;
+db emit_code;
+db emit_alloc;
+db errDefault;
+db pointOutErr;
+db cmd_asm;
+db cmd_disasm;
+db writeOFile;
+func_export_table_end:
+
+var_export_table:
+db &str;
+db &str2;
+db &fpin;
+db &fpout;
+db &asm_abort;
+db &asm_code;
+db &cur_address;
+db &str_expected;
+db &asm_symTable;
+var_export_table_end:
+#endif

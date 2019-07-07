@@ -1,0 +1,261 @@
+//written a long time ago
+//last updated August 13th 2015
+//vector library
+
+// [vector]
+// type   vector       //magic value to id this as an object of class vector
+// ptr*   array        //pointer to internal array
+// int    size         //number of elements currently in array
+// int    capacity     //number of elements that the space is reserved for
+// int    element_size //size, in bytes, of a single element
+// ------------------------
+// funcs: 
+// void   vector_constructor(self, element_size) //create the vector
+// void   vector_clear(self)                     //delete all elements
+// void   vector_push(self, element)             //add an element to the end (by value if size=1, else by ref)
+// float  vector_pop(self, element)              //return element by pointer
+// int    vector_size(self)                      //size of the vector
+// float  vector_get(self,element,pos)           //return element at position
+// void   vector_set(self,element,pos)           //set element at position to new value
+// void   vector_insert(self,element,pos)        //insert an element, moving the rest forward
+// float  vector_remove(self,element,pos)        //remove an element, moving the rest back
+// void   vector_resize(self, new_size)          //resize the vector's internal storage
+// ptr    vector_array(self)                     //pointer to the internal array
+#ifndef ZVECTOR_GUARD
+#define ZVECTOR_GUARD
+ZVECTOR_CODE:
+//void *memcpy2(void *dest, void *src, float n) {
+//    float I;
+//    if(dest < src){
+//        for(I = 0; I < n; I++){
+//            dest[I] = src[I];
+//        }
+//    }else{
+//        for(I = n-1; I > -1; I--){
+//            dest[I] = src[I];
+//        }
+//    }
+//}
+
+float error(float errno){
+    Perr("Vector error ");Perr(num2str(errno));Perr("\n");
+    //P("VECTOR ERROR ");P(num2str(errno));P("\n");
+    //return errno/0;
+    shell_panic();
+}
+float sizeof_vector = 5;
+void vector_constructor(void *self, float element_size){
+    assert_arity(ecx,2);
+    self[0] = typeof_vector;
+    //float size = 10*element_size;
+    self[1] = malloc(10*element_size);
+    self[2] = 0;
+    self[3] = 10;
+    self[4] = element_size;
+}
+
+void vector_copy_constructor(void *self, void *other){
+    assert_type(other, typeof_vector);
+    //copy the header
+    self[0] = other[0];
+    self[1] = other[1];
+    self[2] = other[2];
+    self[3] = other[3];
+    self[4] = other[4];
+    //copy the data
+    float size = self[2]*self[4];
+    float newarray = malloc(size);
+    float oldarray = self[1];
+    memcpy(newarray,oldarray,size);
+    self[1] = newarray;
+}
+
+float vector_get_array(void *self){assert_type(self,typeof_vector); return self[1];}
+float vector_get_size(void *self){assert_type(self,typeof_vector); return self[2];}
+float vector_get_capacity(void *self){assert_type(self,typeof_vector); return self[3];}
+float vector_get_element_size(void *self){assert_type(self,typeof_vector); return self[4];}
+void vector_set_array(void *self, float n){assert_type(self,typeof_vector); self[1] = n;}
+void vector_set_size(void *self, float n){assert_type(self,typeof_vector); self[2] = n;}
+void vector_set_capacity(void *self, float n){assert_type(self,typeof_vector); self[3] = n;}
+void vector_set_element_size(void *self, float n){assert_type(self,typeof_vector); self[4] = n;}
+
+void vector_destructor(void *self){
+    assert_type(self,typeof_vector); 
+    free(self[1]);
+}
+void vector_clear(void *self){
+    assert_type(self,typeof_vector); 
+    float self_size = self[2];
+    self_size = 0;
+    self[2] = self_size;
+}
+void vector_push(void *self, void *element){
+    assert_arity(ecx, 2);
+    assert_type(self,typeof_vector); 
+    //if(malloc_test()){return;}else{P("v_push 1\n");}
+    float array = self[1];
+    float self_size = self[2];
+    float self_capacity = self[3];
+    float element_size = self[4];
+    //P("v_a: ");P(num2str(array));
+    //P("\nv_ss: ");P(num2str(self_size));
+    //P("\nv_sc: ");P(num2str(self_capacity));
+    //P("\nv_es: ");P(num2str(element_size));P("\n");
+    self_size++;
+    //if(malloc_test()){return;}else{P("v_push 2\n");}
+    if(self_size > self_capacity){
+    //if(malloc_test()){return;}else{P("v_push 3\n");}
+        float newsize = self_capacity+1;
+        newsize = newsize*1.5;
+        newsize = ceil(newsize);
+        array = vector_resize(self, newsize)
+    //    P("v new array at ");P(num2str(array));P("\n");
+        if(array == 0){Perr("vector: can\'t resize\n"); return;}
+    //    if(malloc_test()){return;}else{P("v_push 4\n");}
+    }
+    if(element_size == 1){
+    //if(malloc_test()){return;}else{P("v_push 5\n");}
+        array[self_size-1] = element;
+    //    if(malloc_test()){return;}else{P("v_push 6\n");}
+    }else{
+    //  if(malloc_test()){return;}else{P("v_push 7\n");}
+        memcpy2(array+(self_size-1)*element_size, element, element_size);
+    //  if(malloc_test()){return;}else{P("v_push 8\n");}
+    }
+    //if(malloc_test()){return;}else{P("v_push 9\n");}
+    self[2] = self_size;
+    //if(malloc_test()){return;}else{P("v_push 10\n");}
+}
+
+float vector_pop(void *self, void *element){
+    assert_type(self,typeof_vector); 
+    float array = self[1];
+    float self_size = self[2];
+    float self_capacity = self[3];
+    float element_size = self[4];
+    if(self_size <= 0){error(0);}
+    if(element != 0){
+        memcpy2(element, array+self_size*element_size, element_size);
+    }
+    float R = array[(self_size-1)*element_size];
+    self_size--;
+    self[2] = self_size;
+    return R;
+}
+
+float vector_size(void *self){assert_type(self,typeof_vector); return self[2];}
+float vector_disk_size(void *self){assert_type(self,typeof_vector); return self[2]*self[4];}
+
+float vector_get(void *self, void *element, float pos){
+    assert_arity(ecx,3);
+    assert_type(self,typeof_vector); 
+    float array = self[1];
+    float self_size = self[2];
+    float self_capacity = self[3];
+    float element_size = self[4];
+    if((pos < 0) || (pos >= self_size)){error(0);}
+    if(element != 0){
+        memcpy2(element, array+pos*element_size, element_size);
+    }
+    float R = array[pos*element_size];
+    return R;
+}
+
+void vector_set(void *self, void *element, float pos){
+    assert_arity(ecx,3);
+    assert_type(self,typeof_vector); 
+    float array = self[1];
+    float self_size = self[2];
+    float self_capacity = self[3];
+    float element_size = self[4];
+    if(pos == self_size){vector_push(self,element); return;}
+    if((pos < 0) || (pos >= self_size)){error(0);}
+    if(element_size == 1){
+        array[pos] = element;
+    }else{
+        memcpy2(array+pos*element_size, element, element_size);
+    }
+}
+
+void vector_insert(void *self, void *element, float pos){
+    assert_arity(ecx,3);
+    assert_type(self,typeof_vector); 
+    float self_size = self[2];
+    float self_capacity = self[3];
+    float element_size = self[4];
+    if((pos < 0) || (pos > self_size)){error(0);}
+    if(pos == self_size){vector_push(self, element);}
+    self_size++;
+    if(self_size > self_capacity){
+        float newsize = self_capacity+1;
+        newsize = newsize*1.5;
+        newsize = ceil(newsize);
+        array = vector_resize(self, newsize)
+        if(vector_resize(self, newsize) == 0){
+            return;
+        }
+    }
+    float array = self[1];
+    //if(malloc_test()){return;}else{P("insert 1\n");}
+    memcpy2(array+(pos+1)*element_size, array+(pos)*element_size,self_size-pos-1);
+    //if(malloc_test()){return;}else{P("insert 2\n");}
+    if(element_size == 1){
+        array[pos] = element;
+     //   if(malloc_test()){return;}else{P("insert 3\n");}
+    }else{
+        memcpy2(array+pos*element_size, element, element_size);
+       // if(malloc_test()){return;}else{P("insert 4\n");}
+    }
+    self[2] = self_size;
+}
+
+void vector_remove(void *self, float pos){
+    assert_arity(ecx,2);
+    assert_type(self,typeof_vector); 
+    float array = self[1];
+    float self_size = self[2];
+    float self_capacity = self[3];
+    float element_size = self[4];
+    if((pos < 0) || (pos > self_size)){error(0);}
+    if(pos == self_size){vector_pop(self, 0);return;}
+    memcpy2(array+pos*element_size, array+(pos+1)*element_size,self_size-pos);
+    self_size--;
+    self[2] = self_size;
+}
+
+float vector_resize(void *self, float newcap){
+    assert_type(self,typeof_vector); 
+    //P2("v_resize: ",newcap,"\n");
+    //if(malloc_test()){return;}else{P("v_resize 1\n");}
+    float array = self[1];
+    float self_size = self[2];
+    float self_capacity = self[3];
+    float element_size = self[4];
+    float oldarray = array;
+    //if(malloc_test()){return;}else{P("v_resize 2\n");}
+    //dbg = 1;
+    array = realloc(array, element_size*newcap);
+    //dbg = 0;
+    //if(malloc_test()){return;}else{P("v_resize 3\n");}
+    //free(array);
+    //array = malloc(element_size*newcap);
+    //P2("got ",array,"\n");
+    if(array == 0){return 0;}
+    //memcpy(array,oldarray,element_size*self_size);
+    self_capacity = newcap;
+    self[1] = array;
+    self[2] = self_size;
+    self[3] = self_capacity;
+    //if(malloc_test()){return;}else{P("v_resize 4\n");}
+    return array;
+}
+
+float vector_array(void *self){
+    assert_type(self,typeof_vector); 
+    return self[1];
+}
+ZVECTOR_CONSTANTS:
+typeof_vector:db "vector"; db 0;
+ZVECTOR_VARS:
+ZVECTOR_END:
+#endif

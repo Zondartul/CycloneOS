@@ -1,0 +1,281 @@
+//stuff needed at boot
+#define CONSOLE_BUFFER_SIZE 6000
+ConsoleStrBuff:alloc CONSOLE_BUFFER_SIZE;
+
+//float printPtrY = 0;
+//float printPtrX = 0;
+float printScrX = 0;
+float printScrY = 0;
+float printBuffX = 0;
+float printBuffY = 0;
+float printLineOffset = 0;
+float printSpecials = 0;
+float RedrawPending = 0;
+
+void P(char *str){Print(str,999);}
+//this label is literally poisonous wtf
+//PcStr: db 0; db 0;
+void Pc(char c){
+    float c3 = 0; 
+    float c2 = c; 
+    if(c2 == 0){c2 = ' ';}
+    P(&c2);
+}//{*PcStr = c; Print(PcStr,999);}
+void Pn(float N){Print(num2str(N),999);}
+void Pl(char *str){Print(str,999);Print("\n",999);}
+void P2(char *str1, float N, char *str2){Print(con(str1,num2str(N),str2,"",""),999);}
+void Perr(char *str){Print(str,833);}
+
+
+
+//new logic:
+//1)print to buffer
+//2)calculate screen offset
+//3)if print point on the line just after the screen, shift up
+//4)if print point now on screen, print to screen.
+
+
+//old logic
+//1) writes string to screen
+//2) performs scrolling
+//3) saves scrolled text to buffer
+//4) notifies console that GUI redraw is needed
+void Print(char str, float col)
+{
+    float C = str[0];
+    float I = 1;
+    //float xspan = 60*num_screens_x;
+    float buffAddr = 0;
+    float ch = 0;
+    while(C!=0)
+    {
+        //if((printPtrY*xspan+printPtrX*2)>CONSOLE_BUFFER_SIZE-1){
+        //    memcpy(ConsoleStrBuff, ConsoleStrBuff+xspan, CONSOLE_BUFFER_SIZE-60);
+        //    memset(ConsoleStrBuff+CONSOLE_BUFFER_SIZE-xspan,0,60);
+        //    PrintPtrY--;
+        //}
+        //if(printScrY == (19*num_screens_y-2)){ConsoleShiftUp();}
+        if(printScrY == mcs_last_y){ConsoleShiftUp();}
+        
+        if((C=='\n')) // \n means newline
+        {
+            //if(printSpecials){
+            //    ConsoleStrBuff[printPtrY*xspan+printPtrX*2] = C;
+            //    ConsoleStrBuff[printPtrY*xspan+printPtrX*2+1] = col;
+            //    mcs_putchar(C,col,printPtrX,printScrY);
+            //}
+            goto print_nextline;
+        }
+        else if((C=='\r')) // \r means carriage return (go to beginning of current line)
+        {
+            //printPtrX = 0; 
+            printScrX = 0;
+            printBuffX = 0;
+        }
+        else if((C=='\b')) // \b means line return (go to beginning of previous line)
+        {
+            //printPtrY--;
+            //printScrY--;
+            //printPtrX = 0;
+            printScrY--;
+            printBuffY--;
+            printScrX = 0;
+            printBuffX = 0;
+        }
+        else if((C=='\f')) // \f means fill (print spaces for the rest of the line)
+        {
+            //while(printPtrX < (30*num_screens_x-2)){
+            //    ConsoleStrBuff[printPtrY*xspan+printPtrX*2] = ' ';
+           //     ConsoleStrBuff[printPtrY*xspan+printPtrX*2+1] = col;
+           //     mcs_putchar(C,col,printPtrX,printScrY);
+           //     printPtrX++
+           // }
+            while(printScrX < mcs_last_x){
+                buffAddr = printBuffY*mcs_width+printBuffX;
+                ch = ' ';
+                ConsoleStrBuff[2*buffAddr] = ch;
+                ConsoleStrBuff[2*buffAddr+1]=col;
+                mcs_putchar(ch,col,printScrX,printScrY);
+                printScrX++;
+                printBuffX++;
+            }
+        }
+        else
+        {
+            buffAddr = printBuffY*mcs_width+printBuffX;
+            //ConsoleStrBuff[printPtrY*xspan+printPtrX*2] = C;
+            //ConsoleStrBuff[printPtrY*xspan+printPtrX*2+1] = col;
+            ConsoleStrBuff[2*buffAddr] = C;
+            ConsoleStrBuff[2*buffAddr+1] = col;
+            mcs_putchar(C,col,printScrX,printScrY);
+            printScrX++
+            printBuffX++;
+        }
+        
+        //if(printPtrX>(30*num_screens_x-2))
+        //{
+        //    print_nextline:
+        //    printPtrX = 0;
+        //    printPtrY++;
+        //    printScrY++;
+        //}
+        
+        if(printScrX > (mcs_last_x-1)){
+            print_nextline:
+            printScrX = 0;
+            printBuffX = 0;
+            printScrY++;
+            printBuffY++;
+            
+            if((printBuffY+1) > CONSOLE_BUFFER_SIZE/(2*mcs_width)){
+                printBuffY--;
+                printLineOffset--;
+                float dest = ConsoleStrBuff;
+                float src = ConsoleStrBuff+2*mcs_width;
+                float size = CONSOLE_BUFFER_SIZE-2*mcs_width;
+                memmove(dest,src,size);
+                dest += size;
+                memset(dest,0,2*mcs_width);
+            }
+        }
+        C= str[I++];
+    }
+}
+
+void printword(float str){
+    float len = strlen(str);
+    float lenleft = mcs_last_x-printScrX;
+    float lendiff = len-lenleft;
+    if(lendiff <= 0){
+        //there is enough screen space to fit the string completely
+        P(str);
+    }else{
+        //the string doesn't fit on this line
+        if(lendiff > mcs_width){
+            //it doesn't fit on the next line either so whatever
+            P(str);
+        }else{
+            //it DOES fit unbroken if we go to the next line.
+            P("\n");
+            P(str);
+        }
+    }
+}
+
+void mcs_putchar(float C, float col, float X, float Y){
+    float scrx = 0;
+    float scry = 0;
+    while(X > cs_last_x){
+        X = X - cs_width;
+        scrx++;
+        if(scrx >= num_screens_x){return;}
+    }
+    while(Y > cs_last_y){
+        Y = Y-cs_height;
+        scry++;
+        if(scry >= num_screens_y){return;}
+    }
+    float scr = screens[scry*num_screens_x+scrx];
+    cs_putchar(scr,C,col,X,Y);
+}
+
+float cs_putchar(float scr, float C, float col, float X, float Y){
+    float adr = 2*(cs_width*Y+X);
+    scr[adr] = C;
+    adr++;
+    scr[adr] = col;
+}
+
+void ConsoleShiftUp()
+{
+    //you press down key, text goes up
+    //if(printScrY >= 17){
+    //if(printScrY >= (19*num_screens_y-2)){
+    if(printScrY >= mcs_last_y){
+        mcs_screen_shift_vertical(1);
+        printLineOffset++;
+        printScrY--;
+        float I = 0;
+        
+        float scrx;
+        float scry;
+        float adry;
+        float adrx;
+        for(scrx = 0; scrx < num_screens_x; scrx++){
+            for(scry = 0; scry < num_screens_y; scry++){
+                float scrID = scry*num_screens_x+scrx;
+                AdrScreen = screens[scrID];
+                
+                float buffLine = printLineOffset+cs_height*scry+cs_last_y;
+                if(scry == (num_screens_y-1)){
+                    buffLine -= 1;
+                    adry = cs_last_y-1;    
+                }else{
+                    adry = cs_last_y;
+                }
+                //bottom screen
+                float buffAddr = mcs_width*buffLine+cs_width*scrx;
+                if(scrx == (num_screens_x-1)){
+                    //buffAddr -= 1;
+                    adrx = cs_last_x-1;
+                }else{
+                    adrx = cs_last_x;
+                }
+                //rightmost screen
+                
+                for(I = 0; I <= adrx; I++){
+                    float ch = ConsoleStrBuff[(buffAddr+I)*2];
+                    float col = ConsoleStrBuff[(buffAddr+I)*2+1];
+                    
+                    cs_putchar(AdrScreen,ch,col,I,adry);
+                }
+            }
+        }
+        //for(I=0;I<58;I++)
+        //{
+        //    AdrScreen[16*60+I] = ConsoleStrBuff[60*(printPtrY+16-printScrY)+I];
+        //}
+        RedrawPending = 1;
+    }
+}
+void ConsoleShiftDown()
+{
+    //you press up key, text goes down
+    //top of console limited correctly
+    //if((printPtrY-printScrY)>0)
+    if(printLineOffset > 0)
+    {
+        mcs_screen_shift_vertical(-1);
+        printScrY++;
+        printLineOffset--;
+        float I = 0;
+        //for(I=0;I<60;I++)
+        //{
+        //    AdrScreen[I] = ConsoleStrBuff[(printPtrY-printScrY)*60+I];
+        //}
+        
+        float scrx;
+        float scry;
+        float adrx = cs_last_x;
+        for(scrx = 0; scrx < num_screens_x; scrx++){
+            for(scry = 0; scry < num_screens_y; scry++){
+                float scrID = scry*num_screens_x+scrx;
+                AdrScreen = screens[scrID];
+                
+                //float buffAddr = mcs_width*(printLineOffset+19*scry)+30*scrx;
+                float buffAddr = mcs_width*(printLineOffset+cs_height*scry)+cs_width*scrx;
+                if(scrx == (num_screens_x-1)){adrx = cs_last_x-1;}
+                
+                
+                for(I = 0; I <= adrx; I++){
+                    float ch = ConsoleStrBuff[(buffAddr+I)*2];
+                    float col = ConsoleStrBuff[(buffAddr+I)*2+1];
+                    cs_putchar(AdrScreen,ch,col,I,0);
+                }
+            }
+        }
+    }
+    RedrawPending = 1;
+}
+
+

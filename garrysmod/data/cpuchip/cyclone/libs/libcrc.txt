@@ -1,0 +1,267 @@
+//Cyclic Redundancy Check
+//using code from http://create.stephan-brumme.com/crc32/
+//note that we are performing lossy conversion from 64bit float to 32 bit integer
+#ifndef LIBCRC_GUARD
+#define LIBCRC_GUARD
+LIBCRC_CODE:
+
+float calc_checksum(float prevchecksum, float start, float count){
+    while(count){
+        count--;
+        prevchecksum = prevchecksum+*start;
+        start++;
+    }
+    return prevchecksum;
+}
+float calc_crc(float prevcrc, float start, float count){
+    float crc = prevcrc;
+    bxor crc, 0xFFFFFFFF;
+    float current = start;
+    float crc2;
+    float crc3;
+    float crc4;
+    float num;
+    out 1, crc_lookup;
+    while(count){
+        count--;
+        //get number
+        num = *current;
+        current++;
+        //split it into bytes
+        float A = num;
+        mod A, 256;
+        float B = num/256;
+        fint B;
+        mod B, 256;
+        float C = num/65536;
+        fint C;
+        mod C, 256;
+        float D = num/16777216;
+        fint D;
+        mod D, 256;
+        calc_crc8_lookup(A, &crc);
+        calc_crc8_lookup(B, &crc);
+        calc_crc8_lookup(C, &crc);
+        calc_crc8_lookup(D, &crc);
+    }
+    bxor crc, 0xFFFFFFFF;
+    return crc;
+}
+
+void calc_crc8_lookup(float n, float *crc){
+    float crc1;
+    float crc2;
+    float crc3;
+    float crc4;
+    crc2 = *crc;            
+    bshr crc2, 8;          //crc2 = crc >> 8
+    crc3 = *crc;            
+    band crc3, 0xFF;       //crc3 = crc & 0xFF 
+    bxor crc3, n;          //crc3 = (crc & 0xFF) ^ *current++;
+    crc4 = crc_lookup[crc3];
+    crc1 = crc2;
+    bxor crc1, crc4;
+    *crc = crc1;
+}
+
+float calc_crc8(float n, float prevcrc){
+    float I;
+    float crc = prevcrc;
+    float crc2;
+    bxor crc, 0xFFFFFFFF;
+    bxor crc, n;
+    for(I = 0; I < 8; I++){
+        crc2 = crc;
+        band crc2, 1;
+        crc2 = crc2 * 0xEDB88320;
+        crc = crc / 2;
+        bxor crc, crc2;
+    }
+    return crc;
+}
+
+float precompute_crc(){
+    float I = 0;
+    for(I = 0; I < 256; I++){
+        crc_lookup[I] = calc_crc8(I,0);
+    }
+}
+
+
+void cmd_crc(){
+    float argc = strlen(Arr);
+    if(argc>1){
+        if(strcmp(Arr[1],"all")==0){
+            P("Calculating CRC from 0 to END\n");
+            float size = ceil(END/100);
+            float done = 0;
+            float start1 = 0;
+            float count = size;
+            float result = 0;
+            while(!done){
+                float progress = round(100*start1/END);
+                P2("CRC: ",start1, " to ");P2("",start1+count,", ");P2("",progress,"%\n");
+                result = calc_crc(result, start1, count);
+                start1 = start1+count;
+                if(!(start1 < END)){done = 1;}
+                if((start1+count) > END){count = END-start1;}
+            }
+            P("Done\n");
+            if(crc_previous != 0){
+                if(crc_previous != result){
+                    P("Mismatch\n");
+                }else{
+                    P("Ok\n");
+                }
+            }else{
+                P("Computed\n");
+            }
+            crc_previous = result;
+        }
+        if(strcmp(Arr[1],"code")==0){
+            P("Calculating CRC of code areas\n");
+            float I = 0;
+            float num = (CRC_end - CRC_areas) / 4;
+            for(I = 0; I<num; I++){
+                start1 = CRC_areas[I*4];
+                count = CRC_areas[I*4+1]-start1;
+                P2("CRC ",I,": ");P2("",start1, " to ");P2("",start1+count,"\n");
+                result = calc_crc(0,start1,count);
+                float prev = CRC_areas[I*4+2];
+                if(prev){
+                    if(prev != result){
+                        P2("Area ",I," CRC mismatch\n");
+                    }
+                }
+                CRC_areas[I*4+2] = result;
+            }
+            P("Done\n");
+        }
+        if(strcmp(Arr[1],"first")==0){
+            P("Calculating CRC of the first 100 bytes\n")
+            result = calc_crc(0,0,100);
+            if(crc_prev_first != 0){
+                if(result != crc_prev_first){
+                    P("Mismatch\n");
+                }else{
+                    P("OK\n");
+                }
+            }else{
+                P("Computed\n");
+            }
+            crc_prev_first = result;
+        }
+        if(strcmp(Arr[1],"precompute")==0){
+            P("Pre-computing CRC values\n");
+            precompute_crc();
+            P("Done\n");
+        }
+    }else{
+        P("Cyclic Redundancy Check\n")
+        P("usage: crc <mode>\n");
+        P("modes: code\n");
+        P("       all\n");
+        P("       first\n");
+        P("       precompute\n");
+    }
+}
+crc_help: 
+db "Cyclic Redundancy Check\n";
+db "Performs a CRC check of the OS code to verify integrity. Very slow. CRC must first be precomputed. the CRC_AREAS table will be used.\n";
+db "usage: crc <mode>\n";
+db "modes: \n";
+db " code - only code areas\n";
+db " all - everything, even data\n";
+// |-----------------------------|
+db " first - first 100 bytes\n";
+db " precompute\n";
+db 0;
+
+
+void cmd_checksum(){
+    float argc = strlen(Arr);
+    if(argc>1){
+        if(strcmp(Arr[1],"all")==0){
+            P("Calculating checksum from 0 to END\n");
+            float size = ceil(END/100);
+            float done = 0;
+            float start1 = 0;
+            float count = size;
+            float result = 0;
+            while(!done){
+                float progress = round(100*start1/END);
+                P2("checksum: ",start1, " to ");P2("",start1+count,", ");P2("",progress,"%\n");
+                result = calc_checksum(result, start1, count);
+                start1 = start1+count;
+                if(!(start1 < END)){done = 1;}
+                if((start1+count) > END){count = END-start1;}
+            }
+            P("Done\n");
+            if(checksum_previous != 0){
+                if(checksum_previous != result){
+                    P("Mismatch\n");
+                }else{
+                    P("OK\n");
+                }
+            }else{
+                P("Computed\n");
+            }
+            checksum_previous = result;
+        }
+        if(strcmp(Arr[1],"code")==0){
+            P("Calculating checksum of code areas\n");
+            float I = 0;
+            float num = (CRC_end - CRC_areas) / 4;
+            for(I = 0; I<num; I++){
+                start1 = CRC_areas[I*4];
+                count = CRC_areas[I*4+1]-start1;
+                P2("sum ",I,": ");P2("",start1, " to ");P2("",start1+count,"\n");
+                result = calc_checksum(0,start1,count);
+                float prev = CRC_areas[I*4+3];
+                if(prev != 0){
+                    if(prev != result){
+                        P2("Area ",I," checksum mismatch\n");
+                    }
+                }
+                CRC_areas[I*4+3] = result;
+            }
+            P("Done\n");
+        }
+        if(strcmp(Arr[1],"first")==0){
+            P("Calculating checksum of the first 100 bytes\n")
+            result = calc_crc(0,0,100);
+            if(checksum_prev_first != 0){
+                if(result != checksum_prev_first){
+                    P("Mismatch\n");
+                }else{
+                    P("OK\n");
+                }
+            }else{
+                P("Computed\n");
+            }
+            checksum_prev_first = result;
+        }
+    }else{
+        P("Checksum Check\n")
+        P("usage: checksum <mode>\n");
+        P("modes: code\n");
+        P("       all\n");
+        P("       first\n");
+    }
+}
+checksum_help:
+db "Checksum Check\n";
+db "Checks the checksum of the OS code, or computes it if not yet computed. Fast. Uses CRC_AREAS table.\n";
+db "usage: checksum <mode>\n";
+// |-----------------------------|
+db "modes: code\n";
+db "       all\n";
+db "       first\n";
+db 0;
+
+
+LIBCRC_CONSTANTS:
+crc_lookup:alloc 256;
+LIBCRC_VARS:
+LIBCRC_END:
+#endif

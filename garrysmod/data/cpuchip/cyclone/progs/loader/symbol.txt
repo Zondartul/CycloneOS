@@ -1,0 +1,121 @@
+//symbol
+
+//struct symbol
+//0: typeof_symbol
+//1: string name
+//2: definition address
+//3: reference addresses (vector)
+
+//typedef vector<symbol*> symtable;
+
+/*
+
+ds vector<T>{
+    float size;
+    float capacity;
+    ptr [capacity] T array;
+};
+
+ds symbol{
+    ptr string name;
+    address def;
+    vector<address> refs;
+};
+//----------
+ds vector{
+    float size;
+    float capacity;
+    ptr [capacity] float array;
+};
+
+//----------------------
+ds boop{
+    float adr;
+    string name;
+};
+
+ds test{
+    ptr string name;
+    float [3] vec;
+    float size;
+    float num = 1;
+    float where = &word;
+    ptr [size] float arr1;
+    [0] boop boops;
+    cs vector V;
+    float word;
+    variant what(num) kerbal;
+};
+
+variant what{
+  case 1:
+        float beep;
+        float bap;
+        float boop;
+  case 2:
+        string hi;  
+};
+
+//-------------------
+void dsSerialize(ds object, destination);                //construct a serialized copy of an object in the destination
+float dsSerializedSize(ds object);                       //calculate the size an object would have when serialized
+ds* dsDeserialize(source);                               //construct a live copy of a previously serialized object  
+float dsDeserializedSize(source);                        //calculate the size of an object once deserialized
+ds* dsNew(typeInfo);                                     //create a valid ds object
+void dsSet(ds object, string param, auto value);         //set a variable in a ds object
+ptr dsGet(ds object, string param);                      //get a pointer to a variable in a ds object
+typeinfo dsGetType(ds object);                           //get the ds object type
+bool dsVerify(ds object);                                //check that a ds object is healthy
+bool dsVerifySerialized(source);                         //check that a serialized ds object is healthy
+dsPrint(ds object);                                      //do a fancy print of all object properties
+----------------------------------------
+typeinfo{
+    canary/typeof;
+    string name;                //structure name
+    float size;                 //0 for unknown
+    float numExplicitEntries;   //how many entries are actual variables?
+    float numTotalEntries;      //how many entries total (incl. type adapters)
+    [numTotalEntries] typeentry entries;      //the list of entries.
+}
+
+entry{
+    enum entryType; // float, string, addr, ptr, array, ds, cs, variant
+    float param;    //array size (float), ds or cs typeinfo
+    float subentry; //ptr to entry, array of size entry, variant choice
+    string name;    //name of this property
+}
+
+//----------------------------------
+
+*/
+
+
+void printSymbol(float sym){
+    assert_type(sym,typeof_symbol);
+    float name = sym[1];
+    float def = sym[2];
+    float refs = sym[3];
+    printf("symbol [%s]\n",name);
+    if(def != -1){printf(" defined: %d\n",def);}
+    else{printf(" no def\n");}
+    if(refs){
+        float n = vector_get_size(refs);
+        printf(" %d refs:\n",n);
+        float J = 0;
+        for(J = 0; J < n; J++){
+            float r = vector_get(refs,0,J);
+            printf("  @ %d\n",r);
+        }
+    }else{
+        printf(" no refs\n");
+    }
+}
+
+void printSymbolTable(float symtable){
+    float I = 0;
+    float size = vector_get_size(symtable);
+    for(I = 0; I < size; I++){
+        float sym = vector_get(symtable,0,I);
+        printSymbol(sym);
+    }
+}

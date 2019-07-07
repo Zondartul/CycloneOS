@@ -1,0 +1,2050 @@
+// cyclone shell
+#ifndef SHELL_GUARD
+#define SHELL_GUARD
+SHELL_CODE:
+#include <cyclone/libs/libutil.txt>
+
+shenter:
+void shell(){
+    out 6,1;
+    //P("Hello World!\n");
+    //printf("Starting shell...\n");
+    P("Starting shell...\n");
+    initShellCmds();
+    P("Starting libs...\n");
+    initLibraries();
+    P("Refreshing screen...\n");
+    mcs_screen_force_refresh(); //AdrScreen[2020]=1; 
+    mcs_screen_set_shift_box(0,mcs_last_x-1,0,mcs_last_y-1); //30x18 screen, last pos is 29x17, subscreen corner therefore at 28x16,
+                                     //but for some reason we use 27x15.
+    mcs_screen_force_refresh(); //AdrScreen[2020]=1; screen sometimes fucks up if we don't do this
+    cls();
+    strcpy(CurDir,"/");
+    current_path = CurDir;
+    float I = 0;
+    for(I=0;I<7;I++)
+    {
+        Print("[dance]\n",(8-I)*100+I*10);
+    }
+    autorun();
+    //printf("mcs_width:  %d\n",mcs_width);
+    //printf("mcs_height: %d\n",mcs_height);
+    //printf("mcs_last_x: %d\n",mcs_last_x);
+    //printf("mcs_last_y: %d\n",mcs_last_y);
+    //printf("cs_width:  %d\n",cs_width);
+    //printf("cs_height: %d\n",cs_height);
+    //printf("cs_last_x: %d\n",cs_last_x);
+    //printf("cs_last_y: %d\n",cs_last_y);
+    RedrawPending = 1;
+    while(1)
+    {
+        out 6,2;
+        checkKB();    
+        shell_panic_ebp = EBP;
+        shell_panic_esp = ESP;
+        thread_yield();
+        shell_panic_exit:
+        
+        extendedModeEnable();
+        interruptsEnable();
+        listeningToInput = 1;
+        
+        if(RedrawPending)
+        {
+            RedrawPending = 0;
+            DrawScrollBar();
+            DrawStatusBar();
+        }
+    }
+}
+
+void initShellCmds(){
+    CommandList = malloc(sizeof_vector);
+    vector_constructor(CommandList,1);
+    
+addShellCmd("cls",cls,cls_help);
+addShellCmd("help", help, help_help);
+addShellCmd("heap", heap_status, heap_status_help);
+addShellCmd("rpncalc", cmd_rpncalc, rpncalc_help);
+addShellCmd("memtest", memtest, memtest_help);
+addShellCmd("dump",cmd_dump, dump_help);
+addShellCmd("run",  cmd_run, run_help);
+addShellCmd("runbg",  cmd_runbg, runbg_help); 
+addShellCmd("load", cmd_load, load_help);
+addShellCmd("cd", cmd_cd, cd_help);
+addShellCmd("dir",  cmd_dir, dir_help);
+addShellCmd("mkdir", cmd_mkdir, mkdir_help);
+addShellCmd("del",  cmd_del, del_help);
+addShellCmd("rn",cmd_rn, rn_help);
+addShellCmd("write",  cmd_write, write_help);
+addShellCmd("read",  cmd_read, read_help);
+addShellCmd("info", cmd_info, info_help);
+addShellCmd("hdd", cmd_hdd, hdd_help);
+addShellCmd("mount", cmd_mount, mount_help);
+addShellCmd("format", cmd_format, format_help);
+addShellCmd("gpio", cmd_gpio, gpio_help);
+addShellCmd("exec", cmd_exec, exec_help);
+addShellCmd("symbol", cmd_symbol, symbol_help);
+addShellCmd("memview", cmd_memview, memview_help);
+addShellCmd("fileview", cmd_fileview, fileview_help);
+addShellCmd("panic",shell_panic, shell_panic_help);
+addShellCmd("version", printversion, printversion_help);
+addShellCmd("echo",  cmdecho, echo_help);
+addShellCmd("time",  cmdtime, time_help);
+addShellCmd("test",cmdtest, test_help);
+addShellCmd("test2",  cmdtest2, test2_help);
+addShellCmd("test3", cmdtest3, test3_help);
+addShellCmd("test4",cmd_test4, test4_help);
+addShellCmd("test5", cmd_test5, test5_help);
+addShellCmd("test6", cmd_test6, test6_help);
+addShellCmd("test7", cmd_test7, test7_help);
+addShellCmd("ps", cmdps, 0);
+addShellCmd("yield", cmdyield, 0);
+addShellCmd("trace", cmdtrace, trace_help);
+    
+}
+
+void initLibraries(){
+    libdynamicstruct_initCommands();
+}
+
+//struct shellCmd
+//0: typeof
+//1: name (string)
+//2: func (function)
+//3: help (string)
+
+float sizeof_shellCmd = 4;
+typeof_shellCmd: db "shellCmd",0;
+
+void addShellCmd(float name, float func, float help){
+    float CMD = malloc(sizeof_shellCmd);
+    CMD[0] = typeof_shellCmd;
+    CMD[1] = name;
+    CMD[2] = func;
+    CMD[3] = help;
+    vector_push(CommandList,CMD);
+}
+
+void autorun(){
+    float run = 0;
+    in run,1;
+    if(run){
+        Print("AUTORUN\n",929);
+        ParseString("echo off");
+        ParseString("exec autorun.sh");
+        ParseString("echo on");
+    //ParseString("write bop hi");
+    //ParseString("write bap ho");
+    //ParseString("dir");
+    }
+}
+
+void shell_panic(){
+    Print("\nSHELL PANIC\n",9);
+    setallocator(defaultAllocator);
+    getStackTrace(trace_data);
+    printStackTrace(trace_data);
+    //malloc_init();
+    //P("Heap re-initialized\n");
+    MinStrI = 0;
+    MinStr[1] = 0;
+    Echo = 1;
+    RedrawPending = 1;
+    
+    extendedModeDisable();
+    interruptsDisable();
+    
+    if(malloc_test()){
+        P("Heap status:\n");
+        malloc_print_count();
+        malloc_init();
+        P("Heap re-initialized\n");
+    }
+    
+    EBP = shell_panic_ebp;
+    ESP = shell_panic_esp;
+    jmp shell_panic_exit;
+}
+shell_panic_help: db "Escape from the currently executing program back into the shell and re-initialize heap memory. Used when a critical error occurs.\n", db 0;
+
+void cls(){
+    mcs_screen_clear();
+    memset(ConsoleStrBuff,0,CONSOLE_BUFFER_SIZE);
+    //printPtrX = 0;
+    //printPtrY = 0;
+    //printScrY = 0;
+    //RedrawPending = 1;
+    printScrX = 0;
+    printBuffX = 0;
+    printScrY = 0;
+    printBuffY = 0;
+    printLineOffset = 0;
+}
+cls_help: db "cleans the screen. Soap will be used.\n", db 0;
+
+void drawStatusBar()
+{
+    char status = "Ready";
+    float statCol = 115;
+    float statTextCol = 999;
+    float I = 0;
+    float str = status;
+    if(MinStrI){str = MinStr};    
+    float C = str[0];
+    float len = 0;
+    len = strlen(str);//while(C){len++;C = str[len];}
+    //if(len>27){C = str[len-28];}else{C=str[0];}
+    float inp = (str!=status);
+    if(inp){statTextCol = 999;}else{statTextCol = 90};
+    if(listeningToInput && inp){
+        //AdrScreen[2029] = 0.5; //vert scale does nothing :(
+        //AdrScreen[2030] = 2;   //hori scale 
+        //AdrScreen[2043] = 0.5; //blink rate
+        //AdrScreen[2044] = 0.2;//cursor size
+        
+          //mcs_set_blink_rate(0.5);
+          //mcs_set_cursor_size(0.2);
+          //mcs_screen_cursor_enable();    
+        //screen_set_cursor_pos_xy(len+1,16);
+          //mcs_screen_set_cursor_pos_xy(len+1,mcs_last_y);
+        //AdrScreen[2020] = 1;
+        //mcs_screen_force_refresh();
+    }else{
+        //mcs_screen_cursor_disable();
+    }
+    float ch;
+    float col;
+    float adrx;
+    float adry;
+    float statlen = mcs_last_x-2;
+    for(I = 0; I < mcs_last_x; I++)//for(I=0;I<29;I++)
+    {
+        if(I < len+inp){
+            col = statCol*1000+statTextCol; adry = mcs_last_y;
+            if(inp){
+                if(I == 0){
+                    //AdrScreen[60*17] = '>';
+                    //AdrScreen[60*17+1] = statCol*1000+statTextCol;
+                    ch = '>'; adrx = 0;
+                    mcs_putchar(ch,col,adrx,adry);
+                }else{
+                    //if(len>27){C = str[I+len-28];}else{C = str[I-1];}
+                    if(len>statlen){C = str[I+len-statlen-1];}else{C = str[I-1];}
+                    //AdrScreen[60*17+2*I] = C;
+                    //AdrScreen[60*17+2*I+1] = statCol*1000+statTextCol;
+                    ch = C; adrx = I;
+                    mcs_putchar(ch,col,adrx,adry);
+                }
+            }else{
+            
+                    //if(len>27){C = str[I+len-27];}else{C = str[I];}
+                    if(len>statlen){C = str[I+len-statlen];}else{C = str[I];}
+                    //AdrScreen[60*17+2*I] = C;
+                    //AdrScreen[60*17+2*I+1] = statCol*1000+statTextCol;
+                    ch = C; adrx = I;
+                    mcs_putchar(ch,col,adrx,adry);
+            }
+        }else{
+            //AdrScreen[60*17+2*I] = ' ';
+            //AdrScreen[60*17+2*I+1] = statCol*1000;
+            ch = ' '; col = statCol*1000; adrx = I;
+            mcs_putchar(ch,col,adrx,adry); 
+        }
+        /*
+        if(inp)//if(C)
+        {
+            if(I==0)//if((I==0)&&inp)
+            {
+                AdrScreen[60*17] = '>';
+                AdrScreen[60*17+1] = statCol*1000+statTextCol;
+            }
+            else
+            {
+                if(len>27){C = str[I+len-27];}else{C = str[I];}
+                AdrScreen[60*17+2*I] = C;
+                AdrScreen[60*17+2*I+1] = statCol*1000+statTextCol;
+                //if(len>27){C = str[I+len-28-inp];}else{C = str[I+1-inp];}
+            }
+        }
+        else
+        {
+            AdrScreen[60*17+2*I] = ' ';
+            AdrScreen[60*17+2*I+1] = statCol*1000;
+        }
+        */
+    }
+    //if(listeningToInput){AdrScreen[60*17+1] = 90*1000;}
+}
+void drawScrollBar()
+{
+    //AdrScreen[2*29] = '^';
+    //AdrScreen[2*29+1] = 115999;
+    float ch = '^';
+    float col = 115999;
+    mcs_putchar(ch,col,mcs_last_x,0);
+    float I = 0;
+    float T = 0;
+    T = printLineOffset;//printPtrY-printScrY;    //we have 16 positions
+    T = round(mcs_last_y*T/100);//round(18*T/100);        //hmmm
+    T++;
+    for(I=1;I<mcs_last_y;I++)
+    {
+        if(I!=T)
+        {
+        //AdrScreen[2*(I*30+29)] = '|';
+        //AdrScreen[2*(I*30+29)+1] = 115999;
+            ch = '|';col = 115999;
+            mcs_putchar(ch,col,mcs_last_x,I);
+        }
+    }
+    //AdrScreen[2*(17*30+29)] = 'v';
+    //AdrScreen[2*(17*30+29)+1] = 115999;
+    ch = 'v'; col = 115999;
+    mcs_putchar(ch,col,mcs_last_x,mcs_last_y);
+    
+    //AdrScreen[2*(30*T+29)] = ' ';
+    //AdrScreen[2*(30*T+29)+1] = 999000; 
+    ch = ' '; col = 999000;
+    mcs_putchar(ch,col,mcs_last_x,T);
+}
+
+
+void Console(char str)
+{
+    strcpy(MinStr, str);
+    ParseString(MinStr);
+}
+void ParseStringSilent(char str){
+    float Echo_prev = Echo;
+    Echo = 0;
+    ParseString(str);
+    Echo = Echo_prev;
+}
+
+str_exe: db "exe",0;
+str_c: db "c",0;
+str_txt: db "txt",0;
+str_sh: db "sh",0;
+
+void ParseString(char str)
+{
+    //P("PS[");P(str);P("]\n");
+    if(Echo)// &&strcmp(str,"echo off"))
+    {
+        if(strcmp(str,"echo off") != 0){
+        //Print("User:> ",999);Print(MinStr,999);Print("\n",999);
+            P("User:");P(CurDir);P("> ");P(str);P("\n");
+        }
+    }
+    float buff[120];
+    strcpy(buff,str);
+    Arr = explode(buff, " ");
+    //float I = CommandBuff;
+    //float Match = 0;
+    //float Ptr;
+    //while(I<CommandBuffEnd)
+    //{
+    //    if(strcmp(Arr[0],I)==0)
+    //    {
+    //        I = I+strlen(I)+1;
+    //        Match = 1;
+    //        Ptr = *I;
+    //        Ptr();
+    //        goto shell_cmd_found;
+    //        I++;
+    //    }
+    //    else
+    //    {
+    //        I = I+strlen(I)+3;
+    //    }
+    //}
+    float I = 0;
+    float size = vector_get_size(CommandList);
+    float Match = 0;
+    float Ptr;
+    for(I = 0; I < size; I++){
+        float CMD = vector_get(CommandList,0,I);
+        if(strcmp(Arr[0],CMD[1])==0){
+            Match = 1;
+            Ptr = CMD[2];
+            float argc = strlen(Arr)-1;
+            float argv = Arr+1;
+            Ptr(argc, argv);
+            goto shell_cmd_found;
+        }
+    }
+    if(!Match)
+    {
+        //float fullname[80]; getFullname(fullname,Arr[0]);
+        float fullname = filepath_abs(Arr[0]);
+        float ext = filepath_extension(fullname);
+        float buff2[120];
+        float Echo_prev = Echo;
+        if(!ext){
+            //figure out how to put it all in a function
+            float name2 = concat(fullname,".exe");
+            //first, try as extensionless
+            if(fopen(fullname,"r")){
+                //printf("condition 1 (ext-less)\n");
+                Echo = 0;
+                strcpy(buff2,"read ");
+                strcpy(buff2+5,fullname);
+                ParseString(buff2);
+                Echo = Echo_prev;
+                goto shell_cmd_found;
+            }
+            //first, try as executable
+            if(fopen(name2,"r")){
+                //printf("condition 2 (as .exe)\n")
+                Echo = 0;
+                Ptr = buff2;
+                strcpy(ptr,"run ");
+                ptr += 4;
+                strcpy(ptr,name2);
+                ptr += strlen(name2);
+                if(strlen(Arr)>1){
+                    *ptr++ = ' ';
+                    arg_rest(ptr,1);
+                }
+            
+                ParseString(buff2);
+                Echo = Echo_prev;
+                goto shell_cmd_found;
+            }
+          
+        }else{
+            if(fopen(fullname,"r")){
+                //printf("ext: [%s]\n",ext);
+                float ext_is_exe = strcmp(ext,str_exe)==0;
+                float ext_is_c = strcmp(ext,str_c)==0;
+                float ext_is_txt = strcmp(ext,str_txt)==0; //!-1 == 1 ??? WTF
+                float ext_is_sh = strcmp(ext,str_sh)==0;
+                float c_or_txt = ext_is_c || ext_is_txt;
+         
+                
+                if(ext_is_exe){
+                    //printf("condition 6 (.exe)\n");
+                    Echo = 0;
+                    strcpy(buff2,"run ");
+                    strcpy(buff2+4,str);
+                    ParseString(buff2);
+                    Echo = Echo_prev;
+                    goto shell_cmd_found;
+                }
+                //if((strcmp(ext,"c")==0)||(strcmp(ext,"txt")==0)) //don't do if(func() || func()) or borks happen
+                if(c_or_txt){
+                    //printf("condition 7 (.c or .txt)\n");
+                    Echo = 0;
+                    strcpy(buff2,"run notepad.exe ");
+                    strcpy(buff2+16,str);
+                    ParseString(buff2);
+                    Echo = Echo_prev;
+                    goto shell_cmd_found;
+                }
+                if(ext_is_sh){
+                    //printf("condition 8 (.sh)\n");
+                    Echo = 0;
+                    strcpy(buff2,"exec ");
+                    strcpy(buff2+5,str);
+                    ParseString(buff2);
+                    Echo = Echo_prev;
+                    goto shell_cmd_found;
+                }
+            }
+        }
+        //if(fopen(fullname,"r")){
+        //    float Echo_prev = Echo;
+        //    Echo = 0;
+        //    float buff2[120];
+        //    strcpy(buff2,"run ");
+        //    strcpy(buff2+4,str);
+        //    ParseString(buff2);
+        //    Echo = Echo_prev;
+        //}else{
+            if(R==0){Print("huh?\n",900);}
+            if(R==1){Print("wat\n",900);}
+            if(R==2){Print("No, this is patric.\n",900);}
+            if(R==3){Print("Unrecognised command\n",900);}
+            if(R==4){Print("You do talk nonsense \nsometimes.\n",900);}
+            if(R==5){Print("I\'m afraid I can\'t \nlet you do that.\n",900);}
+            if(R==6){Print("Who are you?!\n",900);}
+            if(R==7){Print("Unknown command\n",900);}
+            if(R==8){Print("Syntax Error\n",900);}
+            if(R==9){Print("ENGLISH MOTHERFUCKER,\nDO YOU SPEAK IT?\n",900);}
+            if(R==10){Print("What you need isnt \nalways what you want.\n",900)}
+            //dosound(0.16, ErrorSound);
+             R++;if(R>10){R=0};
+        //}
+    }
+    shell_cmd_found:
+    if(malloc_test()){
+        P("Heap status:\n");
+        malloc_print_count();
+        malloc_init();
+        P("Heap re-initialized\n");
+    }
+    MinStrI=0;
+    MinStr[1]=0;
+    RedrawPending = 1;
+}
+
+void Ps(void *str){Print(string_c_str(str),999);}
+
+
+void redraw_all(){
+    //too bork
+    //screen_clear();
+    //float offs = (printScrY-17)*60;
+    //if(offs < 0){offs = 0;}
+    //float adrFrom = ConsoleStrBuff+offs;
+    //float size = CONSOLE_BUFFER_SIZE-(printPtrY*60+printPtrX*2);
+    //if(size > 17*60){size = 17*60;}
+    //memcpy(AdrScreen,adrFrom,size);
+    //RedrawPending = 1;
+    cls();
+}
+
+void PrintProgressBar(float percent){
+    if(percent < 0){percent = 0;}
+    if(percent > 100){percent = 100;}
+    float bars = round(percent/5);
+    percent = round(percent);
+    P("\r");
+    float I;
+    for(I = 0; I < bars; I++){
+        Print(" ",888111);
+    }
+    for(I = bars; I < 20; I++){
+        Print(" ",222111);
+    }
+    P2(" ",percent,"%   ");
+}
+
+
+void ParseKey(char key)
+{
+    float C = isPrint(key);
+    float A = isAlpha(key);
+    float B = isNum(key);
+    float I = 0;
+    float numScrolls = 1;
+    if(C)
+    {
+        if(MinStrI<255)
+        {
+            MinStr[MinStrI++]=key;
+            MinStr[MinStrI]=0;
+        }
+        RedrawPending = 1;
+    }
+    else
+    {
+        //if(key==13){ParseString(MinStr);}//enter //enter is key 10 now?
+        if(key==10){
+            listeningToInput = 0;
+            DrawStatusBar();
+            ParseString(MinStr);
+        }//enter
+        if(key==17){for(I = 0; I < numScrolls; I++){ConsoleShiftDown();}}
+        if(key==18){for(I = 0; I < numScrolls; I++){ConsoleShiftUp();}}
+        if(key==127)
+        {
+            if(MinStrI>0){MinStrI--;}
+            MinStr[MinStrI]=0;
+            RedrawPending = 1;
+        }
+    }
+}
+
+
+void checkKB()
+{
+    while(hasKey())
+    {
+        float key = readKey();
+        ParseKey(key);
+    }
+}
+
+
+float getShellInput()
+{
+    MinStrI = 0;
+    MinStr[MinStrI] = 0;
+    RedrawPending = 1;
+    while(1){
+        while(hasKey()){    
+            char key = readKey();
+            float C = isPrint(key);
+            float A = isAlpha(key);
+            float B = isNum(key);
+            if(C)
+            {
+                if(MinStrI<255)
+                {
+                    MinStr[MinStrI++]=key;
+                    MinStr[MinStrI]=0;
+                }
+                RedrawPending = 1;
+            }
+            else
+            {
+                //if(key==13){ParseString(MinStr);}//enter //enter is key 10 now?
+                if(key==10){
+                    float str = str_alloc(MinStr);
+                    MinStrI = 1;
+                    MinStr[0] = ' ';
+                    MinStr[MinStrI] = 0;
+                    ReDrawPending = 1;
+                    listeningToInput = 0;
+                    DrawStatusBar();
+                    return str;
+                }//enter
+                if(key==127)
+                {
+                    if(MinStrI>0){MinStrI--;}
+                    MinStr[MinStrI]=0;
+                    RedrawPending = 1;
+                }
+            }
+        }
+        if(RedrawPending)
+        {
+            RedrawPending = 0;
+            DrawStatusBar();
+        }
+    }
+}
+
+str_y: db "y",db 0;
+str_n: db "n",db 0;
+
+float getYN(){
+    getYNloop:
+    float str = getShellInput();
+    if(strcmp(str,str_y)==0){
+        printf("entered \'y\'\n");
+        return 1;
+    }
+    if(strcmp(str,str_n)==0){
+        printf("entered \'n\'\n");
+        return 0;
+    }
+    printf("enter 'y' or 'n'\n");
+    goto getYNloop;
+}
+//float getKeyPending(){
+//    char C = AdrKB[1]
+//    if(C){AdrKB[0] = 0;}
+//    return C;
+//}
+
+void help()
+{
+    float argc = strlen(Arr);
+    float I;
+    float Match;
+    float size;
+    float CMD;
+    float name;
+    float helpstr;
+    if(argc == 1){
+        //I = CommandBuff;
+        Match = 0;
+        //while(I<CommandBuffEnd)
+        //{
+        //    Print(I,90);
+        //    Print(" ",90);
+        //    I = I+strlen(I)+3;
+        //}
+        size = vector_get_size(CommandList);
+        for(I = 0; I < size; I++){
+            CMD = vector_get(CommandList,0,I);
+            name = CMD[1];
+            helpstr = CMD[3];
+            Print(name,90);
+            if(helpstr){
+                Print(" ",90);
+                Print(helpstr,999);
+            }
+            Print("\n",999);
+        }
+        
+        Print("\n",90);
+        P("type help <command> for command description\n");
+    }else{
+        size = vector_get_size(CommandList);
+        
+        //I = CommandBuff;
+        Match = 0;
+        for(I = 0; I < size; I++){
+            CMD = vector_get(CommandList,0,I);
+            name = CMD[1];
+            helpstr = CMD[3];
+            if(strcmp(Arr[1],name) == 0){
+                Match = 1;
+                if(helpstr){
+                    P(helpstr);
+                }else{
+                    P("no help for this command is available.\n");
+                }
+                return;
+            }
+        }
+        //while(I<CommandBuffEnd)
+        //{
+        //    if(strcmp(Arr[1],I)==0)
+        //    {
+        //        I = I+strlen(I)+2;
+        //        Match = 1;
+        //        float str = *I;
+        //        if(str){
+        //            P(str);
+        //        }else{
+        //            P("no help for this command is available.\n");
+        //        }
+        //        return;
+        //    }
+        //    else
+        //    {
+        //        I = I+strlen(I)+3;
+        //    }
+        //}
+        
+        P("unknown command, can't help.\n");
+        
+    }
+}
+
+help_help: db "helps with console commands. \"help\" for list of commands or \"help <command>\" for help with specific command.\n", db 0;
+
+void cmdtest()
+{
+    //float I = 0;
+    //for(I = 0; I < 10; I++){
+    //    P2("\rI = ",I,"");
+    //    delay(1);
+    //}
+    //P("\ndone\n");
+    //redraw_all();
+    out 6,3;
+    float main_thread = thread_create(shell,0);
+    thread_enter(main_thread); //never returns.
+}
+test_help: db "tests thread creation\n", db 0;
+
+void cmdtest2(){
+    
+    //float t_esp = esp;
+    //float t_ss = ss;
+    //float t_ebp = ebp;
+    //P2("ESP = ",t_esp,"\n");
+    //P2("SS = ",t_ss,"\n");
+    //P2("EBP = ",t_ebp,"\n");
+    float args = malloc(2);
+    args[0] = 0;
+    args[1] = 1;
+    float thread2 = thread_create(multitask_test,args);
+    //thread_enter(thread2);
+    float argc = strlen(Arr);
+    if(argc > 1){
+        if(strcmp(Arr[1],"y")==0){
+            P("going through yield\n");
+            thread_yield();
+            return;
+        }
+        if(strcmp(Arr[1],"e")==0){
+            P("going through enter\n");
+            thread_enter(thread2);
+            return;
+        }
+    }
+    P("going default\n");
+    thread_yield();
+}
+test2_help: db "tests thread switching\n", db 0;
+
+void cmdtest3(){
+    float argc = strlen(Arr);
+    if(argc > 1){
+        float num = str2num(Arr[1]);
+        printf("firing int %d\n",num);
+        int num;
+    }else{
+        printf("executing 0\n");
+        db 0;
+    }
+}
+test3_help: db "tests interrupts\n", db 0;
+
+trace_data:
+alloc 80;
+
+void cmdtrace(){
+    getStackTrace(trace_data);
+    printStackTrace(trace_data);
+}
+trace_help: db "prints a stack trace\n", db 0;
+
+void cmdyield(){
+    thread_yield();
+}
+
+void cmdps(){
+    print_threads();
+}
+
+void printversion()
+{
+ //   P("August 24, 2015\n");
+   // P("Official designation:\n");
+    P(OSname);P("\n");
+    P2("Size: ", End/1024 ," kB\n");
+    P2("AdrEB: ",AdrEB,"\n");
+    P2("AdrRAM ",AdrRam,"\n");
+    P2("AdrKb: ",AdrKb,"\n");
+    P2("AdrScreen: ",AdrScreen,"\n");
+    P2("AdrHDD: ",AdrHDD,"\n");
+    P2("AdrPort: ",AdrPort,"\n");
+}
+printversion_help: db "prints OS version and configuration\n", db 0;
+
+void cmdecho()
+{
+    if(strcmp(Arr[1],"off")==0){Echo = 0;}
+    else
+    {
+        if(strcmp(Arr[1],"on")==0){Echo = 1;}
+        else
+        {
+            //float argc = strlen(Arr);
+            //P2("echo argc = ",argc,"\n");
+            
+            
+            float I = 1;
+            float S = Arr[I++];
+            while(S)
+            {
+                Print(S,90);
+                Print(" ",90);
+                S = Arr[I++];   
+            }
+            Print("\n",90);
+        }
+    }
+}
+echo_help: db "echoes input. \"echo off\" to turn off and \"echo on\" to turn on.\n", db 0;
+
+//void delay(float time)
+//{
+//    preserve edx;
+//    timer edx;
+//    float T = edx;
+//    while((edx-T)<time)
+//    {
+//        timer edx;
+//    }
+//    zap edx;
+//}
+
+float arg_rest(float buff, float n){
+    float argc = strlen(Arr);
+    float I;
+    for(I = n; I < argc; I++){
+        strcpy(buff,Arr[I]);
+        buff += strlen(Arr[I]);
+        if((I+1) < argc){*buff++ = ' ';}
+    }
+    *buff = 0;
+}
+
+void cmdtime()
+{
+    float argc = strlen(Arr);
+    if(argc > 1){
+        curticks();
+        curticks(); //for some reason the first time curticks is called, it gives weird results
+        float time1 = curtime();
+        float ticks1 = curticks();
+        float cmd2[80]; arg_rest(cmd2,1);
+        float ticks2 = curticks();
+        ParseStringSilent(cmd2);
+        float time2 = curtime();
+        float dtime = time2-time1;
+        float dticks = ticks2-ticks1;
+        P2("T: ",dtime,"s ");
+        P2("/ ",dticks," ticks\n");
+    }else{
+        float time = curtime();
+        time = eax;
+        //Print(num2str(eax),90);Print("\n",90);
+        P2("Time since start: ",time," seconds\n");
+    }
+}
+time_help: db "tells the current time in seconds since CPU start, or times the execution of a command.\n", db 0;
+
+void cmd_test4()
+{
+    float mem = malloc(10000);
+    float time1 = 0;
+    float time2 = 0;
+    float delta = 0;
+    float ptr = 0;
+    float I = 0;
+    for(I = 0; I < 100; I++){
+        timer eax;
+        mov time1, eax;
+        ptr = mem+100*I;
+        *ptr = 1;
+        *ptr = 0;
+        timer eax;
+        mov time2, eax;
+        delta = time2-time1;
+        printf("ptr %d, time %d\n",ptr,delta);
+    }
+    free(mem);
+}
+test4_help: db "tests R/W speed\n", db 0;
+
+void cmd_test5()
+{
+    float argc = strlen(Arr);
+    if(argc>1){
+        float binary = 0;
+        if(argc>2){
+            if(!strcmp(Arr[2],"-b")){binary = 1;}
+        }
+
+        float fullname = filepath_abs(Arr[1]);
+        float F = fopen(fullname,"r");
+        if(!F){Print("Can't open ",900); Print(fullname,900); Print("\n",900);return;}
+        
+        ds_read_definition(F);
+        
+        float type = ds_get_typeinfo("test");
+        float dyn = ds_new(type);
+        //ptr string name
+        ds_set(dyn, "*name", stralloc("MyAwesomeTest"));
+        //[3] float vec
+        ds_set(dyn, "vec[0]", 5);
+        float arr = ds_get_ref(dyn, "vec");
+        ds_set_index(arr, 1, 3);
+        //float size
+        float size = 4;
+        ds_set(dyn, "size", size);
+        //float num
+        ds_set(dyn, "num", 2);
+        //float where
+        float ptrword = ds_get(dyn, "where");
+        //ptr [size] float arr1
+        float arr1 = ds_get_ref(dyn, "*arr1");
+        float I;
+        for(I = 0; I < size; I++){
+            ds_set_index(arr1, I, I);
+        }
+        //[0] cs boop boops;
+        float type2 = ds_get_typeinfo("boop");
+        
+        float boop;
+        for(I = 0; I < 5; I++){
+            boop = ds_new(type2);
+            ds_set(boop, "adr", I);
+            ds_set(boop, "name", stralloc("hi"));
+            ds_push(dyn, "boops", boop);
+        }
+        //cs vector v;
+        float v = malloc(sizeof_vector);
+        vector_constructor(v,1);
+        ds_set(dyn,"V",v);
+        //float word
+        *ptrword = 6;
+        //variant what(num);
+        ds_set(dyn, "hi", stralloc("hello"));
+        //union noms happy
+        ds_set(dyn, "happy.apple", stralloc("horse"));
+        //done
+        ds_print(dyn);
+    }else{
+        P("usage: test5 filename\n");
+    }
+}
+test5_help: db "tests dynamic struct parsing\n", db 0;
+
+
+void test6_reset(float buff){
+    float I;
+    for(I = 0; I < 50; I++){
+        buff[I] = 15; //fancy star symbol
+    }
+}
+
+void test6_print(float buff, float record){
+    printf("record = %d\n",record);
+    if(record){
+        float typeof = record[0];
+        float size = record[1];
+        if(!typeof){typeof = "<null>";}
+        printf("typeof = %s\n",typeof);
+        printf("size = %d\n",size);
+    }
+    float I;
+    for(I = 0; I < 50; I++){
+        float C = buff[I];
+        float pcolor = 999;
+        //if(isPrint(C) == 0){pcolor = 555;}
+        printf("%e%m%c",1,pcolor,C);
+    }
+    printf("\n");
+    if(record){
+        if(size < 50){
+            for(I = 0; I < size; I++){
+                printf(" ");
+            }
+            printf("^");
+        }
+    }
+    printf("\n");
+}
+
+float test6_myalloc(float n, float buff){
+    assert_arity(ecx,2);
+    printf("allc.malloc(%d, %d) = %d\n",n,buff,buff);
+    return buff;
+}
+float test6_myrealloc(float p, float n, float buff){
+    assert_arity(ecx,3);
+    printf("alc.reallod(%d, %d, %d) = %d\n",p,n,buff,buff);
+    return buff;    
+}
+float test6_myfree(float p, float buff){
+    assert_arity(ecx,2);
+    printf("alc.free(%d,%d) = 0\n",p,buff);
+    return 0;
+}
+
+void cmd_test6()
+{
+    float testnum = 0;
+    float buff = malloc(50);
+    printf("buff = %d\n",buff);
+    float helloworld = "Hello World!";
+    float hwlen = strlen(helloworld);
+    float apple = "Apple";
+    float aplen = strlen(apple);
+    
+    float allc = allocator_new();
+    allocator_set_impl(allc, buff);
+    allocator_set_malloc(allc,test6_myalloc);
+    allocator_set_realloc(allc,test6_myrealloc);
+    allocator_set_free(allc,test6_myfree);
+    setallocator(allc);
+    if(malloc_test()==0){printf("malloc_test %d ok\n",testnum++);}
+    printf("we got %mfun %mc%mo%ml%mo%mr%ms%m now!\n",90,900,950,90,99,9,909,999);
+    printf("hw = [%s], hwlen = %d\n",helloworld,hwlen);
+    if(malloc_test()==0){printf("malloc_test %d ok\n",testnum++);}
+    test6_reset(buff);
+    if(malloc_test()==0){printf("malloc_test %d ok\n",testnum++);}
+    
+    float record = buff;
+    printf("r = %d\n",record);
+    record_constructor(record,3);
+    printf("r = %d\n",record);
+    if(malloc_test()==0){printf("malloc_test %d ok\n",testnum++);}
+    test6_print(buff,record);
+    
+    if(malloc_test()==0){printf("malloc_test %d ok\n",testnum++);}
+    
+    printf("adding hw\n");
+    record = record_push_array(record,helloworld,hwlen);
+    printf("r = %d\n",record);
+    if(malloc_test()==0){printf("malloc_test %d ok\n",testnum++);}
+    //expected output: "[Hello World!]"
+    test6_print(buff,buff);
+    test6_print(record,record);
+    printf("r = %d\n",record);
+    if(malloc_test()==0){printf("malloc_test %d ok\n",testnum++);}
+    
+    printf("setting ap\n");
+    printf("r = %d\n",record);
+    record_set_array(record,6,apple,aplen);
+    if(malloc_test()==0){printf("malloc_test %d ok\n",testnum++);}
+    //expected output: "[Hello Apple!]"
+    
+    test6_print(record,record);
+    if(malloc_test()==0){printf("malloc_test %d ok\n",testnum++);}
+    
+    printf("removing middle\n");
+    record_remove_array(record,3,5);
+    if(malloc_test()==0){printf("malloc_test %d ok\n",testnum++);}
+    //expected output: "[Helple!]"
+    
+    test6_print(record,record);
+    if(malloc_test()==0){printf("malloc_test %d ok\n",testnum++);}
+    
+    setallocator(defaultAllocator);
+    if(malloc_test()==0){printf("malloc_test %d ok\n",testnum++);}
+    //also we should check if null-termination really happens later.
+    printf("done\n");
+    
+}
+test6_help: db "tests the record library\n", db 0;
+
+void derpKind_constructor(float this){
+    mset(this,"fluff",10);
+    printf("derpKind constructed\n");
+}
+
+void derpKind_moo(float this){
+    float fluff = mget(this,"fluff");
+    printf("derpKind says %d moo\n",fluff);
+}
+
+float derpKind_bar(float this, float a, float b){
+    printf("derpKind says %d + %d = %d\n",a,b,a+b);
+    return a+b;
+}
+
+void cmd_test7(){
+    printf("testing classes\n");
+    printf("test 1\n");
+    float derpKind = class_new("derpKind");
+    printf("test 2\n");
+    class_add_member(derpKind,"fluff");
+    printf("test 3\n");
+    class_add_method(derpKind,str_constructor,derpKind_constructor);
+    printf("test 4\n");
+    class_add_method(derpKind,"moo",derpKind_moo);    
+    printf("test 5\n");
+    class_add_method(derpKind,"bar",derpKind_bar);
+    printf("test 5.1\n");
+    float derp = new(derpKind);
+    printf("test 6\n");
+    mcall(derp,"moo");
+    printf("test 7\n");
+    mset(derp,"fluff",999);
+    printf("test 8\n");
+    mcall(derp,"moo");
+    printf("test 9\n");
+    float ans = mcall(derp,"bar",1,2);
+    printf("test 10\n");
+    printf("... got %d\n",ans);
+    printf("test 11\n");
+    printf("done\n");
+}
+test7_help: db "tests the class system\n", db 0;
+
+//add the current directory string to the file name
+/*
+void getFullName(float buff, float str){
+    float strI = buff;
+    strcpy(strI,CurDir);
+    strI = strI + strlen(CurDir);
+    strcpy(strI,str);
+}
+*/
+//use filepath_abs instead
+
+
+//#ifdef PROGNOTEPAD_GUARD
+//
+//void notepad_start(){
+//    if(strlen(Arr)>1){
+//        notepad(Arr[1]);
+//    }else{
+//        notepad(0);
+//    }
+//}
+//notepad_help: db "launches the notepad program. \"notepad <filename>\" to edit an existing file, or \"notepad\" for an empty file.\n", db 0;
+//
+//#endif
+
+
+
+void heap_status(){
+    float A;
+    float B;
+    float C;
+    float D;
+    malloc_count(&A,&B,&C,&D);
+    P2("heap at ",malloc_disk,"\n");
+    P2("free space: ",A/1024," kB\n");
+    P2("used space: ",B/1024," kB\n");
+    P2("free blocks: ",C,"\n");
+    P2("used blocks: ",D,"\n");
+    if(!malloc_test()){P("heap is healthy\n");}else{Print("HEAP CORRUPTED\n",900);}
+}
+
+heap_status_help: db "reports RAM / malloc status.\n", db 0;
+
+
+
+void cmd_rpncalc(){
+    float argc = strlen(Arr);
+    //P2("argc = ",argc,"\n");
+    if(argc == 1){
+        P("Usage: rpncalc 1 2 +\n");
+    }
+    float argstack = malloc(50); //can't stack[50]? wat
+    float argstackI = 0;
+    float I;
+    for(I = 1; I < argc; I++){
+        //P2("arg ",I," = ");
+        float str = Arr[I];
+        //P(str)
+        //P("\n");
+        float C = str[0];
+        if(isNum(C)){
+            //P("is num\n");
+            float num = str2num(str);
+            //P2("str2num = ",num,"\n");
+            //P2("argstack = ",argstack,"\n");
+            //P2("argstackI = ",argstackI,"\n");
+            argstack[argstackI] = num;
+            //P("done numming\n");
+            argstackI++;
+        }else{
+            //P("is not num\n");
+            if(argstackI < 2){
+                P("stack underflow. Remember to use RPN notation\n");
+                return;
+            }
+            argstackI--;
+            float arg2 = argstack[argstackI];
+            argstackI--;
+            float arg1 = argstack[argstackI];
+            float arg3 = 0;
+            if(C == '+'){
+                arg3 = arg1 + arg2;
+                P2("",arg1," + ");
+                P2("",arg2," = ");
+                P2("",arg3,"\n");
+                goto rpncalc_good;
+            }
+            if(C == '-'){
+                arg3 = arg1 - arg2;
+                P2("",arg1," - ");
+                P2("",arg2," = ");
+                P2("",arg3,"\n");
+                goto rpncalc_good;
+            }
+            if(C == '*'){
+                arg3 = arg1 * arg2;
+                P2("",arg1," * ");
+                P2("",arg2," = ");
+                P2("",arg3,"\n");
+                goto rpncalc_good;
+            }
+            if(C == '/'){
+                arg3 = arg1 / arg2;
+                P2("",arg1," / ");
+                P2("",arg2," = ");
+                P2("",arg3,"\n");
+                goto rpncalc_good;
+            }
+            if(C == '^'){
+                arg3 = arg1 ^^ arg2;
+                P2("",arg1," ^ ");
+                P2("",arg2," = ");
+                P2("",arg3,"\n");
+                goto rpncalc_good;
+            }
+            P("unknown operator:\n");
+            P(str);
+            return;
+            rpncalc_good:
+            argstack[argstackI] = arg3;
+            argstackI++;
+        }
+    }
+    P("result:\n");
+    for(I = 0; I < argstackI; I++){
+        P2("",argstack[I]," ");
+    }
+    P("\n");
+}
+
+rpncalc_help: db "reverse polish notation calculator. \"rpncalc 2 3 * 4 +\" to calculate (2 * 3) + 4.\n", db 0;
+
+void cmd_cd(){
+    float argc = strlen(Arr);
+    if(argc>1){
+        float str2 = malloc(sizeof_vector);
+        string_constructor(str2,"");
+        float str = Arr[1];
+        float len = strlen(str);
+        if(str[0] == '/'){
+            //abs path
+        }else{
+            //relative path
+            string_addcs(str2,CurDir);
+        }
+            if(str[len-1] == '/'){str[len-1] = 0;}
+            string_addcs(str2,str);
+            string_addcs(str2,"/");
+            str = string_c_str(str2);
+        
+        strcpy(CurDir,str);
+        current_path = CurDir;
+        P("Changing dir to ");P(str);P("\n");
+    }else{
+        P("Current directory: ");P(CurDir);P("\n");
+    }
+}
+cd_help: db "\"cd\" to report current directory.\n\"cd <path>\" to change dir to <current dir>/<path>\n\"cd /<path>\" to change dir to <path>\n", db 0;
+
+void cmd_dir(){
+    //Print("Listing...\n",990);
+    //FilesystemList(CurDir);
+    float files = flist(CurDir);
+    float size = vector_get_size(files);
+    float I;
+    for(I = 0; I < size; I++){
+        float str = vector_get(files,0,I);
+        P(str);P(" ");
+    }
+    P("\n");
+}
+dir_help: db "list the files in the current directory.\n";
+
+void cmd_mkdir(){
+    float argc = strlen(Arr);
+    if(argc>1){
+        Print("Making Dir...\n",990);
+        //float fullname[80];
+        //float strI = fullname;
+        //strcpy(strI,CurDir);
+        //strI = strI + strlen(CurDir);
+        //strcpy(strI,Arr[1]);
+        
+        //float fullname[80]; getFullname(fullname, Arr[1]);
+        
+        //FilesystemMkDir(fullname);
+    }else{
+        P("usage: mkdir dirname\n");
+    }
+}
+mkdir_help: db "\"mkdir <name>\" to make a new directory \"name\".\n", db 0;
+
+void cmd_del(){
+    float argc = strlen(Arr);
+    if(argc>1){
+        float name = Arr[1];
+        float fp = fopen(name,"r");
+        if(!fp){printf("no such file: [%s]\n",name); return;}
+        printf("removing [%s]\n",name);
+        fdelete(name);
+    }else{
+        P("usage: del filename\n");
+    }
+}
+del_help: db "\"del <name>\" to delete the file \"name\".\n", db 0;
+
+void cmd_rn(){
+    float argc = strlen(Arr);
+    if(argc > 2){
+        float name1 = Arr[1];
+        float name2 = Arr[2];
+        float fp1 = fopen(name1,"r");
+        if(!fp1){printf("no such file: [%s]\n",name1); return;}
+        float fp2 = fopen(name2,"r");
+        if(fp2){
+            printf("overwrite file [%s]? Y/N\n",name2);
+            if(getYN() == 1){
+                fdelete(name2);
+            }else{
+                return;
+            }
+        }
+        printf("renaming [%s] to [%s]\n",name1,name2);
+        frename(name1,name2);
+    }
+}
+rn_help: db "\"rn <name1> <name2>\" to rename the file \"name1\" to \"name2\".\n", db 0;
+
+void cmd_write(){
+    float argc = strlen(Arr);
+    if(argc>1){
+        //float fullname[80];
+        //float strI = fullname;
+        //strcpy(strI,CurDir);
+        //strI = strI + strlen(CurDir);
+        //strcpy(strI,Arr[1]);
+        //float fullname[80]; getFullname(fullname, Arr[1]);
+        float fullname = filepath_abs(Arr[1]);
+        float F = fopen(fullname,"w");
+        float I;
+        float err = 0;
+        float str = 0;
+        float len = 0;
+        if(!F){Print("Can't open ",900); Print(fullname,900); Print("\n",900);return;}
+        if(argc>2){
+                    //ParseString("heap");
+            for(I = 2; I < argc; I++){
+                str = Arr[I];
+                len = strlen(str);
+                //FileWrite(str,len,1,F);
+                err = !fwrite(str,len,F);
+                if(err){Print("fwrite error\n",900);}
+                //ParseString("heap");
+                fwrite(" ",1,F);
+                //ParseString("heap");
+                //FilePutC(F,' ');
+            }
+        }else{
+            //line by line mode
+            I = 0;
+            while(1){
+                printf(">");
+                str = getShellInput();
+                if(strcmp(str,"/end")==0){
+                    printf("\rfile write done\n");
+                    break;
+                }
+                //str = unescapeStr(str);
+                printf("%s\n",str);
+                if(I){fwrite("\n",1,F);}
+                len = strlen(str);
+                fwrite(str,len,F);
+                I++;
+            }
+        }
+        //FilePutC(F,0);
+    }else{
+        P("usage: write filename content\n");
+    }
+}
+write_help: db "\"write <filename> <content>\" to write <content> to a file <filename>, creating it if it doesn't exist.\n"
+"\"write <filename>\" to enter multi-line mode. type /end to finish.\n", db 0;
+
+
+//reads up to len-1 characters into buff, stopping at the first space character
+//found after at least one non-space character was seen. returns true if anything was read,
+//false otherwise (e.g. end of string).
+float readword(float ptr, float buff, float len){
+    
+    float inp = *ptr;
+    if(*inp == 0){return 0;}
+    float hasword = 0;
+    float I = 0;
+    readword_loop:
+    float C = *inp;
+    if(!C){goto readword_end;}
+    if(isspace(C)){
+        if(hasword){goto readword_end;}
+    }else{
+        hasword = 1;
+    }
+    buff[I++] = C;
+    inp++;
+    if(I >= len){goto readword_end;}
+    goto readword_loop;
+    readword_end:
+    buff[I] = 0;
+    *ptr = inp;
+    return 1;
+}
+
+void cmd_read(){
+    float argc = strlen(Arr);
+    if(argc>1){
+        float binary = 0;
+        if(argc>2){
+            if(!strcmp(Arr[2],"-b")){binary = 1;}
+        }
+        //float fullname[80];
+        //float strI = fullname;
+        //strcpy(strI,CurDir);
+        //strI = strI + strlen(CurDir);
+        //strcpy(strI,Arr[1]);
+        //float fullname[80]; getFullname(fullname, Arr[1]);
+        float fullname = filepath_abs(Arr[1]);
+        float F = fopen(fullname,"r");
+        if(!F){Print("Can't open ",900); Print(fullname,900); Print("\n",900);return;}
+        float err = 0;
+        float size = fsize(F);
+        float str = malloc(size+1);
+        err = !fread(str,size,F);//FileRead(str,size,1,F);
+        if(err){Print("fread error\n",900);}
+        if(binary){
+            float I = 0;
+            for(I = 0; I < size; I++){
+                float C = str[I];
+                printf("%d: %d",I,C);
+                if((C > 32) && (C < 128)){
+                    printf(" \'%c\'",C);
+                }
+                printf("\n");
+                //P2("",I,": "); P2("",str[I],"\n");
+            }
+        }else{
+            str[size] = 0;
+            float buff[80];
+            float ptr = str;
+            while(readword(&ptr,buff,30)){
+                printword(buff);
+                //printf("[%s]\n",buff);
+            }
+            //P(str);P("\n");
+        }
+    }else{
+        P("usage: read filename [-b]\n");
+    }
+}
+read_help: db "\"read <filename> [-b]\" to read a file and display it as text.\n-b: read the file as binary.\n", db 0;
+
+void cmd_info(){
+    float argc = strlen(Arr);
+    if(argc>1){
+        //float fullname[80]; getFullname(fullname, Arr[1]);
+        float fullname = filepath_abs(Arr[1]);
+        //float strI = fullname;
+        //strcpy(strI,CurDir);
+        //strI = strI + strlen(CurDir);
+        //strcpy(strI,Arr[1]);
+        
+        float F = fopen(fullname,"r");
+        if(!F){Print("Can't open ",900); Print(fullname,900); Print("\n",900);return;}
+        float err = 0;
+        float size = fsize(F);
+        if(size < 10000){
+            P2("size: ",size," B\n");
+        }else{
+            P2("size: ",size/1024," kB\n");
+        }
+    }else{
+        P("usage: info filename\n");
+    }
+}
+info_help: db "\"info <filename>\" to display file info.\n", db 0;
+
+void cmd_hdd(){
+    float sizeused = filesystem_get_size();
+    float sizetotal = size_HDD;
+    float sizefree = sizetotal-sizeused;
+    
+    
+    printf("HDD size: %d kB\n",sizetotal/1024);
+    printf("used:     %d kB\n",sizeused/1024);
+    printf("free:     %d kB\n",sizefree/1024);
+    
+}
+hdd_help: db "prints HDD used/free/total size\n", db 0;
+
+void cmd_mount(){
+    Print("Reading FS from disk\n",90);
+    filesystem_read(AdrHDD);
+    Print("Done\n",90);
+}
+mount_help: db "read the filesystem from (dupable HDD) disk to RAM, overwriting the current contents.\n", db 0;
+
+void cmd_format(){
+    Print("Writing FS to disk\n",90);
+    filesystem_write(AdrHDD);
+    Print("Done\n",90);
+}
+format_help: db "write the filesystem from RAM to (dupable HDD) disk. Remember to save the laptop with Advanced Duplicator, or data will still be lost when the HDD is deleted.\n", db 0;
+
+void cmd_gpio(){
+    float I = 0;
+    for(I = 0; I < 8; I++){
+        P2("GPIO ",I,": ");
+        float a = 0;
+        in a, I;
+        P2("",a,"\n");
+    }
+}
+gpio_help: db "report the inputs from the IO bus\n", db 0;
+
+void cmd_exec(){
+    //P("cmdexec\n");
+    float argc = strlen(Arr);
+    if(argc == 1){
+        P("usage: exec file.sh\n");
+        return;
+    }
+    //float fullname[80]; getFullname(fullname,Arr[1]);
+    float fullname = filepath_abs(Arr[1]);
+    float fp = fopen(fullname,"r");
+    if(!fp){Perr("can't open file ");Perr(fullname);Perr("\n");return;}
+    float str2 = malloc(80);
+    float strI = 0;
+    char C = 0;
+    fread(&C,1,fp);
+    str2[strI++] = C;
+    while(C){
+        C = 0;
+        fread(&C,1,fp);
+        if((C == 0)||(C == 10)){
+            str2[strI] = 0;
+            if(strI){
+                strI = 0;
+                //P("exec [");P(str2);P("]\n");
+                ParseString(str2);
+                //P("string execed\n");
+            }
+        }else{
+            str2[strI] = C;
+            strI++;
+        }
+    }
+    
+}
+exec_help: db "\"exec <filename>\" to execute a shell script as if typed into the console line by line.\n", db 0;
+
+//dumps a non-executable floppy to a file. first cell must be file size. It is removed when copying.
+void cmd_dump(){
+    float argc = strlen(Arr);
+    if(argc == 1){
+        P("usage: dump filename\n");
+        return;
+    }
+    
+    float size = AdrPort[0];//-1;
+    if(!size){Perr("can't read floppy\n");return;}
+    //float fullname[80]; getFullName(fullname,Arr[1]);
+    float fullname = filepath_abs(Arr[1]);
+    float fp = fopen(fullname,"w");
+    if(!fp){Perr("can't open file\n");return;}
+    P2("floppy size: ",size," B\n");
+    fresize(size,fp);
+    float ptrFrom = AdrPort;//+1;
+    float sizeleft = size;
+    float sizedone = 0;
+    float step = 500;
+    while(sizeleft){
+        float dsize;
+        if(sizeleft > step){dsize = step;}else{dsize = sizeleft;}
+        sizeleft = sizeleft - dsize;
+        sizedone = sizedone+dsize;
+        float percent = sizedone*100/size;
+        fwrite(ptrFrom,dsize,fp);
+        ptrFrom = ptrFrom+dsize;
+        //P2("read ",sizedone," B ");
+        //P2("(",percent," %)\n");
+        PrintProgressBar(percent);
+    }
+    P("\ndone\n");
+    //fseek(fp,0,0);
+    //float n = 10;
+    //fwrite(&n,1,fp);
+    //P2("dumped ",size," bytes\n");
+}
+dump_help: db "\"dump <filename>\" to dump the contents of a non-executable floppy to a file. First cell must be file size.",db 0; //It is removed when copying.\n", db 0;
+
+void progtest(){
+    P("Progtest called\n");
+}
+
+//returns whether the pointer is pointing to a string.
+//a string is a sequence of printable characters terminated with a 0.
+float isString(float ptr){
+    float C = *ptr++;
+    if(C == 0){return 0;}
+    if(!isPrint(C)){return 0;}
+    while(1){
+        C = *ptr++;
+        if(C == 0){return 1;}
+        if(!isPrint(C)){return 0;}
+    }
+}
+
+void cmd_symbol(){
+    float argc = strlen(Arr);
+    if(argc > 1){
+        float name = Arr[1];
+        float func = findFuncByName(name);
+        if(func){
+            printf("Func [%s] @ %d\n",name,func);
+        }else{
+            float var = findVarByName(name);
+            if(var){
+                printf("Var [%s] @ %d = %d\n",name,var,*var);
+                if(isString(var)){
+                    printf("\"%s\"\n",var);
+                }
+            }else{
+                printf("symbol not found\n");
+            }
+        }
+        
+    }else{
+        P("usage: symbol <name>\n");
+    }
+}
+symbol_help: db "\"symbol <name>\" to print symbol (function or variable) info\n", db 0;
+
+void cmd_load(){
+    float argc = strlen(Arr);
+    if(argc>1){
+        float fullname = filepath_abs(Arr[1]);
+        float proginfo = program_load(fullname);
+        addToLoadedPrograms(proginfo);
+        printf("loaded:\n");
+        printProgInfo(proginfo);
+    }else{
+        P("usage: load filename\n");
+    }
+}
+load_help: db "\"load <filename>\" loads and links a program but does not run it.\n", db 0;
+
+
+void cmd_run(){
+    printf("running...\n");
+    float argc = strlen(Arr);
+    if(argc>1){
+        //float fullname[80]; getFullname(fullname,Arr[1]);
+        float fullname = filepath_abs(Arr[1]);
+        //float strI = fullname;
+        //strcpy(strI,CurDir);
+        //strI = strI + strlen(CurDir);
+        //strcpy(strI,Arr[1]);
+        float proginfo = getLoadedProgram(fullname);
+        if(!proginfo){
+            printf("program [%s] not yet loaded. use \"load %s\" first.\n",fullname,Arr[1]);
+            //proginfo = program_load(fullname);
+            //addToLoadedPrograms(proginfo);
+        }
+        if(proginfo){
+            
+            float num_unlinked = mcall(proginfo,"get_num_unlinked");
+            if(num_unlinked){
+                linkProgram(proginfo);
+            }
+            
+            printf("ok, is loaded\n");
+            program_run(proginfo,argc-1,Arr+1);
+            //redraw_all();
+        }
+    }else{
+        P("usage: run filename\n");
+    }
+}
+
+run_help: db "\"run <filename>\" to run a program\n", db 0;
+
+//captures command line arguments and puts them on the heap;
+//optionally adds a padding for additional arguments.
+float package_args(float pad, float argc, float argv){
+    //1) calc the size of the arguments
+    float L = 0;
+    float I;
+    for(I = 0; I < argc; I++){
+        L = L + strlen(argv[I]);
+    }
+    //2) store arguments 
+    float args = malloc(pad+argc*2+1);
+    //float argI = 0;
+    float argsI = pad+argc+1;
+    
+    for(I = 0; I < argc; I++){
+        args[pad+I] = argsI;             //pointer to string
+        strcpy(argsI,argv[I]);           //string itself
+        argsI = argsI + strlen(argv[I]); //move current pointer
+    }
+    args[argc] = 0;
+    return args;
+}
+
+void cmd_runbg(){
+    float argc = strlen(Arr);
+    if(argc>1){
+        //float fullname[80]; getFullname(fullname,Arr[1]);
+        float fullname = filepath_abs(Arr[1]);
+        //float strI = fullname;
+        //strcpy(strI,CurDir);
+        //strI = strI + strlen(CurDir);
+        //strcpy(strI,Arr[1]);
+        float proginfo = getLoadedProgram(fullname);
+        if(!proginfo){
+            proginfo = program_load(fullname);
+            addToLoadedPrograms(proginfo);
+        }
+        if(proginfo){
+            float args = package_args(1,argc-1,Arr+1);
+            args[0] = proginfo;
+            float thread1 = thread_create(program_run_background,args);
+            thread_run(thread1);
+            //redraw_all();
+        }
+    }else{
+        P("usage: runbg filename\n");
+    }
+}
+
+runbg_help: db "\"runbg <filename>\" to run a program as a separate process and return control immediately", db 0;
+
+//      wtf is this even
+//    float fp = fopen(Arr[1],"r");
+//    if(!fp){Perr("can't open file\n");return;}
+//    float size = 0;
+//    fread(&size,1,fp);
+//    size = size-10;
+//    float ptr_main = 0;
+//    fread(&ptr_main,1,fp);
+//    fseek(fp,10,0);
+//    if(size > programslot_size){Perr("program too big\n");return;}
+//    //P2("ptr_main = ",ptr_main,"\n");
+//    //float prog = malloc(size);
+//    if(programslot != 0){Perr("programslot not at 0\n");return;}
+//    float prog = programslot+10;
+//    fread(prog,size,fp);
+//    prog[0] = ParseString;
+//    prog[1] = progtest;
+//    //ptr_main = ptr_main+prog;
+//    //P2("calling ",ptr_main,"\n");
+//    ptr_main();
+////    callf ptr_main, prog;
+
+void cmd_fileview(){
+    float argc = strlen(Arr);
+    if(argc==4){
+        float file = Arr[1];
+        float fp = fopen(file,"r");
+        if(!fp){printf("can't open file %s\n",file);return;}
+        
+        float from = str2num(Arr[2]);
+        float len = str2num(Arr[3]);
+        float to = from+len;
+        P2("fileview ",len," bytes\n");
+        
+        float I;
+        //float str[2];
+        //str[1] = 0;
+        //float str2[11];
+        //str2[10] = 0;
+        float buff[1];
+        for(I = from; I <= to; I++){
+            fseek(fp,I,0);
+            if(fread(buff,1,fp)){
+                printf("%d: %d\n",I,buff[0]);
+            }else{
+                printf("EOF\n");
+                return;
+            }
+            //P2("",I,": ");
+            //P2("",*I," ");
+            //str[0] = *I;
+            //P(str);
+            //strncpy(str2,*I,10);
+            //P(" [");
+            //P(str2);
+            //P("]\n");
+        }
+    }else{
+        P("Usage: fileview <file> <from> <len>\n");
+    }
+}
+fileview_help: db "\"fileview <file> <from> <len>\" displays binary file contents\n", db 0;
+
+void cmd_memview(){
+    float argc = strlen(Arr);
+    if(argc==3){
+        float from = str2num(Arr[1]);
+        float len = str2num(Arr[2]);
+        float to = from+len;
+        P2("Memview ",len," bytes\n");
+        
+        float I;
+        float str[2];
+        str[1] = 0;
+        float str2[11];
+        str2[10] = 0;
+        for(I = from; I <= to; I++){
+            P2("",I,": ");
+            P2("",*I," ");
+            str[0] = *I;
+            P(str);
+            strncpy(str2,*I,10);
+            P(" [");
+            P(str2);
+            P("]\n");
+        }
+    }else{
+        P("Usage: memview <from> <len>\n");
+    }
+}
+memview_help: db "\"memview <from> <len>\" displays the contents of <len> bytes of RAM starting from address <from>. Mind the paging.\n", db 0;
+
+float memtest_hlp(float adr){
+    adr[0] = 1;
+    if(adr[0] == 1){
+      adr[0] = 0;
+        if(adr[0] == 0){
+          return 1;        
+        }
+      }
+    return 0;
+}
+
+void memtest(){
+    float argc = strlen(Arr);
+    float adr = End;
+    if(argc==2){
+        adr = str2num(Arr[1]);
+        P2("testing memory at ", adr, "\n");
+        if(memtest_hlp(adr)){
+            P("SUCCESS\n");
+        }else{
+            P("FAILED\n");
+        }
+    }else{
+        float I = 0;
+        while(1){
+            P2("testing ",adr,"\n");
+            for(I = 0; I < 1000; I++){
+                if(memtest_hlp(adr)){
+                    adr++;
+                }else{
+                    P2("found the end at ",adr,"\n");
+                }
+            }
+        }
+    }
+    
+}
+memtest_help: db "\"memtest <address>\" checks if <address> is write-able. \"memtest\" does this for the first 1000 bytes.\n";
+db "used to figure out of the hardware platform actually has RAM installed.\n", db 0;
+
+//void cmd_wsi(){
+//    float argc = strlen(Arr);
+//    wsi(argc,Arr);
+//}
+
+
+SHELL_CONSTANTS:
+CommandBuff:
+//db "cls", db 0, db cls, db cls_help;
+//db "help", db 0, db help, db help_help;
+//db "heap", db 0, db heap_status, db heap_status_help;
+//db "rpncalc", db 0, db cmd_rpncalc, db rpncalc_help;
+//db "memtest",db 0, db memtest, db memtest_help;
+//db "dump",db 0, db cmd_dump, db dump_help;
+//db "run", db 0, db cmd_run, db run_help;
+//db "runbg", db 0, db cmd_runbg, db runbg_help; 
+//db "load", db 0, db cmd_load, db load_help;
+////db "FS",db 0,db FScheck,
+////db "FSinit",db 0, db FSinit,
+////db "File", db 0, db FSfile,
+////db "dir", db 0, db Dir,
+////db "cd", db 0, db changeDir,
+////db "md", db 0, db makeDir,
+////db "mf", db 0, db makeFile
+////db "del", db 0, db DirDel,
+////db "format", db 0, db consFormat,
+////db "s_set", db 0, db s_test_init,
+////db "s_get", db 0, db s_test_get,
+////db "s_put", db 0, db s_test_put,
+////db "s_close", db 0, db s_test_close,
+////db "folder", db 0, db csreadFolder,
+////db "append", db 0, db fileAppend,
+////db "fsll", db 0, db showFSLL,
+////db "file", db 0, db csreadFile,
+////db "rename", db 0, db DirRename,
+
+//db "cd", db 0, db cmd_cd, db cd_help;
+//db "dir", db 0, db cmd_dir, db dir_help;
+//db "mkdir", db 0, db cmd_mkdir, db mkdir_help;
+//db "del", db 0, db cmd_del, db del_help;
+//db "rn", db 0, db cmd_rn, db rn_help;
+//db "write", db 0, db cmd_write, db write_help;
+//db "read", db 0, db cmd_read, db read_help;
+//db "info", db 0, db cmd_info, db info_help;
+//db "hdd", db 0, db cmd_hdd, db hdd_help;
+//db "mount", db 0, db cmd_mount, db mount_help;
+//db "format", db 0, db cmd_format, db format_help;
+//db "gpio", db 0, db cmd_gpio, db gpio_help;
+//db "exec", db 0, db cmd_exec, db exec_help;
+////db "asm", db 0, db cmd_asm, db asm_help;
+////db "compile", db 0, db cmd_compile, db compile_help;
+
+////db "disasm", db 0, db cmd_disasm, db disasm_help;
+//db "symbol", db 0, db cmd_symbol, db symbol_help;
+////db "wsi", db 0, db cmd_wsi, db 0;
+
+////db "crc", db 0, db cmd_crc, db crc_help;
+////db "checksum", db 0, db cmd_checksum, db checksum_help;
+//db "memview", db 0, db cmd_memview, db memview_help;
+//db "fileview", db 0, db cmd_fileview, db fileview_help;
+//db "panic", db 0, db shell_panic, db shell_panic_help;
+//db "version", db 0, db printversion, db printversion_help;
+////db "exit", db 0, db test,
+//db "echo", db 0, db cmdecho, db echo_help;
+////db "sound", db 0, db cmdsound;
+//db "time", db 0, db cmdtime, db time_help;
+//db "test", db 0, db cmdtest, db test_help;
+//db "test2", db 0, db cmdtest2, db test2_help;
+//db "test3", db 0, db cmdtest3, db test3_help;
+//db "test4", db 0, db cmd_test4, db test4_help;
+//db "test5", db 0, db cmd_test5, db test5_help;
+//db "ps", db 0, db cmdps, db 0;
+//db "yield", db 0, db cmdyield, db 0;
+//db "trace", db 0, db cmdtrace, db trace_help;
+////#ifdef PROGNOTEPAD_GUARD
+////db "notepad", db 0, db notepad_start, db notepad_help;
+////#endif
+////db "memview", db 0, db test,
+////db "semaphore", db 0, db test,
+////db "beep", db 0, db test,
+////db "pony", db 0, db test,
+////db "moduleload", db 0, db test,
+////db "modulelist", db 0, db test,
+////db "exec", db 0, db test,
+////db "consoleSuspend", db 0, db test,
+////db "consoleResume", db 0, db test;
+CommandBuffEnd:
+
+//#include <libstring.txt>
+//#include <libnumber.txt>
+//#include <zmalloc.txt>
+//#include <zvector.txt>
+//#include <zstring.txt>
+//#include <zlist.txt>
+//#define STRINGTRACKER_TEST
+//#include <class_stringtracker.txt>
+//#include <libconsolescreen.txt>
+//#include <libkeyboard.txt>
+//#include <prognotepad.txt>
+//#include <shell.txt>
+//#include <stackalloc.txt>
+/*
+SHELL_VARS:
+CRC_areas:
+db LIBSTRING_CODE; db LIBSTRING_VARS; db 0; db 0;
+db LIBNUMBER_CODE; db LIBNUMBER_VARS; db 0; db 0;
+db ZMALLOC_CODE; db ZMALLOC_VARS; db 0; db 0;
+db ZVECTOR_CODE; db ZVECTOR_VARS; db 0; db 0;
+db ZSTRING_CODE; db ZSTRING_VARS; db 0; db 0;
+db ZLIST_CODE; db ZLIST_VARS; db 0; db 0;
+db STRINGTRACKER_CODE; db STRINGTRACKER_VARS; db 0; db 0;
+db LIBCONSOLESCREEN_CODE; db LIBCONSOLESCREEN_VARS; db 0; db 0;
+db LIBKEYBOARD_CODE; db LIBKEYBOARD_VARS; db 0; db 0;
+//db PROGNOTEPAD_CODE; db PROGNOTEPAD_VARS; db 0; db 0;
+db SHELL_CODE; db SHELL_VARS; db 0; db 0;
+db STACKALLOC_CODE; db STACKALLOC_VARS; db 0; db 0;
+db LIBCRC_CODE; db LIBCRC_VARS; db 0; db 0;
+CRC_end:
+*/
+float CommandList = 0;
+
+float checksum_prev_first = 0;
+float checksum_previous = 0;
+float crc_prev_first = 0;
+float crc_previous = 0;
+float shell_panic_ebp;
+float shell_panic_esp;
+float R = 0;
+float Echo = 1;
+float Arr = 0;
+float PKSI = 0;
+float listeningToInput = 0;
+
+float numModules = 0;
+mems:alloc 5;//used by test 1
+CurDir:alloc 60;
+float MinStrI = 0;
+MinStr:alloc 256;
+//Header:alloc 9000
+SHELL_END:
+#endif
+

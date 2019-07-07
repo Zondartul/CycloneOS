@@ -1,0 +1,92 @@
+#ifndef thread_GUARD
+#define thread_GUARD
+
+//generated using:
+//skeleton thread entry args time ip stack regs -canary 
+
+//struct thread
+//    0: canary
+//    1: entry
+//    2: args
+//    3: time
+//    4: ip
+//    5: stack
+//    6: regs
+//
+
+str_thread: db "thread",0;
+
+#ifndef CANARY_GUARD
+#define CANARY_GUARD
+void error(){int 1;}
+void check_canary(float this, float canary){
+   if(this[0] != canary){
+        error();
+   }
+}
+#endif
+
+float sizeof_thread(){return 7};
+
+//default constructor
+void thread_constructor(float this){
+    this[0] = str_thread;
+    this[1] = 0;
+    this[2] = 0;
+    this[3] = 0;
+    this[4] = 0;
+    this[5] = 0;
+    this[6] = 0;
+}
+
+//copy constructor
+void thread_copy_constructor(float this, float that){
+    this[0] = that[0];
+    this[1] = that[1];
+    this[2] = that[2];
+    this[3] = that[3];
+    this[4] = that[4];
+    this[5] = that[5];
+    this[6] = that[6];
+    check_canary(this,str_thread);
+}
+
+//default destructor
+void thread_destructor(float this){check_canary(this,str_thread);
+    check_canary(this,str_thread);
+    //add your code here
+}
+
+//equivalent to "new thread"
+float thread_new(){
+    float size = sizeof_thread();
+    float p = malloc(size);
+    thread_constructor(p);
+    return p;
+}
+
+//equivalent to "delete thread"
+void thread_delete(float this){
+    thread_destructor(this);
+    free(this);
+}
+
+//getters
+float thread_get_canary(float this){check_canary(this,str_thread);return this[0];}
+float thread_get_entry(float this){check_canary(this,str_thread);return this[1];}
+float thread_get_args(float this){check_canary(this,str_thread);return this[2];}
+float thread_get_time(float this){check_canary(this,str_thread);return this[3];}
+float thread_get_ip(float this){check_canary(this,str_thread);return this[4];}
+float thread_get_stack(float this){check_canary(this,str_thread);return this[5];}
+float thread_get_regs(float this){check_canary(this,str_thread);return this[6];}
+
+//setters
+void thread_set_canary(float this, float N){check_canary(this,str_thread);this[0] = N;}
+void thread_set_entry(float this, float N){check_canary(this,str_thread);this[1] = N;}
+void thread_set_args(float this, float N){check_canary(this,str_thread);this[2] = N;}
+void thread_set_time(float this, float N){check_canary(this,str_thread);this[3] = N;}
+void thread_set_ip(float this, float N){check_canary(this,str_thread);this[4] = N;}
+void thread_set_stack(float this, float N){check_canary(this,str_thread);this[5] = N;}
+void thread_set_regs(float this, float N){check_canary(this,str_thread);this[6] = N;}
+
+#endif

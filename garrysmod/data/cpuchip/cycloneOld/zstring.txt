@@ -1,0 +1,63 @@
+//written a long time ago
+//last updated August 13th 2015
+//string library
+//requires <zvector.txt>
+#ifndef ZSTRING_GUARD
+#define ZSTRING_GUARD
+#include <cycloneOld/zvector.txt>
+//--------------------
+//c2str_str: alloc 2;
+//float c2str(char C){
+//    c2str_str[0] = C;
+//    c2str_str[1] = 0;
+//    return c2str_str;
+//}
+// [string]
+// wraps [vector]
+// ---------
+// funcs:
+// void   string_constructor(self, str)   //construct a string object
+// ptr    string_c_str(self)              //pointer to the internal c string
+// void   string_clear(self)              //set to empty string
+// void   string_adds(self, *string)      //add another string object
+// void   string_addc(self, C)            //add a char.
+// void   string_addcs(self, *c_string)   //add a null-terminated c-string.
+// void   string_addn(self, N)            //add a number.
+// float  string_equals(self, *string)    //compare two string objects
+// float  string_length(self)             //how many characters are in the string
+// ???
+float sizeof_string = 4;
+void string_constructor(void *self, char *str){
+    vector_constructor(self, 1);
+    float len = strlen(str);
+    vector_resize(self, len+1);
+    vector_push(self,0);//S[0] = '\0'
+    string_addcs(self, str);
+}
+void string_destructor(void *self){
+    vector_destructor(self);
+}
+
+float string_c_str(void *self){return vector_array(self);}
+void string_clear(void *self){vector_clear(self); vector_push(self, 0);}
+void string_adds(void *self, void *str){string_addcs(self, vector_array(str));}
+void string_addc(void *self, char C){float CEOF = vector_pop(self,0);vector_push(self, C); vector_push(self, CEOF);}//{string_addcs(self, c2str(C));}
+void string_addn(void *self, float N){string_addcs(self, num2str(N));}
+void string_equals(void *self, void *str){return (strcmp(string_c_str(self), string_c_str(str))==0);}
+void string_equals_cs(void *self, char *str){return (strcmp(string_c_str(self), str)==0);}
+void string_length(void *self){return vector_size(self)-1;}
+void string_addcs(void *self, char *c_str){
+    float I = 0;
+    float C = 0;
+    float CEOF = 0;
+    string_addcs_loop:
+    C = c_str[I];
+    if(C != 0){
+        CEOF = vector_pop(self,0);
+        vector_push(self,C);
+        vector_push(self,CEOF);   
+        I++;
+        goto string_addcs_loop;
+    }    
+}
+#endif

@@ -1,0 +1,169 @@
+HiSpeed Devices Cheat Sheet
+
+CPU
+
+   CPU Documentation
+   [1]http://www.wiremod.com/forum/cpu-tutorials-programs/151-documentatio
+   n.html
+   Last Memory Adress 65535
+     Links:
+       1. http://www.wiremod.com/forum/cpu-tutorials-programs/151-documentation.html
+
+Consolescreen
+
+   Force cache refresh                                     2020
+   Cached blocks size (up to 28, 0 if disabled)            2021
+   Screen ratio (read only)                                2022
+   Hardware scale                                          2023
+   Rotation (0 - 0, 1 - 90, 2 - 180, 3 - 270)          2024
+   Brightness White                                        2025
+   Brightness B                                            2026
+   Brightness G                                            2027
+   Brightness R                                            2028
+   Vertical scale (1)                                      2029
+   Horizontal scale (1)                                    2030
+   Low shift column                                        2031
+   High shift column                                       2032
+   Low shift row                                           2033
+   High shift row                                          2034
+   Charset, always 0                                       2035
+   Brightness (additive)                                   2036
+   Shift cells (number of cells, >0 right, <0 left)        2037
+   Shift rows (number of rows, >0 shift up, <0 shift down) 2038
+   Hardware Clear Row (Writing clears row)                 2039
+   Hardware Clear Column (Writing clears column)           2040
+   Hardware Clear Screen                                   2041
+   Hardware Background Color (000)                         2042
+   Cursor Blink Rate (0.50)                                2043
+   Cursor Size (0.25)                                      2044
+   Cursor Address                                          2045
+   Cursor Enabled                                          2046
+   Clk                                                     2047
+
+Digitalscreen
+
+   RGB data               0 - 786431
+   Color mode
+   0: RGBXXX;
+   1: R G B;
+   2: R*65536 + G*256 + B;
+   3: RRRGGGBBB           1048569
+   Clear row              1048570
+   Clear column           1048571
+   Height                 1048572
+   Width                  1048573
+   Hardware Clear Screen  1048574
+   CLK                    1048575
+
+CD Ray
+
+   Infothread by Xandaros and Fox
+   [2]http://www.wiremod.com/forum/wiremod-tutorials/9305-support-cds-cd-r
+   ays.html
+   [W] Write ray on 0
+   [W] Read ray on 1
+   [R] Current sector (global) 2
+   [R] Current sector (on track) 3
+   [R] Current track 4
+   [R] Current stack 5
+   [R] Current address (global) 6
+   [R] Current address (in current stack) 7
+   [W] Buffer ready (read or write - pick the ray) 8
+   [W] Continious mode 9
+   [W] Wait for address mode 10
+   [W] Target address (in current stack) 11
+   [W] Wait for track&sector mode 12
+   [W] Target sector 13
+   [W] Target track 14
+   [R] Raw disk spin velocity 21
+   [R] Raw disk spin angle 22
+   [R] Raw distance from disk center 23
+   [R] Raw stack index 24
+   [R] Disk precision (Inches Per Block) 25
+   [R] Disk sectors (total) 26
+   [R] Disk tracks (total) 27
+   [R] First track number 28
+   [R] Bytes per block 29
+   [R] Disk size (per stack) 30
+   [R] Disk volume (bytes total) 31
+   Buffer 512 - 1023
+     Links:
+       2. http://www.wiremod.com/forum/wiremod-tutorials/9305-support-cds-cd-rays.html
+
+GPU
+
+   GPU Documentation
+   [3]http://www.wiremod.com/forum/cpu-tutorials-programs/7645-zgpu-docume
+   ntation.html
+   CLK 65535
+   RESET 65534
+   HARDWARE CLEAR 65533
+   Vertex mode (render vertex instead of RT) 65532
+   HALT 65531
+   RAM_RESET 65530
+   Horizontal image scale 65525
+   Vertical image scale 65524
+   Hardware scale 65523
+   Rotation (0 - 0, 1 - 90, 2 - 180, 3 - 270) 65522
+   Sprite size 32 65521
+   Image width (800) 65515
+   Image height (600) 65514
+   Real screen ratio 65513
+   Parameter list address (for dwritefmt) 65512
+   Cursor X (0..1) 65505
+   Cursor Y (0 - 1) 65504
+   Cursor visible 65503
+   Brightness W 65495
+   Brightness R 65494
+   Brightness G 65493
+   Brightness B 65492
+   Contrast W 65491
+   Contrast R 65490
+   Contrast G 65489
+   Contrast B 65488
+   Circle quality (3 - 128) 65485
+   Offset Point X 65484
+   Offset Point Y 65483
+   Rotation (rad) 65482
+   Scale 65481
+   Center point X 65480
+   Center point Y 65479
+   Circle start (rad) 65478
+   Circle end (rad) 65477
+   Line width (1) 65476
+   Scale X 65475
+   Scale Y 65474
+   Font align 65473
+   ZOffset 65472
+     Links:
+       3. http://www.wiremod.com/forum/cpu-tutorials-programs/7645-zgpu-documentation.html
+
+Keyboard
+
+   Key Numbering      0
+   Keyboard Buffer    1 - 31
+   ASCII Mapped Array 32 - 255
+
+Ranger
+
+   Trace             0
+   Result            1
+   Range             2
+   Default to Zero   3
+   Skew X (-1 ... 1) 4
+   Skey Y (-1 ... 1) 5
+   Trace Water       6
+
+HS Holoemitter
+
+   Clk 0
+   If you press 'use' on a point, its number will be put here 1
+   Pointsize 2
+   Flags (bit 0 = show beam, bit 1 = use GPS coords, bit 2 = individual
+   color for each point) 3
+   Number of points 4
+   All Points in one color 5 = point 1 X; 6 = point 1 Y; 7 = point 1 Z; 8
+   = point 2 X; ... etc
+   Individual colors mode 5 = point 1 X; 6 = point 1 Y; 7 = point 1 Z; 8 =
+   point 1 Red; 9 = point 1 Green; 10 = point 1 Blue; 11 = point 1 Alpha;
+   12 = point 2 X;

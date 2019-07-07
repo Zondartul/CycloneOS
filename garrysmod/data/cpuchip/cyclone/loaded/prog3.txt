@@ -1,0 +1,17 @@
+//cyclone type-2 program load test
+#include <cyclone/loaded/prologue3.txt>
+
+float main(float argc, float argv){
+    printf("i'm a space horse\n");
+    float I = 0;
+    for(I = 0; I < argc; I++){
+        printf("argv[%d] = [%s]\n",I,argv[I]);
+    }
+    if(argc == 3){
+        float A = str2num(argv[1]);
+        float B = str2num(argv[2]);
+        float C = A+B;
+        printf("%d + %d = %d\n",A,B,C);
+    }
+    return argc;
+}

@@ -1,0 +1,352 @@
+//assembler
+#pragma set OutputFinalListing true
+#pragma set OutputBinaryListing true
+#pragma set OutputToFile true
+#include <cyclone/loaded/prologue2.txt>
+#include <cyclone/progs/generated/reference_table.txt>
+asm_str1:
+alloc 80;
+asm_ident:
+alloc 80;
+float str;
+float str2;
+float fpin;
+float fpout;
+float asm_abort;
+float asm_code;
+float cur_address;
+#include <cyclone/progs/asm/asm_data.txt>
+#include <cyclone/progs/asm/asm_parse.txt>
+#include <cyclone/progs/asm/asm_symbol.txt>
+#include <cyclone/progs/asm/asm_util.txt>
+#include <cyclone/progs/asm/asm_constants.txt>
+//command syntax:
+//byte
+//0   1     2           3           4       5
+//cmd RM    Segment1    Segment2    OP1     OP2
+
+void assembler(float infilepath, float outfilepath){
+    //float n = isNum(':');
+    //float n2 = isAlpha(':');
+    //P2("isnum(:) = ",n,"\n");
+    //P2("isalpha(:) = ",n2,"\n");
+    fpin = fopen(infilepath,"r");
+    if(!fpin){Perr("can't open input file\n"); return;}
+    fpout = fopen(outfilepath,"w");
+    if(!fpout){Perr("can't open output file\n"); return;}
+
+    initEmit();
+    initSymbolTable();
+    //line by line processing    
+    asm_abort = 0;    
+    float I = 0;
+    float line_from = 0;
+    float line_to = 9999; // from and to define a window of which lines we focus debugging on
+    
+    str = fgetstring(fpin,asm_str1,80);
+    str2 = str;
+
+    //skip first few lines for faster debug
+    for(I = 0; I < line_from; I++){
+        str = fgetstring(fpin,asm_str1,80);
+        str2 = str;
+    }
+    
+    while(str){
+        P2("line ",I,": [");
+        P(str);
+        P("]\n");
+        float str_last;
+        parse_string_loop:
+        str_last = str;
+        while(parse_acceptSpace(&str)){}
+        if(strcmp(str,"")==0){goto parse_string_good;}//are we at the end of string?
+        //instruction parse should move input to the end of the line
+        
+        //if(parse_acceptComment(&str)){goto parse_string_good;}
+        //if(parse_acceptLabel(&str)){goto parse_string_good;}
+        //if(parse_acceptDb(&str)){goto parse_string_good;}
+        //if(parse_acceptAlloc(&str)){goto parse_string_good;}
+        //if(parse_acceptEnter(&str)){goto parse_string_good;}
+        //if(parse_acceptInstruction(&str)){goto parse_string_good;}
+        parse_acceptComment(&str);
+        parse_acceptInstruction(&str);
+        parse_acceptDb(&str);
+        parse_acceptAlloc(&str);
+        //parse_acceptEnter(&str);
+        parse_acceptLabel(&str);
+        parse_accept(&str,";");
+        if(asm_abort){return 1;}
+        if(str == str_last){goto parse_string_bad;}
+        else{goto parse_string_loop;}
+        parse_string_bad:
+        Perr("can't parse string: [");Perr(str);Perr("]\n");
+        shell_panic();
+        parse_string_good:
+        I++;
+        if(I > line_to){return;}
+        str = fgetstring(fpin,asm_str1,80);
+        str2 = str;
+        
+    }
+    
+    printf("\n-----------------------\n");
+    printf("symbol table:\n");
+    printSymbolTable(asm_symTable);
+    printf("\n-----------------------\n");
+        
+    writeOFile(fpout);
+    printf("\n-----------------------\n");
+    printf("code listing:\n");
+    
+    float codeptr = vector_get_array(asm_code);
+    float codesize = vector_get_size(asm_code);
+    printCodeListing(codeptr,codesize);
+}
+
+
+void printCodeListing(float ptr, float size){
+    //float size = vector_get_size(asm_code);
+    float I = 0;
+    float J = 0;
+    for(I = 0; I < size; I++){
+        float num = ptr[I];//vector_get(asm_code,0,I);
+        if(J == 0){
+            printf("%d: ",I);
+            float num2 = num-2000;
+            float op = numToOp(num2);
+            if(op){
+                printf("%s ",op);
+            }else{
+                printf("%d ",num);
+            }
+        }else{
+            printf("%d ",num);
+        }
+        if(J == 5){
+            printf("\n");
+            J = 0;
+        }else{J++;}
+    }
+    printf("\n");
+}
+
+void initEmit(){
+    //printf("init emit\n");
+    asm_code = malloc(sizeof_vector);
+    vector_constructor(asm_code,1);
+    cur_address = 0;
+}
+
+
+
+float emit_code(float num){
+    //P2("emit ",num,"\n");
+    vector_push(asm_code, num);
+    cur_address = vector_get_size(asm_code);
+    //if(!curSegment){
+    //    Perr("emit: no segment\n");
+    //}
+    //vector_push(curSegment,num);
+//    if(!fwrite(&num,1,fpout)){
+//        Perr("can't write into output file\n");
+//    }
+}
+
+float emit_alloc(float num){
+    float I;
+    for(I = 0; I < num; I++){
+        emit_code(0);
+    }
+}
+
+
+void errDefault(){
+    P("expected [");P(str_expected);P("]\n");
+    asm_abort = 1;
+    //goto parse_string_bad;
+}
+
+void pointOutErr(){
+    float len = str-asm_str1;
+    P2("len = ",len,"\n");
+    P(asm_str1);P("\n");
+    while(len--){
+        P(" ");
+    }
+    P("^\n")
+}
+
+void cmd_asm(){
+    float argc = strlen(Arr);
+    if(argc != 3){
+        P("Usage: asm in.asm out.exe");
+        return;
+    }
+    Print("Assembling ",90);Print(Arr[1],90);Print("\n",90);
+    assembler(Arr[1],Arr[2]);
+    Print("Done\n",90);
+}
+asm_help: db "\"asm <input file> <output file>\" to compile assembly from input into machine code at output.\n", db 0;
+
+
+void cmd_disasm(){
+    float argc = strlen(Arr);
+    argc--;
+    if(argc){
+        float cmd = Arr+1;
+        float flag = *cmd;
+        float short = 0;
+        float fast = 0;
+        if(strcmp(flag,"-s")==0){short = 1; argc--; cmd++;}
+        if(strcmp(flag,"-f")==0){fast = 1; argc--; cmd++;}
+        float ptr = 0;
+        if(argc--){ptr = str2num(*cmd);}else{return 0;}
+        if(ptr == 0){
+            ptr = findSymbolByName(*cmd);
+            if(ptr == 0){
+                printf("can't read start address\n");
+                return 0;
+            }
+        }
+        cmd++;
+        float size = 0;
+        if(argc--){size = str2num(*cmd++); if(!size){printf("can't read size\n"); return 0}}
+        
+        
+        float instr[6];
+        float I = 0;
+        while(1){
+            memcpy(instr,ptr,6);
+            float cmd1 = instr[0];
+            float cmd2 = cmd1-2000;
+            float opname = numToOp(cmd1);
+            if(!opname){opname = numToOp(cmd2);}
+            
+            float rm = instr[1];
+            float seg1 = instr[2];
+            float seg2 = instr[3];
+            float op1 = instr[4];
+            float op2 = instr[5];
+            
+            printf("%d: ",ptr);
+            if(opname){printf("%s ",opname);}else{printf("%d ",cmd1);}
+            
+            if(!short){printf("%d %d %d ",rm,seg1,seg2);}
+            
+            float sym1name = 0;
+            float sym2name = 0;
+            if(!fast){
+                sym1name = getSymbolName(op1);
+                sym2name = getSymbolname(op2);
+            }
+            if(sym1name){printf("%s ",sym1name);}else{printf("%d ",op1);}
+            if(sym2name){printf("%s ",sym2name);}else{printf("%d ",op2);}
+            printf("\n");
+            
+            ptr+=6;
+            I++;
+            //float c1 = (I == size);
+            //printf("I %d, size %d, == %d\n",I,size,c1);
+            if(size){
+                if(I == size){break;}
+            }else{
+                if(((cmd1 == 40)||(cmd1 == 2040))){break;}
+            }
+        }
+        
+    }else{
+        P("usage: disasm <ptr> [size]\n");
+    }
+    
+}
+disasm_help: db "\"disasm [-s][-f] <ptr> [size]\" prints the disassembly of code at ptr. If size is not specified, prints until \"ret\" is found.\n", 
+             db "flags:\n-s for shorter output\n-f to go faster"; db 0;
+
+
+/*
+
+ tl;dr:
+ style 3
+ 0: exe style = 3
+ 1: link style = 2
+ 2: has static = 0
+ 3: compile timestamp
+    section list (null-term arrray)
+ 4: 0: section1 = 7
+ 5: 1: section2 = 9+x
+ 6: 2: end = 0
+    section1
+ 7: 0: type = 3 (sym table)
+ 8: 1: size = x
+ 9: 2: sym table data
+    section2
+9+x:0: type = 0 (data+code)
+10+x:1:size = y
+11+x:2:program data 
+ 
+
+
+*/
+
+/*
+    tree mode structure:
+    
+    0: exe style = 3
+    1: link style = 2
+    2: has static = 0
+    3: compile timestamp
+    4: section list
+
+*/
+
+/*
+    struct exe
+    {
+    0   typeof_exe;
+    1   float exe_style;
+    2   float link_style;
+    3   float has_static;
+    4   float compile_timestamp;
+    5   ptr<nt_array<section>> section_list;     
+    };
+    
+    nt_array<x>:
+        x,x,x,x,0;
+        
+    struct section{
+        typeof_section;
+        float type;
+        float size;
+        ptr data;
+    }
+*/
+
+
+void writeOFile(float fpout){
+    
+    float code_size_actual = vector_get_size(asm_code);
+    
+    float struct_exe = make_exe();
+    float size = exe_get_linsize(struct_exe);
+    float new_exe = malloc(size);
+    struct_exe = exe_linearize(struct_exe,new_exe,0,-new_exe);
+    
+    
+    printf("\ncode size actual = %d\n",code_size_actual);
+    printf("writing exe %d / size %d\n",struct_exe,size);
+    fwrite(struct_exe,size,fpout);
+}
+
+
+#include <cyclone/loaded/epilogue.txt>
+
+
+
+
+
+
+
+
+
+

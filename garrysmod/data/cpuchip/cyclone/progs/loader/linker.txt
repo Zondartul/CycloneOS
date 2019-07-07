@@ -1,0 +1,95 @@
+//linker
+//copies all-func table to 
+void linkAllFunc(float header, float loaded){
+    
+    //float exe_style = header[1];
+    //float size = header[2];
+    float import_size = header[3];
+    float ptrimport = header[4];
+    //float ptrcode = header[5];
+    float export_size = export_end - export_start;
+    if(import_size != export_size){
+        printf("can't link, all-func table mismatch:\n");
+        printf("import size: %d\n",import_size);
+        printf("export size: %d\n",export_size);
+        shell_panic();
+    }
+    float ptr = loaded+ptrimport;
+    memcpy(ptr,export_start,export_size);
+}
+
+export_start:
+#include <cyclone/generated/func_export_table.txt>
+export_end:
+
+
+//------
+
+float linkSymbolTable(float symtable){
+    float num = vector_get_size(symtable);
+    float I = 0;
+    for(I = 0; I < num; I++){
+        float sym = vector_get(symtable,0,I);
+        assert_type(sym,typeof_symbol);
+        float name = sym[1];
+        float def = sym[2];
+        if(def == -1){
+            def = findSymbolByName(name);
+            if(def == -1){
+                printf("can't find symbol [%s]\n",name);
+                return 0;
+            }
+            //printf("linked symbol %s\n",name);
+        }
+        sym[2] = def;
+    }
+    return 1;
+}
+
+
+void linkCode(float ptr, float symtable){
+    //printf("ptr = %d\n",ptr);
+    float num = vector_get_size(symtable);
+    float I = 0;
+    for(I = 0; I < num; I++){
+        float sym = vector_get(symtable,0,I);
+        assert_type(sym,typeof_symbol);
+        float name = sym[1];
+        //printf("symbol %s\n",name);
+        float def = sym[2];
+        if(def == -1){printf("unresolved symbol %s\n",name); return 0;}
+        float refs = sym[3];
+        if(refs){
+            float num2 = vector_get_size(refs);
+            float J = 0;
+            for(J = 0; J < num2; J++){
+                float r = vector_get(refs,0,J);
+                ptr[r] = def;
+                float newval = ptr[r];
+                //printf(" resolved ref %d to %d at %d\n",r,newval,ptr);
+            }
+        }
+    }
+}
+
+
+//links the program by writing down it's size, entry point,
+//and copy-pasting the "standalone" symbol table.
+/*
+float program_link(float ptr){
+    //printf("linking skipped\n");
+    //return 0;
+    float _size = *ptr++;
+    float _main = *ptr++;
+    float _style = *ptr++;
+    float _version = *ptr++;
+    if(_style == 1){
+        float export_size = export_end - export_start;
+        memcpy(ptr,export_start,export_size);
+    }
+    //P("linked %d symbols\n",export_size);
+}
+*/
+
+
+

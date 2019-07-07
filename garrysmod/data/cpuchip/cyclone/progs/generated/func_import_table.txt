@@ -1,0 +1,71 @@
+#ifndef CYCLONE_BUILDER
+func_import_table:
+float make_exe;
+float exe_get_linsize;
+float exe_linearize;
+float make_section_list;
+float section_list_get_linsize;
+float section_list_linearize;
+float make_section_symtable;
+float make_section_code;
+float section_get_linsize;
+float section_linearize;
+float symtable_get_linsize;
+float symtable_linearize;
+float symbol_get_linsize;
+float symbol_linearize;
+float vector_get_linsize;
+float vector_linearize2;
+float printVector;
+float expectedError;
+float parse_expect;
+float parse_acceptNum;
+float parse_expectNum;
+float parse_acceptSegment;
+float parse_acceptReg;
+float parse_acceptOperand;
+float parse_expectOperand;
+float parse_acceptIdent;
+float parse_acceptSpace;
+float parse_acceptComment;
+float parse_acceptLabel;
+float parse_acceptString;
+float parse_acceptDb;
+float parse_acceptAlloc;
+float parse_acceptInstruction;
+float parse_acceptCmd;
+float numToOp;
+float parse_accept;
+float initSymbolTable;
+float addSymbolDef;
+float addSymbolRef;
+float findSymbol;
+float printSymbol;
+float printSymbolTable;
+float str2num2;
+float isIdent;
+float caseless_strncmp;
+float assembler;
+float printCodeListing;
+float initEmit;
+float emit_code;
+float emit_alloc;
+float errDefault;
+float pointOutErr;
+float cmd_asm;
+float cmd_disasm;
+float writeOFile;
+func_import_table_end:
+
+var_import_table:
+float str;
+float str2;
+float fpin;
+float fpout;
+float asm_abort;
+float asm_code;
+float cur_address;
+float str_expected;
+float asm_symTable;
+var_import_table_end:
+#endif

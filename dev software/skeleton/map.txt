@@ -1,0 +1,72 @@
+#ifndef map_GUARD
+#define map_GUARD
+
+//generated using:
+//skeleton.exe map keys values -canary 
+
+//struct map
+//    0: canary
+//    1: keys
+//    2: values
+//
+
+str_map: db "map",0;
+
+#ifndef CANARY_GUARD
+#define CANARY_GUARD
+void error(){int 1;}
+void check_canary(float this, float canary){
+   if(this[0] != canary){
+        error();
+   }
+}
+#endif
+
+float sizeof_map(){return 3};
+
+//default constructor
+void map_constructor(float this){
+    this[0] = str_map;
+    this[1] = 0;
+    this[2] = 0;
+}
+
+//copy constructor
+void map_copy_constructor(float this, float that){
+    this[0] = that[0];
+    this[1] = that[1];
+    this[2] = that[2];
+    check_canary(this,str_map);
+}
+
+//default destructor
+void map_destructor(float this){check_canary(this,str_map);
+    check_canary(this,str_map);
+    //add your code here
+}
+
+//equivalent to "new map"
+float map_new(){
+    float size = sizeof_map();
+    float p = malloc(size);
+    map_constructor(p);
+    return p;
+}
+
+//equivalent to "delete map"
+void map_delete(float this){
+    map_destructor(this);
+    free(this);
+}
+
+//getters
+float map_get_canary(float this){check_canary(this,str_map);return this[0];}
+float map_get_keys(float this){check_canary(this,str_map);return this[1];}
+float map_get_values(float this){check_canary(this,str_map);return this[2];}
+
+//setters
+void map_set_canary(float this, float N){check_canary(this,str_map);this[0] = N;}
+void map_set_keys(float this, float N){check_canary(this,str_map);this[1] = N;}
+void map_set_values(float this, float N){check_canary(this,str_map);this[2] = N;}
+
+#endif

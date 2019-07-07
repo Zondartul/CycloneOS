@@ -1,0 +1,82 @@
+#ifndef file_GUARD
+#define file_GUARD
+
+//generated using:
+//skeleton file name dir parent data -canary 
+
+//struct file
+//    0: canary
+//    1: name
+//    2: dir
+//    3: parent
+//    4: data
+//
+
+str_file: db "file",0;
+
+#ifndef CANARY_GUARD
+#define CANARY_GUARD
+void error(){int 1;}
+void check_canary(float this, float canary){
+   if(this[0] != canary){
+        error();
+   }
+}
+#endif
+
+float sizeof_file(){return 5};
+
+//default constructor
+void file_constructor(float this){
+    this[0] = str_file;
+    this[1] = 0;
+    this[2] = 0;
+    this[3] = 0;
+    this[4] = 0;
+}
+
+//copy constructor
+void file_copy_constructor(float this, float that){
+    this[0] = that[0];
+    this[1] = that[1];
+    this[2] = that[2];
+    this[3] = that[3];
+    this[4] = that[4];
+    check_canary(this,str_file);
+}
+
+//default destructor
+void file_destructor(float this){check_canary(this,str_file);
+    check_canary(this,str_file);
+    //add your code here
+}
+
+//equivalent to "new file"
+float file_new(){
+    float size = sizeof_file();
+    float p = malloc(size);
+    file_constructor(p);
+    return p;
+}
+
+//equivalent to "delete file"
+void file_delete(float this){
+    file_destructor(this);
+    free(this);
+}
+
+//getters
+float file_get_canary(float this){check_canary(this,str_file);return this[0];}
+float file_get_name(float this){check_canary(this,str_file);return this[1];}
+float file_get_dir(float this){check_canary(this,str_file);return this[2];}
+float file_get_parent(float this){check_canary(this,str_file);return this[3];}
+float file_get_data(float this){check_canary(this,str_file);return this[4];}
+
+//setters
+void file_set_canary(float this, float N){check_canary(this,str_file);this[0] = N;}
+void file_set_name(float this, float N){check_canary(this,str_file);this[1] = N;}
+void file_set_dir(float this, float N){check_canary(this,str_file);this[2] = N;}
+void file_set_parent(float this, float N){check_canary(this,str_file);this[3] = N;}
+void file_set_data(float this, float N){check_canary(this,str_file);this[4] = N;}
+
+#endif

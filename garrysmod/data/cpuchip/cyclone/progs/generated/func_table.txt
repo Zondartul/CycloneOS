@@ -1,0 +1,141 @@
+#ifndef CYCLONE_BUILDER
+func_table:
+db make_exe, db str_make_exe;
+db exe_get_linsize, db str_exe_get_linsize;
+db exe_linearize, db str_exe_linearize;
+db make_section_list, db str_make_section_list;
+db section_list_get_linsize, db str_section_list_get_linsize;
+db section_list_linearize, db str_section_list_linearize;
+db make_section_symtable, db str_make_section_symtable;
+db make_section_code, db str_make_section_code;
+db section_get_linsize, db str_section_get_linsize;
+db section_linearize, db str_section_linearize;
+db symtable_get_linsize, db str_symtable_get_linsize;
+db symtable_linearize, db str_symtable_linearize;
+db symbol_get_linsize, db str_symbol_get_linsize;
+db symbol_linearize, db str_symbol_linearize;
+db vector_get_linsize, db str_vector_get_linsize;
+db vector_linearize2, db str_vector_linearize2;
+db printVector, db str_printVector;
+db expectedError, db str_expectedError;
+db parse_expect, db str_parse_expect;
+db parse_acceptNum, db str_parse_acceptNum;
+db parse_expectNum, db str_parse_expectNum;
+db parse_acceptSegment, db str_parse_acceptSegment;
+db parse_acceptReg, db str_parse_acceptReg;
+db parse_acceptOperand, db str_parse_acceptOperand;
+db parse_expectOperand, db str_parse_expectOperand;
+db parse_acceptIdent, db str_parse_acceptIdent;
+db parse_acceptSpace, db str_parse_acceptSpace;
+db parse_acceptComment, db str_parse_acceptComment;
+db parse_acceptLabel, db str_parse_acceptLabel;
+db parse_acceptString, db str_parse_acceptString;
+db parse_acceptDb, db str_parse_acceptDb;
+db parse_acceptAlloc, db str_parse_acceptAlloc;
+db parse_acceptInstruction, db str_parse_acceptInstruction;
+db parse_acceptCmd, db str_parse_acceptCmd;
+db numToOp, db str_numToOp;
+db parse_accept, db str_parse_accept;
+db initSymbolTable, db str_initSymbolTable;
+db addSymbolDef, db str_addSymbolDef;
+db addSymbolRef, db str_addSymbolRef;
+db findSymbol, db str_findSymbol;
+db printSymbol, db str_printSymbol;
+db printSymbolTable, db str_printSymbolTable;
+db str2num2, db str_str2num2;
+db isIdent, db str_isIdent;
+db caseless_strncmp, db str_caseless_strncmp;
+db assembler, db str_assembler;
+db printCodeListing, db str_printCodeListing;
+db initEmit, db str_initEmit;
+db emit_code, db str_emit_code;
+db emit_alloc, db str_emit_alloc;
+db errDefault, db str_errDefault;
+db pointOutErr, db str_pointOutErr;
+db cmd_asm, db str_cmd_asm;
+db cmd_disasm, db str_cmd_disasm;
+db writeOFile, db str_writeOFile;
+func_table_end:
+
+var_table:
+db &str, db str_str;
+db &str2, db str_str2;
+db &fpin, db str_fpin;
+db &fpout, db str_fpout;
+db &asm_abort, db str_asm_abort;
+db &asm_code, db str_asm_code;
+db &cur_address, db str_cur_address;
+db &str_expected, db str_str_expected;
+db &asm_symTable, db str_asm_symTable;
+var_table_end:
+
+func_name_table:
+str_make_exe: db "make_exe", db 0;
+str_exe_get_linsize: db "exe_get_linsize", db 0;
+str_exe_linearize: db "exe_linearize", db 0;
+str_make_section_list: db "make_section_list", db 0;
+str_section_list_get_linsize: db "section_list_get_linsize", db 0;
+str_section_list_linearize: db "section_list_linearize", db 0;
+str_make_section_symtable: db "make_section_symtable", db 0;
+str_make_section_code: db "make_section_code", db 0;
+str_section_get_linsize: db "section_get_linsize", db 0;
+str_section_linearize: db "section_linearize", db 0;
+str_symtable_get_linsize: db "symtable_get_linsize", db 0;
+str_symtable_linearize: db "symtable_linearize", db 0;
+str_symbol_get_linsize: db "symbol_get_linsize", db 0;
+str_symbol_linearize: db "symbol_linearize", db 0;
+str_vector_get_linsize: db "vector_get_linsize", db 0;
+str_vector_linearize2: db "vector_linearize2", db 0;
+str_printVector: db "printVector", db 0;
+str_expectedError: db "expectedError", db 0;
+str_parse_expect: db "parse_expect", db 0;
+str_parse_acceptNum: db "parse_acceptNum", db 0;
+str_parse_expectNum: db "parse_expectNum", db 0;
+str_parse_acceptSegment: db "parse_acceptSegment", db 0;
+str_parse_acceptReg: db "parse_acceptReg", db 0;
+str_parse_acceptOperand: db "parse_acceptOperand", db 0;
+str_parse_expectOperand: db "parse_expectOperand", db 0;
+str_parse_acceptIdent: db "parse_acceptIdent", db 0;
+str_parse_acceptSpace: db "parse_acceptSpace", db 0;
+str_parse_acceptComment: db "parse_acceptComment", db 0;
+str_parse_acceptLabel: db "parse_acceptLabel", db 0;
+str_parse_acceptString: db "parse_acceptString", db 0;
+str_parse_acceptDb: db "parse_acceptDb", db 0;
+str_parse_acceptAlloc: db "parse_acceptAlloc", db 0;
+str_parse_acceptInstruction: db "parse_acceptInstruction", db 0;
+str_parse_acceptCmd: db "parse_acceptCmd", db 0;
+str_numToOp: db "numToOp", db 0;
+str_parse_accept: db "parse_accept", db 0;
+str_initSymbolTable: db "initSymbolTable", db 0;
+str_addSymbolDef: db "addSymbolDef", db 0;
+str_addSymbolRef: db "addSymbolRef", db 0;
+str_findSymbol: db "findSymbol", db 0;
+str_printSymbol: db "printSymbol", db 0;
+str_printSymbolTable: db "printSymbolTable", db 0;
+str_str2num2: db "str2num2", db 0;
+str_isIdent: db "isIdent", db 0;
+str_caseless_strncmp: db "caseless_strncmp", db 0;
+str_assembler: db "assembler", db 0;
+str_printCodeListing: db "printCodeListing", db 0;
+str_initEmit: db "initEmit", db 0;
+str_emit_code: db "emit_code", db 0;
+str_emit_alloc: db "emit_alloc", db 0;
+str_errDefault: db "errDefault", db 0;
+str_pointOutErr: db "pointOutErr", db 0;
+str_cmd_asm: db "cmd_asm", db 0;
+str_cmd_disasm: db "cmd_disasm", db 0;
+str_writeOFile: db "writeOFile", db 0;
+func_name_table_end:
+
+var_name_table:
+str_str: db "str", db 0;
+str_str2: db "str2", db 0;
+str_fpin: db "fpin", db 0;
+str_fpout: db "fpout", db 0;
+str_asm_abort: db "asm_abort", db 0;
+str_asm_code: db "asm_code", db 0;
+str_cur_address: db "cur_address", db 0;
+str_str_expected: db "str_expected", db 0;
+str_asm_symTable: db "asm_symTable", db 0;
+var_name_table_end:
+#endif

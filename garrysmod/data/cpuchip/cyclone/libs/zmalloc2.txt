@@ -1,0 +1,362 @@
+// zon_malloc, first written in C++ in August 12th, 2015
+// ported to HL-zASM and last updated August 13th, 2015
+#ifndef ZMALLOC_GUARD
+#define ZMALLOC_GUARD
+ZMALLOC_CODE:
+
+void allocation_constructor(float *A){
+    allocation_set_size(A, 0);
+    allocation_set_owner(A, 0);
+    allocation_set_prev(A, 0);
+    allocation_set_next(A, 0);
+}
+
+void allocation_set_size(float *A, float n){A[0] = n;}
+void allocation_set_owner(float *A, float n){A[1] = n;}
+void allocation_set_prev(float *A, float n){A[2] = n;}
+void allocation_set_next(float *A, float n){A[3] = n;}
+float allocation_get_size(float *A){return A[0];}
+float allocation_get_owner(float *A){return A[1];}
+float allocation_get_prev(float *A){return A[2];}
+float allocation_get_next(float *A){return A[3];}
+
+
+
+float *malloc_getAllocation(float I){
+    if(I < 1){
+        if(malloc_debug){malloc_print("getAllocation fails: ");malloc_print(malloc_num2str(I));malloc_print("<= 0\n");}
+        return 0;
+    }
+    if(I > malloc_max_disk - malloc_header){
+        if(malloc_debug){malloc_print("getAllocation fails: ");malloc_print(malloc_num2str(I));malloc_print(">");malloc_print(malloc_num2str(malloc_max_disk - malloc_header)); malloc_print("\n");}
+        return 0;
+    }
+    return malloc_disk+I;
+}
+
+float *malloc_getDataFromIndex(float I){
+    return malloc_disk+I+malloc_header;
+}
+
+
+float *malloc_getDataFromAllocation(float *A){
+    return A+malloc_header;
+}
+
+float malloc_getIndex(float *ptr){
+    return ptr-malloc_disk;
+}
+
+
+float malloc_trySplit(float *A, float **returnB, float n){
+    //if(malloc_debug){malloc_print("trying to split ");malloc_print(malloc_num2str(A));malloc_print(" into "); malloc_print(malloc_num2str(n)); malloc_print("\n");}
+    if(allocation_get_size(A) < n+malloc_header+1){if(malloc_debug){malloc_print("too small, can\'t split\n");} return 0;}
+    float oldsize = allocation_get_size(A);
+    allocation_set_size(A,n);
+    float tmp = malloc_getDataFromAllocation(A);
+    tmp = tmp+n;
+    tmp = malloc_getIndex(tmp);
+    float tmp2 = malloc_getAllocation(tmp);
+
+    float *B = tmp2;//malloc_getAllocation(malloc_getIndex(malloc_getDataFromAllocation(A)+n));
+    //if(malloc_debug){malloc_print("splitting: make new allocation at ");malloc_print(malloc_num2str(B));malloc_print(" (index ");malloc_print(malloc_num2str(tmp));malloc_print(")\n");}
+    allocation_set_size(B,oldsize-n-malloc_header);
+    allocation_set_owner(B, allocation_get_owner(A));
+    allocation_set_prev(B, malloc_getIndex(A));
+    allocation_set_next(B, allocation_get_next(A));
+    allocation_set_next(A, malloc_getIndex(B));
+    if(allocation_get_next(B)){allocation_set_prev(malloc_getAllocation(allocation_get_next(B)), malloc_getIndex(B));}
+    *returnB = B;
+    //if(malloc_debug){malloc_print("done splitting\n");}
+    return 1;
+}
+
+void malloc_join(float *A, float *B){
+    float tmp = allocation_get_size(A);
+    tmp = tmp+allocation_get_size(B);
+    tmp = tmp+malloc_header;
+    allocation_set_size(A, tmp);
+    tmp = allocation_get_next(B);
+    allocation_set_next(A, tmp);
+    if(allocation_get_next(B)){
+        tmp = allocation_get_next(B);
+        tmp = malloc_getAllocation(tmp);
+        float tmp2 = malloc_getIndex(A);
+        allocation_set_prev(tmp, tmp2);
+    }
+}
+
+void malloc_set_disk(float *disk, float disk_size){
+    malloc_disk = disk;
+    malloc_max_disk = disk_size;
+    malloc_header = 4;
+    malloc_user = 1;
+    malloc_debug = 0;
+}
+
+void malloc_init(){
+    if(malloc_debug){malloc_print("disk = ");malloc_print(malloc_num2str(malloc_disk));malloc_print("\n")}
+    float *A = malloc_getAllocation(1);
+    if(malloc_debug){malloc_print("allocation = ");malloc_print(malloc_num2str(A));malloc_print("\n");}
+    allocation_set_size(A, malloc_max_disk - malloc_header - 1);
+    allocation_set_owner(A, 0);
+    allocation_set_prev(A, 0);
+    allocation_set_next(A, 0);
+    if(malloc_debug){malloc_print("malloc_init returning\n");}
+}
+
+
+float malloc_test(){
+    float A,B,C,D;
+    malloc_count(&A,&B,&C,&D){
+        float calcsize = A+B+malloc_header*(C+D)+1;
+        if(calcsize != malloc_max_disk){
+            if(malloc_print){
+                malloc_print("ERROR: HEAP CORRUPTED\n(");
+                malloc_print(malloc_num2str(calcsize));
+                malloc_print(" / ");
+                malloc_print(malloc_num2str(malloc_max_disk));
+                malloc_print(")\n");
+            }
+            return 1;
+        }
+    }
+    return 0;
+}
+
+void malloc_print_count(){
+    float *A = malloc_getAllocation(1);
+    while(1){
+        printAllocationSimple(A);
+        if(allocation_get_next(A)){A = malloc_getAllocation(allocation_get_next(A));}
+        else{return;}
+    }
+}
+
+
+void malloc_count(float *freesize, float *usedsize, float *freecount, float *usedcount){
+    *freesize = 0;
+    *usedsize = 0;
+    *freecount = 0;
+    *usedcount = 0;
+    float *A = malloc_getAllocation(1);
+    while(1){
+        if(allocation_get_owner(A) == 0){*freesize = *freesize + allocation_get_size(A); *freecount = *freecount + 1;}
+        else{*usedsize = *usedsize + allocation_get_size(A); *usedcount = *usedcount + 1;}
+        if(allocation_get_next(A)){A = malloc_getAllocation(allocation_get_next(A));}
+        else{return;}
+    }
+}
+
+void printAllocationSimple(float *A){
+    if(allocation_get_owner(A)){malloc_print("X ");}else{malloc_print("O ");}
+    malloc_print(malloc_num2str(A)); malloc_print(" "); malloc_print(malloc_num2str(allocation_get_size(A)));malloc_print("\n");
+}
+
+void printAllocation(float *A){
+    malloc_print("Alc ");
+    malloc_print(malloc_num2str(A));
+    malloc_print(", data ");
+    malloc_print(malloc_num2str(malloc_getDataFromAllocation(A)));
+    malloc_print(", size ");
+    malloc_print(malloc_num2str(allocation_get_size(A)));
+    malloc_print(", owner ");
+    malloc_print(malloc_num2str(allocation_get_owner(A)));
+    malloc_print(", prev ");
+    malloc_print(malloc_num2str(allocation_get_prev(A)));
+    malloc_print(", next ");
+    malloc_print(malloc_num2str(allocation_get_next(A)));
+    malloc_print("\n");
+}
+
+float mallocLast(float n){
+//    if(malloc_debug){malloc_print("mallocLast(");malloc_print(malloc_num2str(n));malloc_print(")\n");}
+    //if(malloc_debug){malloc_print("lastFreeAllocation ");malloc_print(malloc_num2str(lastFreeAllocation));malloc_print("\n");}
+    float *A = malloc_getAllocation(lastFreeAllocation);
+    while(1){
+        malloc_debug_iters++;
+        //if(malloc_debug){printAllocation(A);}
+        float cond1 = allocation_get_owner(A);
+        float cond2 = allocation_get_size(A);
+        cond1 = (cond1 == 0);
+        cond2 = (cond2 > (n-1));
+        cond1 = cond1 && cond2;
+        if(cond1){
+//            if(malloc_debug){malloc_print("mallocL: found something\n");}
+            float *B;
+            malloc_trySplit(A,&B,n);
+            allocation_set_owner(A, malloc_user);
+            lastFreeAllocation = malloc_getIndex(B);
+            //if(malloc_test()){shell_panic();}
+            return malloc_getDataFromAllocation(A);
+        }else{
+            if(allocation_get_next(A)){
+                float tmp = allocation_get_next(A);
+                A = malloc_getAllocation(tmp);
+            }else{
+//                if(malloc_debug){malloc_print("mallocL: no memory, returning 0\n");}
+                //Print("ERROR MALLOC FAILED PANIC\n",900);
+                //shell_panic();
+                return 0;
+            }
+        }
+    } 
+}
+
+float *malloc(float n){
+    //if(malloc_debug){malloc_print("malloc(");malloc_print(malloc_num2str(n));malloc_print(")\n");}
+    malloc_debug_iters = 0;
+    float res;
+    float time1 = 0;
+    float time2 = 0;
+    if(malloc_debug){
+        timer eax; 
+        mov time1, eax;
+    }
+    res = mallocLast(n);
+    if(res){
+        //if(malloc_debug){malloc_print("malloc: OK (last)\n");}
+        goto malloc_goodreturn;
+    }
+    float *A = malloc_getAllocation(1);
+    while(1){
+        malloc_debug_iters++;
+        //if(malloc_debug){printAllocation(A);}
+        float cond1 = allocation_get_owner(A);
+        float cond2 = allocation_get_size(A);
+        cond1 = (cond1 == 0);
+        cond2 = (cond2 > (n-1));
+        cond1 = cond1 && cond2;
+        if(cond1){
+            //if(malloc_debug){malloc_print("malloc: found something\n");}
+            float *B;
+            if(malloc_trySplit(A,&B,n)){
+                lastFreeAllocation = malloc_getIndex(B);
+            }else{
+                lastFreeAllocation = 1;
+            }
+            allocation_set_owner(A, malloc_user);
+            //if(malloc_test()){shell_panic();}
+            res = malloc_getDataFromAllocation(A);
+            //return malloc_getDataFromAllocation(A);
+            //if(malloc_debug){malloc_print("malloc: OK (plain)\n");}
+            goto malloc_goodreturn;
+        }else{
+            if(allocation_get_next(A)){
+                float tmp = allocation_get_next(A);
+                A = malloc_getAllocation(tmp);
+            }else{
+                if(malloc_debug){malloc_print("malloc: no memory, returning 0\n");}
+                Print("ERROR MALLOC FAILED PANIC\n",900);
+                shell_panic();
+                return 0;
+            }
+        }
+    }
+    malloc_goodreturn:
+    if(malloc_debug){
+        timer eax; 
+        mov time2, eax; 
+        float delta = time2-time1;
+        //malloc_print("malloc time: "); 
+        //malloc_print(malloc_num2str(delta)); 
+        //malloc_print("\n");
+        //malloc_print("(");malloc_print(malloc_num2str(time1)); malloc_print(" - "); malloc_print(malloc_num2str(time2)); malloc_print(")\n");
+        //malloc_print("iters: ");malloc_print(malloc_num2str(malloc_debug_iters));malloc_print("\n");
+    }
+    return res;
+}
+
+
+void free(float *ptr){
+    if(malloc_debug){malloc_print("free(");malloc_print(malloc_num2str(ptr));malloc_print(")\n");}
+    if(ptr < malloc_disk+1+malloc_header){ if(malloc_debug){malloc_print("free: null pointer (index ");malloc_print(malloc_num2str(malloc_getIndex(ptr)));malloc_print(")\n");} return;}
+    float tmp = malloc_getIndex(ptr);
+//    if(malloc_debug){malloc_print("index = ");malloc_print(malloc_num2str(tmp));malloc_print("\n");}
+    tmp = tmp-malloc_header;
+    tmp = malloc_getAllocation(tmp);
+    float *A = tmp;
+    allocation_set_owner(A,0);
+//    if(malloc_debug){malloc_print("free, trying previous\n");}
+    float prev;
+    float prevA;
+    free_loop1:
+    prev = allocation_get_prev(A);
+    if(prev){
+        prevA = malloc_getAllocation(prev);
+        if(allocation_get_owner(prevA) == 0){
+            malloc_join(prevA, A);
+            A = prevA;
+            goto free_loop1;
+        }
+    }
+//    if(malloc_debug){malloc_print("free, trying next\n");}
+    float next;
+    float nextA;
+    free_loop2:
+    next = allocation_get_next(A);
+    if(next){
+        nextA = malloc_getAllocation(next);
+        if(allocation_get_owner(nextA) == 0){
+            malloc_join(A, nextA);
+            goto free_loop2;
+        }
+    }
+//    if(malloc_debug){malloc_print("done freeing\n");}
+}
+
+
+float *realloc(float *ptr, float n){
+    if(malloc_debug){malloc_print("realloc(");malloc_print(malloc_num2str(ptr));malloc_print(",");malloc_print(malloc_num2str(n));malloc_print(")\n");}
+    float *newp = malloc(n);
+//    if(malloc_debug){malloc_print("newp = ");malloc_print(malloc_num2str(newp));malloc_print("\n");}
+    if(newp){
+        if(ptr){
+            float tmp = malloc_getIndex(ptr);
+            tmp = tmp-malloc_header;
+            tmp = malloc_getAllocation(tmp);
+            float *A = tmp;
+            float size = allocation_get_size(A);
+            if(n < size){size = n;}   
+//            if(malloc_debug){malloc_print("copying ");malloc_print(malloc_num2str(size));malloc_print(" bytes from ");malloc_print(malloc_num2str(malloc_getIndex(malloc_getDataFromAllocation(A))));malloc_print(" to ");malloc_print(malloc_num2str(malloc_getIndex(newp)));malloc_print("\n");}
+            tmp = malloc_getDataFromAllocation(A);
+            malloc_memcopy(tmp,newp,size);
+            free(ptr);
+            return newp;
+        }else{
+            return newp;
+        }
+    }else{
+        return 0;
+    }
+}
+
+void malloc_memcopy(float *from, float *to, float n){
+    float I;
+    for(I = 0; I < n; I++){
+        *to = *from;
+        to = to+1;
+        from = from+1;
+    }
+}
+
+float str_alloc(float str){
+    float len = strlen(str)+1;
+    float ptr = malloc(len);
+    strcpy(ptr,str);
+    return ptr;
+}
+
+ZMALLOC_CONSTANTS:
+ZMALLOC_VARS:
+float malloc_debug = 0;
+float malloc_print = 0;
+float malloc_num2str = 0;
+float malloc_disk;
+float malloc_max_disk;
+float malloc_header;
+float malloc_user;
+float lastFreeAllocation = 1;
+float malloc_debug_iters = 0;
+ZMALLOC_END:
+#endif

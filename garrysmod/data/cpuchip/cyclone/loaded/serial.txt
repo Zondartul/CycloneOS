@@ -1,0 +1,141 @@
+#include <cyclone/loaded/prologue.txt>
+//serial - a program for serial communication over IO lines
+
+//waiting serial interface:
+// three wire: 
+// clk ->
+// data ->
+//     <- ack
+//
+// 
+// 1) sender puts data on the data line
+// 2) sender flips the clk line to indicate new data
+// 3) sender waits for ack to flip
+// 4) receiver flips ack to indicate read success
+// 5) sender goes to (1)
+
+float main2(float argc, float argv){
+    wsi(argc,argv);
+}
+
+float wsi(float argc, float argv){
+    P2("argc: ",argc,"\n");
+    
+    float wire_data_in = 0;
+    float wire_clk_in = 1;
+    float wire_ack_out = 0;
+    
+    float wire_data_out = 1;
+    float wire_clk_out = 2;
+    float wire_ack_in = 2;
+    
+    float WSIstate1[5];
+    float WSIstate2[5];
+    
+    WSIstate1[0] = wire_data_in;
+    WSIstate1[1] = wire_clk_in;
+    WSIstate1[2] = wire_ack_out;
+    WSIstate1[3] = 0;                       //ack_state
+    WSIstate1[4] = read_port(wire_clk_in);  //clk_state
+    
+    WSIstate2[0] = wire_data_out;
+    WSIstate2[1] = wire_clk_out;
+    WSIstate2[2] = wire_ack_in;
+    WSIstate2[3] = read_port(wire_ack_in);
+    WSIstate2[4] = read_port(wire_clk_out);
+    
+    
+    
+    float mode_send = 0;
+    if(argc > 1){
+        if(strcmp(argv[1],"s") == 0){
+            mode_send = 0;
+            P("send mode\n");
+            P2("IN data: ",wire_data_in,"\n");
+            P2("IN clk: ",wire_clk_in,"\n");
+            P2("OUT ack: ",wire_ack_out,"\n");
+        }
+        if(strcmp(argv[1],"r") == 0){
+            P("receive mode\n");
+            P2("OUT data: ",wire_data_out,"\n");
+            P2("OUT clk: ",wire_clk_out,"\n");
+            P2("IN ack: ",wire_ack_in,"\n");
+        }
+    }
+    float K;
+    if(mode_send == 0){
+        while(1){
+            if(WSI_has_data(WSIstate1)){
+                float D = WSI_get_data(WSIstate1);
+                Pc(D);
+            }else{
+                if(hasKey()){
+                    K = readKey();
+                    if(K == 128){ //ctrl
+                        return;
+                    }
+                }else{
+                    delay(0);//thread_yield();
+                }
+            }
+        }
+    }else{
+        while(1){
+            if(hasKey()){
+                K = readKey();
+                WSI_send_data(WSIstate2, K);
+            }else{
+                delay(0);//thread_yield();
+            }
+        } 
+    }
+}
+
+float WSI_has_data(float state){
+    float clk_in = state[1];
+    float clk_prev = state[4];
+    float C = read_port(clk_in);
+    if(C == clk_prev){return 0;}
+    else{
+        state[4] = C;
+        return 1;
+    }
+}
+
+float WSI_get_data(float state){
+    while(WSI_has_data(state)==0){
+        delay(0);//thread_yield();
+    }
+    float data_in = state[0];
+    float D = read_port(data_in);
+    float ack_out = state[2];
+    float ack_prev = state[3];
+    float A = 1-ack_prev;
+    write_port(ack_out,A);
+    state[3] = A;
+    return D;
+}
+
+void WSI_send_data(float state, float D){
+    float data_out = state[0];
+    write_port(data_out,D);
+    float clk_out = state[1];
+    float clk_prev = state[4];
+    float C = 1-clk_prev;
+    write_port(clk_out,C);
+    state[4] = C;
+    float ack_in = state[2];
+    float ack_prev = state[3];
+    while(read_port(ack_in) == ack_prev){
+        delay(0);//thread_yield();
+    }
+}
+
+float read_port(float port){
+    in eax, port;
+    return eax;
+}
+
+void write_port(float port, float D){
+    out port, D;
+}

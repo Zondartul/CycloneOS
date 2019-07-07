@@ -1,0 +1,434 @@
+hello world!
+fullname: C:\Program Files (x86)\Steam\SteamApps\common\GarrysMod\garrysmod\data\cpuchip\cyclone\progs\assembler.txt
+dir_cpuchip [C:\Program Files (x86)\Steam\SteamApps\common\GarrysMod\garrysmod\data\cpuchip\]
+file_main [cyclone\progs\assembler.txt]
+dir_output [C:\Program Files (x86)\Steam\SteamApps\common\GarrysMod\garrysmod\data\cpuchip\cyclone\progsgenerated/]
+reading file cyclone\progs\assembler.txt
+found global var str
+found global var str2
+found global var fpin
+found global var fpout
+found global var asm_abort
+found global var asm_code
+found global var cur_address
+found include <cyclone/progs/asm/asm_data.txt>
+reading file cyclone/progs/asm/asm_data.txt
+found func make_exe
+found local var exe (BL = 1)
+found local var exe_style (BL = 1)
+found local var link_style (BL = 1)
+found local var has_static (BL = 1)
+found local var compile_timestamp (BL = 1)
+found local var section_list (BL = 1)
+found func exe_get_linsize
+found local var section_list (BL = 1)
+found local var section_list_size (BL = 1)
+found local var exe_size (BL = 1)
+found func exe_linearize
+found local var section_list (BL = 1)
+found local var section_list_size (BL = 1)
+found local var exe_size (BL = 1)
+found local var new_section_list (BL = 1)
+found func make_section_list
+found local var section_list (BL = 1)
+found func section_list_get_linsize
+found local var numsections (BL = 1)
+found local var size (BL = 1)
+found local var I (BL = 1)
+found local var section (BL = 2)
+found local var section_size (BL = 2)
+found func section_list_linearize
+found local var numsections (BL = 1)
+found local var size (BL = 1)
+found local var ptr (BL = 1)
+found local var I (BL = 1)
+found local var section (BL = 2)
+found local var section_size (BL = 2)
+found func make_section_symtable
+found local var section (BL = 1)
+found local var type (BL = 1)
+found local var size (BL = 1)
+found local var symtable_data (BL = 1)
+found local var section_data (BL = 1)
+found func make_section_code
+found local var section (BL = 1)
+found local var type (BL = 1)
+found local var size (BL = 1)
+found local var section_data (BL = 1)
+found func section_get_linsize
+found local var section_size (BL = 1)
+found func section_linearize
+found local var newsize (BL = 1)
+found local var ptr (BL = 1)
+found local var data_size (BL = 1)
+found local var section_data (BL = 1)
+found func symtable_get_linsize
+found local var num (BL = 1)
+found local var size (BL = 1)
+found local var I (BL = 1)
+found local var sym (BL = 2)
+found func symtable_linearize
+found local var num (BL = 1)
+found local var newsize (BL = 1)
+found local var ptr (BL = 1)
+found local var vsize (BL = 1)
+found local var vpos (BL = 1)
+found local var vdata (BL = 1)
+found local var I (BL = 1)
+found local var sym (BL = 2)
+found local var symsize (BL = 2)
+found local var newptr (BL = 2)
+found func symbol_get_linsize
+found local var name (BL = 1)
+found local var refs (BL = 1)
+found local var size (BL = 1)
+found func symbol_linearize
+found local var size (BL = 1)
+found local var name (BL = 1)
+found local var refs (BL = 1)
+found local var ptr (BL = 1)
+found local var len (BL = 1)
+found local var name2 (BL = 1)
+found func vector_get_linsize
+found func vector_linearize2
+found local var num (BL = 1)
+found local var size (BL = 1)
+found local var ptr (BL = 1)
+found local var vdata (BL = 1)
+found func printVector
+found local var n (BL = 1)
+found local var I (BL = 1)
+found local var val (BL = 2)
+found local var ptr (BL = 2)
+found include <cyclone/progs/asm/asm_parse.txt>
+reading file cyclone/progs/asm/asm_parse.txt
+#defined "UNLINKED_SYMBOL"
+found func expectedError
+found global var str_expected
+found func parse_expect
+found local var str2 (BL = 2)
+found func parse_acceptNum
+found local var inp (BL = 1)
+found local var I (BL = 1)
+found local var n (BL = 1)
+found func parse_expectNum
+found func parse_acceptSegment
+found local var inp (BL = 1)
+found local var I (BL = 1)
+found local var seg_str (BL = 2)
+found local var S (BL = 4)
+found func parse_acceptReg
+found local var inp (BL = 1)
+found local var I (BL = 1)
+found local var reg_str (BL = 2)
+found local var R (BL = 3)
+found func parse_acceptOperand
+found local var inp (BL = 1)
+found local var memcell (BL = 1)
+found local var constnum (BL = 1)
+found local var regnum (BL = 1)
+found func parse_expectOperand
+found func parse_acceptIdent
+found local var inp (BL = 1)
+found local var inp2 (BL = 1)
+found local var ptr (BL = 1)
+found func parse_acceptSpace
+found local var inp (BL = 1)
+found func parse_acceptComment
+found local var inp (BL = 1)
+found func parse_acceptLabel
+found local var inp (BL = 1)
+found func parse_acceptString
+found local var inp (BL = 1)
+found local var I (BL = 1)
+found local var count (BL = 1)
+found local var V (BL = 1)
+found local var escape (BL = 2)
+found local var C (BL = 2)
+found local var arr (BL = 2)
+found local var str2 (BL = 2)
+found local var J (BL = 2)
+found local var len (BL = 2)
+found func parse_acceptDb
+found local var inp (BL = 1)
+found local var V (BL = 1)
+found local var len1 (BL = 2)
+found local var nterms (BL = 2)
+found local var inp2 (BL = 2)
+found local var expected (BL = 2)
+found local var num (BL = 3)
+found local var vstr (BL = 3)
+found local var strdata (BL = 5)
+found local var C (BL = 5)
+found local var offs (BL = 6)
+found local var size (BL = 1)
+found local var I (BL = 2)
+found local var numdbs (BL = 3)
+found func parse_acceptAlloc
+found local var inp (BL = 1)
+found local var num (BL = 2)
+found func parse_acceptInstruction
+found local var inp (BL = 1)
+found local var cmd (BL = 1)
+found local var rm1 (BL = 1)
+found local var rm2 (BL = 1)
+found local var rm (BL = 2)
+found func parse_acceptCmd
+found local var inp (BL = 1)
+found local var I (BL = 1)
+found local var idx (BL = 2)
+found local var cmd_str (BL = 2)
+found local var C (BL = 3)
+found func numToOp
+found local var I (BL = 1)
+found local var idx (BL = 2)
+found local var cmd_str (BL = 2)
+found local var cmd (BL = 2)
+found func parse_accept
+found local var inp (BL = 1)
+found local var len (BL = 1)
+found include <cyclone/progs/asm/asm_symbol.txt>
+reading file cyclone/progs/asm/asm_symbol.txt
+found global var asm_symTable
+found func initSymbolTable
+found func addSymbolDef
+found local var sym (BL = 1)
+found local var symaddr (BL = 1)
+found func addSymbolRef
+found local var sym (BL = 1)
+found local var reftable (BL = 1)
+found local var sym_addr (BL = 1)
+found func findSymbol
+found local var I (BL = 1)
+found local var size (BL = 1)
+found local var sym (BL = 2)
+found local var str2 (BL = 2)
+found func printSymbol
+found local var name (BL = 1)
+found local var def (BL = 1)
+found local var refs (BL = 1)
+found local var n (BL = 2)
+found local var J (BL = 2)
+found local var r (BL = 3)
+found func printSymbolTable
+found local var I (BL = 1)
+found local var size (BL = 1)
+found local var sym (BL = 2)
+found include <cyclone/progs/asm/asm_util.txt>
+reading file cyclone/progs/asm/asm_util.txt
+found func str2num2
+found local var End (BL = 1)
+found local var I (BL = 1)
+found local var Num (BL = 1)
+found local var Minus (BL = 1)
+found local var Frac (BL = 1)
+found local var N (BL = 1)
+found local var Base (BL = 1)
+found local var C (BL = 1)
+found func isIdent
+found func caseless_strncmp
+found local var I1 (BL = 1)
+found local var I2 (BL = 1)
+found local var C1 (BL = 2)
+found local var C2 (BL = 2)
+found local var diff (BL = 2)
+found include <cyclone/progs/asm/asm_constants.txt>
+reading file cyclone/progs/asm/asm_constants.txt
+found func assembler
+found local var I (BL = 1)
+found local var line_from (BL = 1)
+found local var line_to (BL = 1)
+found local var str_last (BL = 2)
+found local var codeptr (BL = 1)
+found local var codesize (BL = 1)
+found func printCodeListing
+found local var I (BL = 1)
+found local var J (BL = 1)
+found local var num (BL = 2)
+found local var num2 (BL = 3)
+found local var op (BL = 3)
+found func initEmit
+found func emit_code
+found func emit_alloc
+found local var I (BL = 1)
+found func errDefault
+found func pointOutErr
+found local var len (BL = 1)
+found func cmd_asm
+found local var argc (BL = 1)
+found func cmd_disasm
+found local var argc (BL = 1)
+found local var cmd (BL = 2)
+found local var flag (BL = 2)
+found local var short (BL = 2)
+found local var fast (BL = 2)
+found local var ptr (BL = 2)
+found local var size (BL = 2)
+found local var instr (BL = 2)
+found local var I (BL = 2)
+found local var cmd1 (BL = 3)
+found local var cmd2 (BL = 3)
+found local var opname (BL = 3)
+found local var rm (BL = 3)
+found local var seg1 (BL = 3)
+found local var seg2 (BL = 3)
+found local var op1 (BL = 3)
+found local var op2 (BL = 3)
+found local var sym1name (BL = 3)
+found local var sym2name (BL = 3)
+found func writeOFile
+found local var code_size_actual (BL = 1)
+found local var struct_exe (BL = 1)
+found local var size (BL = 1)
+found local var new_exe (BL = 1)
+file cyclone\progs\assembler.txt: 10 funcs
+assembler		(void assembler(float infilepath, float outfilepath))
+printCodeListing		(void printCodeListing(float ptr, float size))
+initEmit		(void initEmit())
+emit_code		(float emit_code(float num))
+emit_alloc		(float emit_alloc(float num))
+errDefault		(void errDefault())
+pointOutErr		(void pointOutErr())
+cmd_asm		(void cmd_asm())
+cmd_disasm		(void cmd_disasm())
+writeOFile		(void writeOFile(float fpout))
+
+included from cyclone\progs\assembler.txt:
+file cyclone/progs/asm/asm_data.txt: 17 funcs
+make_exe		(float make_exe())
+exe_get_linsize		(float exe_get_linsize(float exe))
+exe_linearize		(float exe_linearize(float exe, float newpos, float readoffset, float writeoffset))
+make_section_list		(float make_section_list())
+section_list_get_linsize		(float section_list_get_linsize(float sectionlist))
+section_list_linearize		(float section_list_linearize(float sectionlist, float newpos, float readoffset, float writeoffset))
+make_section_symtable		(float make_section_symtable())
+make_section_code		(float make_section_code())
+section_get_linsize		(float section_get_linsize(float section))
+section_linearize		(float section_linearize(float section, float newpos, float readoffset, float writeoffset))
+symtable_get_linsize		(float symtable_get_linsize(float symtable))
+symtable_linearize		(float symtable_linearize(float symtable, float newpos, float readoffset, float writeoffset))
+symbol_get_linsize		(float symbol_get_linsize(float sym))
+symbol_linearize		(float symbol_linearize(float sym, float newpos, float readoffset, float writeoffset))
+vector_get_linsize		(float vector_get_linsize(float v))
+vector_linearize2		(float vector_linearize2(float v, float newpos, float readoffset, float writeoffset))
+printVector		(void printVector(float v,float readoffset))
+
+included from cyclone\progs\assembler.txt:
+file cyclone/progs/asm/asm_parse.txt: 19 funcs
+expectedError		(float expectedError(float str))
+parse_expect		(void parse_expect(float *input, float str))
+parse_acceptNum		(float parse_acceptNum(float *input, float *num))
+parse_expectNum		(float parse_expectNum(float *input, float *num))
+parse_acceptSegment		(float parse_acceptSegment(float *input, float *seg))
+parse_acceptReg		(float parse_acceptReg(float *input, float *reg))
+parse_acceptOperand		(float parse_acceptOperand(float *input, float *rm, float *seg, float *op, float errFunc, float offs))
+parse_expectOperand		(void parse_expectOperand(float *input, float *rm, float *seg, float *op, float *errfunc, float offs))
+parse_acceptIdent		(float parse_acceptIdent(float *input, float *id))
+parse_acceptSpace		(float parse_acceptSpace(float *input))
+parse_acceptComment		(float parse_acceptComment(float *input))
+parse_acceptLabel		(float parse_acceptLabel(float *input))
+parse_acceptString		(float parse_acceptString(float *input, float *str))
+parse_acceptDb		(float parse_acceptDb(float *input))
+parse_acceptAlloc		(float parse_acceptAlloc(float *input))
+parse_acceptInstruction		(float parse_acceptInstruction(float *input))
+parse_acceptCmd		(float parse_acceptCmd(float *input, float *cmd))
+numToOp		(float numToOp(float num))
+parse_accept		(float parse_accept(float *input, float str))
+
+included from cyclone\progs\assembler.txt:
+file cyclone/progs/asm/asm_symbol.txt: 6 funcs
+initSymbolTable		(void initSymbolTable())
+addSymbolDef		(void addSymbolDef(float str))
+addSymbolRef		(void addSymbolRef(float str, float offs))
+findSymbol		(float findSymbol(float str))
+printSymbol		(void printSymbol(float sym))
+printSymbolTable		(void printSymbolTable(float symtable))
+
+included from cyclone\progs\assembler.txt:
+file cyclone/progs/asm/asm_util.txt: 3 funcs
+str2num2		(float str2num2(char* str, float *Iout))
+isIdent		(float isIdent(char C))
+caseless_strncmp		(float caseless_strncmp(float str1, float str2, float n))
+
+included from cyclone\progs\assembler.txt:
+file cyclone/progs/asm/asm_constants.txt: 0 funcs
+
+
+55 functions found
+make_exe
+exe_get_linsize
+exe_linearize
+make_section_list
+section_list_get_linsize
+section_list_linearize
+make_section_symtable
+make_section_code
+section_get_linsize
+section_linearize
+symtable_get_linsize
+symtable_linearize
+symbol_get_linsize
+symbol_linearize
+vector_get_linsize
+vector_linearize2
+printVector
+expectedError
+parse_expect
+parse_acceptNum
+parse_expectNum
+parse_acceptSegment
+parse_acceptReg
+parse_acceptOperand
+parse_expectOperand
+parse_acceptIdent
+parse_acceptSpace
+parse_acceptComment
+parse_acceptLabel
+parse_acceptString
+parse_acceptDb
+parse_acceptAlloc
+parse_acceptInstruction
+parse_acceptCmd
+numToOp
+parse_accept
+initSymbolTable
+addSymbolDef
+addSymbolRef
+findSymbol
+printSymbol
+printSymbolTable
+str2num2
+isIdent
+caseless_strncmp
+assembler
+printCodeListing
+initEmit
+emit_code
+emit_alloc
+errDefault
+pointOutErr
+cmd_asm
+cmd_disasm
+writeOFile
+
+
+
+9 vars found:
+str
+str2
+fpin
+fpout
+asm_abort
+asm_code
+cur_address
+str_expected
+asm_symTable
+
+
+1 defined symbols:
+UNLINKED_SYMBOL
+func_table: error
+func_export_table: error
+func_import_table: error
+execution took 0 min 1 s.
+done

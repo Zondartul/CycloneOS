@@ -1,0 +1,883 @@
+//test
+
+
+
+//identifier
+// [_abcd0ab]
+//
+//number
+// 0 -0xab 12.05 -.1
+//
+//string
+// "hello\n"
+//
+//char
+// 'a'
+//
+//preproc
+// [include]
+//
+//keywords
+// [float if for while return goto break continue]
+//
+//punctuation
+// [( ) [ ] : ; { } ,]
+//
+//operators
+// arithmetic
+//  [++ -- + - * / ^^ >> <<]
+// comparison
+//  [== != > < >= <=]
+// logic
+//  [and or not && || !]
+// bitwise
+//  [~ & | ^]
+//----------------------------------
+#define TOKEN_ERROR 0
+#define TOKEN_IDENT 1
+#define TOKEN_NUMBER 2
+#define TOKEN_STRING 3
+#define TOKEN_CHAR 4
+#define TOKEN_FLOAT 5
+#define TOKEN_IF 6
+#define TOKEN_FOR 7
+#define TOKEN_WHILE 8
+#define TOKEN_RETURN 9
+#define TOKEN_GOTO 10
+#define TOKEN_BREAK 11
+#define TOKEN_CONTINUE 12
+#define TOKEN_BRACKET_LEFT 13
+#define TOKEN_BRACKET_RIGHT 14
+#define TOKEN_SBRACKET_LEFT 15
+#define TOKEN_SBRACKET_RIGHT 16
+#define TOKEN_COLON 17
+#define TOKEN_SEMICOLON 18
+#define TOKEN_EQUALS 19
+#define TOKEN_NOT_EQUALS 20
+#define TOKEN_GREATER 21
+#define TOKEN_LESS 22
+#define TOKEN_GREATER_EQUAL 23
+#define TOKEN_LESS_EQUAL 24
+#define TOKEN_PLUS 25
+#define TOKEN_MINUS 26
+#define TOKEN_MULTIPLY 27
+#define TOKEN_DIVIDE 28
+#define TOKEN_POWER 29
+#define TOKEN_SHIFT_RIGHT 30
+#define TOKEN_SHIFT_LEFT 31
+#define TOKEN_AND 32
+#define TOKEN_OR 33
+#define TOKEN_NOT 34
+#define TOKEN_AND 35
+#define TOKEN_OR 36
+#define TOKEN_NOT 37
+#define TOKEN_BIT_NOT 38
+#define TOKEN_BIT_AND 39
+#define TOKEN_BIT_OR 40
+#define TOKEN_BIT_XOR 41
+#define TOKEN_INCREMENT 42
+#define TOKEN_DECREMENT 43
+#define TOKEN_INCLUDE 44
+#define TOKEN_INT 45
+#define TOKEN_CURLY_LEFT 46
+#define TOKEN_CURLY_RIGHT 47
+#define TOKEN_COMMA 48
+#define TOKEN_UNKNOWN 49
+
+str_ident: db "ident", db 0;
+str_number: db "number", db 0;
+str_string: db "string", db 0;
+str_char: db "char", db 0;
+str_include: db "#include", db 0;
+//str_int: db "int", db 0;
+str_float: db "float", db 0;
+str_if: db "if", db 0;
+str_for: db "for", db 0;
+str_while: db "while", db 0;
+str_return: db "return", db 0;
+str_goto: db "goto", db 0;
+str_break: db "break", db 0;
+str_continue: db "continue", db 0;
+str_bracket_left: db "(", db 0;
+str_bracket_right: db ")", db 0;
+str_sbracket_left: db "[", db 0;
+str_sbracket_right: db "]", db 0;
+str_curly_left: db "{", db 0;
+str_curly_right: db "}", db 0;
+str_colon: db ":", db 0;
+str_semicolon: db ";", db 0;
+str_comma: db ",", db 0;
+str_equals: db "==", db 0;
+str_not_equals: db "!=", db 0;
+str_greater: db ">", db 0;
+str_less: db "<", db 0;
+str_greater_equal: db ">=", db 0;
+str_less_equal: db "<=", db 0;
+str_increment: db "++", db 0;
+str_decrement: db "--", db 0;
+str_plus: db "+", db 0;
+str_minus: db "-", db 0;
+str_multiply: db "*", db 0;
+str_divide: db "/", db 0;
+str_power: db "^^", db 0;
+str_shift_right: db ">>", db 0;
+str_shift_left: db "<<", db 0;
+//str_and: db "and", db 0;
+//str_or: db "or", db 0;
+str_not: db "not", db 0;
+str_and2: db "&&", db 0;
+str_or2: db "||", db 0;
+str_not2: db "!", db 0;
+str_bit_not: db "~", db 0;
+str_bit_and: db "&", db 0;
+str_bit_or: db "|", db 0;
+str_bit_xor: db "^", db 0;
+str_comment: db "//", db 0; 
+
+tokens:
+db str_ident, db TOKEN_IDENT,
+db str_number, db TOKEN_NUMBER,
+db str_string, db TOKEN_STRING,
+db str_char, db TOKEN_CHAR;
+keywords:
+//db str_include, db TOKEN_INCLUDE,
+db str_int, db TOKEN_INT,
+db str_float, db TOKEN_FLOAT,
+db str_if, db TOKEN_IF,
+db str_for, db TOKEN_FOR,
+db str_while, db TOKEN_WHILE,
+db str_return, db TOKEN_RETURN,
+db str_goto, db TOKEN_GOTO,
+db str_break, db TOKEN_BREAK,
+db str_continue, db TOKEN_CONTINUE,
+db str_bracket_left, db TOKEN_BRACKET_LEFT,
+db str_bracket_right, db TOKEN_BRACKET_RIGHT,
+db str_sbracket_left, db TOKEN_SBRACKET_LEFT,
+db str_sbracket_right, db TOKEN_SBRACKET_RIGHT,
+db str_curly_left, db TOKEN_CURLY_LEFT,
+db str_curly_right, db TOKEN_CURLY_RIGHT,
+db str_colon, db TOKEN_COLON,
+db str_semicolon, db TOKEN_SEMICOLON,
+db str_comma, db TOKEN_COMMA,
+db str_increment, db TOKEN_INCREMENT,
+db str_decrement, db TOKEN_DECREMENT,
+db str_plus, db TOKEN_PLUS,
+db str_minus, db TOKEN_MINUS,
+db str_multiply, db TOKEN_MULTIPLY,
+db str_divide, db TOKEN_DIVIDE,
+db str_power, db TOKEN_POWER,
+db str_shift_right, db TOKEN_SHIFT_RIGHT,
+db str_shift_left, db TOKEN_SHIFT_LEFT,
+db str_equals, db TOKEN_EQUALS,
+db str_not_equals, db TOKEN_NOT_EQUALS,
+db str_greater, db TOKEN_GREATER,
+db str_less, db TOKEN_LESS,
+db str_greater_equal, db TOKEN_GREATER_EQUAL,
+db str_less_equal, db TOKEN_LESS_EQUAL,
+db str_and, db TOKEN_AND,
+db str_or, db TOKEN_OR,
+db str_not, db TOKEN_NOT,
+db str_and2, db TOKEN_AND,
+db str_or2, db TOKEN_OR,
+db str_not2, db TOKEN_NOT,
+db str_bit_not, db TOKEN_BIT_NOT,
+db str_bit_and, db TOKEN_BIT_AND,
+db str_bit_or, db TOKEN_BIT_OR,
+db str_bit_xor, db TOKEN_BIT_XOR;
+db 0;
+keywords_end:
+tokens_end:
+
+//--------------------------------
+
+float compiler_mode = 0; //mode 1 = no tokens emitted
+float compiler_vec1 = 0;
+
+//float printf(float str){P(str);return 0;}
+
+float compile(float argc, float argv){
+    if(argc < 2){
+        P("Usage: compile <file>\n");
+        return 1;
+    }
+    compiler_mode = 0;
+    if(argc == 3){
+        compiler_mode = str2num(argv[2]);
+    }
+    P2("mode = ", compiler_mode, "\n");
+    
+    
+    float fname = argv[1];
+    float fp = fopen(fname,"r");
+    if(!fp){
+        P("Can't open file:\n");
+        P(fname);
+        P("\n");
+        return 1;
+    }
+        
+    float Vtokens = malloc(sizeof_vector);
+    vector_constructor(Vtokens,7);
+    
+    float ext = filepath_extension(fname);
+    float base = filepath_base(fname);
+    float size = fsize(fp);
+    if(strcmp(ext,"c")==0){
+        P("Extension is .c, starting from tokenization\n");
+        size = size*11/2;
+        
+        float fp_preproc_name = concat(base,".p");
+        float fp_preproc = fopen(fp_preproc_name,"w+");
+        if(!fp_preproc){printf("can't open %s for writing\n",fp_preproc_name); return 1;}
+        
+        if(!preprocess(fp,fp_preproc)){
+            P("Preprocess failed\n");
+            return 1;
+        }
+        return 0;
+        
+        float fp_tokenize_name = concat(base,".tok");
+        float fp_tokenize = fopen(fp_tokenize_name,"w");
+        if(!fp_preproc){printf("can't open %s for writing\n",fp_tokenize_name); return 1;}
+        
+        if(!tokenize(fp_preproc, keywords, Vtokens)){
+        //if(!tokenize(fp,keywords,Vtokens)){
+            P("Tokenization failed\n");
+            return 1;
+        }
+    
+        printTokenStats(Vtokens);
+        writeTokens(Vtokens, fp_tokenize);
+    //    return 0;
+    }else
+    if(strcmp(ext,"tok")==0){
+        P("Extension is .tok, starting from syntax\n");
+        readTokens(Vtokens, fp);
+        printAllTokens(Vtokens);
+      //  return 0;
+    }else{
+        P("Unknown extension, exiting\n");
+        return 1;
+    }
+    printAllTokens(Vtokens);
+    syntax_analyze(Vtokens);
+    return 0;
+}
+
+//---------------------------------------------------------------
+str_newline: db "\n", db 0;
+
+float preprocess(float fp, float fp2){
+    P("Preprocessing:\n\n");
+    fseek(fp,0,0);
+    fseek(fp2,0,0);
+    float buff[256];
+    float str = 0;
+    float filelen = 0;
+    float len = 0;
+    float line = 1;
+    float filesize = fsize(fp);
+    float filedone = 0;
+    while(1){
+        preproc_loop:
+        str = fgetstring(fp,buff,256);
+        if(!str){goto preproc_end;}
+        filelen = strlen(str);
+        len = filelen;
+        //P("\b");
+        //PrintProgressBar(100*filedone/filesize);
+        filedone = filedone+filelen;
+        //P("\n");
+        
+        //1) comment removal
+        float backslash = strstr(str,str_comment);
+        if(backslash){
+            printf("removed comment at line %d, char %d\n",line,backslash-str);
+            *backslash = 0;
+            len = strlen(str);
+            if(!len){continue;}    
+        }
+        //2) include files    
+        //float len2 = strlen(str_include);
+        //if(!strncmp(str,str_include,len2))
+        float inp = str;
+        if(compile_accept(&inp,str_include,0,0,1)){
+            while(compile_acceptSpace(&inp)){NOP;}
+            //float T[7];
+            float T = 0;
+            if(compile_acceptString(&inp,&T)){
+                float str2 = T[0];
+                P("file [");P(str2);P("]\n");
+                printf("included file [%s]\n",str2);
+            }else{
+                PointOutError(str,inp-str);
+                P("syntax error\n");
+                return 0;
+            }
+            //continue doesn't work.//continue; //remove this string
+            goto preproc_loop;
+        }
+        
+        printf("writing [%s]\n",str);
+        fwrite(str,len,fp2);
+        fwrite(str_newline,1,fp2);
+    }
+    preproc_end:
+    //P("\b");
+    //PrintProgressBar(100);
+    //P("\nDONE\f\n");
+    return 1;
+}
+
+//---------------------------------------------------------------
+
+// token:
+// 0 val
+// 1 kw
+// 2 tok
+// 3 line1
+// 4 char1
+// 5 line2
+// 6 char2
+
+
+float tokenize(float fp, float keywords, float Vtokens){
+    P("Lexical analysis:\n\n");
+    float buff[256];
+    float str = 0;
+    float len = 0;
+    float line = 1;
+    fseek(fp,0,0);
+    float filesize = fsize(fp);
+    float filedone = 0;
+    while(1){
+        str = fgetstring(fp,buff,256);
+        if(!str){goto parse_end;}
+        len = strlen(str);
+        P("\b");
+        PrintProgressBar(100*filedone/filesize);
+        filedone = filedone+len;
+        P("\n");
+        float inp = str;
+        
+        //float marker[3];
+        //float marker1;
+        //float marker2;
+        
+        //float T[7];
+        while(*inp != 0){
+            //T[3] = line;
+            //T[4] = inp-str;
+            //T[5] = line;
+            //T[6] = inp-str; 
+            float T = 0;
+            if(compile_acceptSpace(&inp)){goto parsed_good;}
+            if(compile_acceptString(&inp, &T)){
+                if(compiler_mode != 1){
+                    T[6] = inp-str;
+                    vector_push(Vtokens,T);
+                    printToken2(T,str);
+                }
+                goto parsed_good;
+            }
+            float I = keywords;
+            while(*I != 0){
+                float kw = I[0];
+                float tok = I[1];
+                if(compile_accept(&inp, kw, tok, &T)){
+                    if(compiler_mode != 1){
+                        T[6] = inp-str;
+                        vector_push(Vtokens,T);
+                    }
+                    printToken2(T,str);
+                    goto parsed_good;
+                }
+                I = I+2;
+            }
+            if(compile_acceptIdent(&inp, &T)){
+                if(compiler_mode != 1){
+                    T[6] = inp-str;
+                    vector_push(Vtokens,T);
+                }
+                printToken2(T,str);
+                goto parsed_good;
+            }
+            if(compile_acceptNum(&inp, &T)){
+                if(compiler_mode != 1){
+                    T[6] = inp-str;
+                    vector_push(Vtokens,T);
+                }
+                printToken2(T,str);
+                goto parsed_good;
+            }
+            parsed_bad:
+            float pos = inp-str;
+            P("no token @ "); Pn(pos); P("\n");
+            pointOutError(str,pos);
+            P("lexx error\n");
+            return 0;
+            parsed_good:
+            
+        }
+        line = line+1;
+    }
+    parse_end:
+    P("\b");
+    PrintProgressBar(100);
+    P("\nDONE\f\n");
+    return 1;
+}
+
+float writeTokens(float Vtokens, float fp2){ // float fname){
+    //float basename = filepath_base(fname);
+    //float newname = concat(basename, ".tok");
+    float size = vector_size(Vtokens);
+    //P("writing ");Pn(size);P(" tokens to [");P(newname);P("]\n");
+    //float fp2 = fopen(newname,"w");
+    //if(!fp2){
+    //    Perr("can't open ");Perr(newname);Perr(" for writing\n");
+    //    return 0;
+    //}else{
+        float I;
+        fwrite(&size,1,fp2);
+        for(I = 0; I < size; I++){
+            float T = vector_get(Vtokens,0,I);
+            fwrite(T,3,fp2);
+            fwrite(T[3],3,fp2);
+            fwrite(T[4],3,fp2);
+        }
+        P("ok done\n");
+        return 1;
+    //}
+}
+
+float readTokens(float Vtokens, float fp){
+    float size;
+    fread(&size,1,fp);
+    P("Reading ");Pn(size);P(" tokens\n");
+    float I;
+    for(I = 0; I < size; I++){
+        float T = malloc(5);
+        fread(T,3,fp);
+        float pos1 = malloc(3);
+        fread(pos1,3,fp);
+        float pos2 = malloc(3);
+        fread(pos2,3,fp);
+        T[3] = pos1;
+        T[4] = pos2;
+        vector_push(Vtokens,T);
+    }
+    return 1;
+}
+
+////allocates a buffer on the heap and copies the string to it, then returns it.
+////the result is a heap-allocated C-string.
+//float str_alloc(float str){
+//    float len = strlen(str);
+//    return str_allocn(str,len);
+//}
+
+void cmd_compile(){
+    float argc = strlen(Arr);
+    if(argc>=2){
+        compile(argc, Arr);
+    }else{
+        P("Usage: compile <file> -\n")
+    }
+}
+compile_help: db "\"compile <file>\" parses source code and compiles it into assembly.\n", db 0;
+
+//same as before, except you also say the length of the string. 
+float str_allocn(float str, float len){
+    float buff;
+    if(compiler_mode == 0){
+        buff = malloc(len+1);
+    }else if(compiler_mode == 2){
+        buff = fast_alloc(len+1);
+    }
+    strncpy(buff,str,len);
+    buff[len] = 0;
+    return buff;
+}
+
+float printAllTokens(float Vtokens){
+    P("Tokens:\n");   
+    float I;
+    float size = vector_get_size(Vtokens);
+    for(I = 0; I < size; I++){
+        float T = vector_get(Vtokens,0,I);
+        printToken(T);
+        P("\n");
+    }
+}
+
+float printTokenStats(float Vtokens){
+    float total = 0;
+    
+    float I;
+    float size = vector_get_size(Vtokens);
+    for(I = 0; I < size; I++){
+        float T = vector_get(Vtokens,0,I);
+        float pos1 = T[3];
+        float pos2 = T[4];
+        float char1 = pos1[2];
+        float char2 = pos2[2];
+        float len = char2-char1;
+        total = total+len;
+    }
+    P("num tokens: ");Pn(size);P("\n");
+    P("avg. token size: ");Pn(total/size);P("\n");
+}
+
+float printToken(float T){
+    float val = T[0];
+    float kw = T[1];
+    float tok = T[2];
+    float inp1 = T[3];
+    float inp2 = T[4];
+    if(tok == TOKEN_IDENT){
+        Pn(tok);P(":(ID)[");P(val);P("]");
+    }else if(tok == TOKEN_NUMBER){
+        Pn(tok);P(":(NUM)[");P(val);P("]");
+    }else if(tok == TOKEN_STRING){
+        Pn(tok);P(":(STR)[\"");P(val);P("\"]");
+    }else{
+        Pn(tok);P(":[");P(val);P("]");
+    }
+}
+
+float printToken2(float T, float str){
+    float val = T[0];
+    float kw = T[1];
+    float tok = T[2];
+    float inp1 = T[3];
+    float inp2 = T[4];
+    //P("KW: ");P(T[1]);P(" V:[");P(T[0]);P("] T: ");Pn(T[2]);P("\n"); 
+    //P(kw); P(": ["); P(val); P("]\n");
+    //P("token ["); P(kw); P("]\n");
+    P("\r");
+    pointOutToken2(str,inp1,inp2);
+}
+
+float emitToken(float val, float kw, float tok, float inp1, float inp2){
+    //P("emit:\n");
+    //P(val);P("\n");
+    //P(kw);P("\n");
+    //Pn(tok);P("\n");
+    //Pn(inp1);P("\n");
+    //Pn(inp2);P("\n");P("\n");
+    float T = malloc(5);
+    T[0] = val;
+    T[1] = kw;
+    T[2] = tok;
+    T[3] = inp1;
+    T[4] = inp2;
+    return T;
+}
+
+float pointOutError(float str, float pos){
+        Print(str,990);
+        P("\n");
+        float I = 0;
+        for(I = 0; I < pos; I = I+1){P(" ");}
+        P("^");P("\n");
+}
+
+float pointOutToken(float str, float pos1, float pos2){
+    float char1 = pos1[2];
+    float char2 = pos2[2];
+    P("poT(");Pn(str);P(",");Pn(char1);P(",");Pn(char2);P(")\n");
+    P(str);P("\n");
+    float I = 0;
+    for(I = 0; I < char1; I = I+1){P(" ");}
+    P("^");
+    if(char2 > char1+1){
+        for(I = char1+1; I < char2-1; I = I+1){P("-");}
+        P("^\n");
+    }
+}
+
+float pointOutToken2(float str, float pos1, float pos2){
+    float char1 = pos1[2];
+    float char2 = pos2[2];
+    float S[2];
+    S[1] = 0;
+    float I = 0;
+    while(I < char1){
+        *S = str[I];
+        Print(S,999);
+        I++
+    }
+    while(I < char2){
+        *S = str[I];
+        Print(S,5990);
+        I++;
+    }
+    while(str[I] != 0){
+        *S = str[I];
+        Print(S,999);
+        I++;
+    }
+    P("\f");
+    //P("\n");
+}
+
+float compile_acceptSpace(float *input){
+    float inp = *input;
+    if(*inp == ' '){goto c_aS_yes;}
+    if(*inp == '\t'){goto c_aS_yes;}
+    if(*inp == '\n'){goto c_aS_yes;}
+    c_aS_no:
+    return 0;
+    c_aS_yes:
+    inp++;
+    *input = inp;
+    return 1;
+}
+
+float compile_acceptNum(float *input, float *T){
+    float inp = *input;
+    //float inp1 = *input;
+    float I = 0;
+    float n = -999;
+    n = str2num2(*input, &I);
+    if(I){
+        //*num = n;
+        //float ptr = num;
+        //float J;
+        //for(J = 0; J < I; J++){
+        //    *ptr = *inp;
+        //    ptr = ptr+1;
+        //    inp = inp+1;
+        //}
+        //*ptr = 0;
+        float buff;
+        if(compiler_mode != 1){
+            buff = str_allocn(inp,I);
+            *T = emitToken(buff,str_number,TOKEN_NUMBER,0,0);
+        }
+        *input = *input+I;
+        
+        return 1;
+    }
+    //P("not accepted num\n");
+    //*input = inp;
+    return 0;
+}
+
+float compile_acceptIdent(float *input, float *T){
+    float inp = *input;
+    //float inp1 = *input;
+    float inp3 = *input;
+    //float ptr = id;
+    float len = 0;
+    if(!isIdent(*inp3)){goto cai_fail;}
+    if(isNum(*inp3)){goto cai_fail;}
+    while(isIdent(*inp3)){len++; inp3++;}
+    *input = inp3;
+    //*ptr = 0;
+    float buff;
+    if(compiler_mode != 1){
+        buff = str_allocn(inp,len);
+        //float inp2 = *input;
+        *T = emitToken(buff,str_ident,TOKEN_IDENT,0,0);
+    }
+    //P("accepted ident [");P(id);P("]\n");
+    return 1;
+    cai_fail:
+    //P("not accepted ident\n");
+    //pointOutErr();
+    *input = inp;
+    return 0;
+}
+
+
+
+float compile_acceptString(float *input, float *T){
+    float inp = *input;
+    //float inp1 = *input;
+    float I = *input;
+    float count = 0;
+    float V = 0;
+    if(*I++ == '\"'){
+        if(compiler_mode == 0){
+            V = malloc(sizeof_vector);
+            vector_constructor(V,1);
+        }else if(compiler_mode == 2){
+            V = compiler_vec1;
+        }
+        float escape = 0;
+        
+        castr_loop:
+        float C = *I++;
+        if(escape){
+            if(C == 'n'){vector_push(V,'\n'); goto castr_loop;}
+            if(C == '0'){vector_push(V,'\0'); goto castr_loop;}
+            if(C == 't'){vector_push(V,'\t'); goto castr_loop;}
+            if(C == '\"'){vector_push(V,'\"'); goto castr_loop;}
+            if(C == '\''){vector_push(V,'\''); goto castr_loop;}
+            if(C == '\\'){vector_push(V,'\\'); goto castr_loop;}
+        }else{            
+            if(C == '\\'){
+                escape = 1;
+                goto castr_loop;
+            }    
+        }
+        if(C == '\"'){goto castr_endloop;}
+        if(C == 0){goto castr_fail;}
+        if(compiler_mode != 1){
+            vector_push(V,C);
+        }
+        goto castr_loop;
+        castr_endloop:
+        *input = I;
+        float arr;
+        float buff;
+        if(compiler_mode == 0){
+            vector_push(V,0);
+            arr = vector_get_array(V);
+            buff = str_alloc(arr);
+            vector_destructor(V);
+            free(V);
+            //P("string accepted [");P(arr);P("]\n");
+            //float inp2 = *input;
+            *T = emitToken(buff,str_string,TOKEN_STRING,0,0);
+        }else if(compiler_mode == 2){
+            vector_push(V,0);
+            arr = vector_get_array(V);
+            buff = str_alloc(arr);
+            *T = emitToken(buff,str_string,TOKEN_STRING,0,0);
+        }
+        return 1;
+    }
+    castr_fail:
+    //P("no string\n");
+    if(compiler_mode != 1){
+        if(V){vector_clear(V); free(V);}
+    }
+    *input = inp;
+    return 0;
+}
+
+float compile_accept(float *input, float kw, float tok, float *T, float mode){
+    float inp = *input;
+    //float inp1 = *input;
+    float len = strlen(kw);
+    
+    //if(strncmp(inp,str) == 0){
+    if(strncmp(inp,kw,len) == 0){
+        inp = inp+len;
+        *input = inp;
+        //P("accepted [");P(str);P("]\n");
+        //float inp2 = *input;
+        if(compiler_mode != 1){
+            *T = emitToken(kw,kw,tok,0,0);
+        }
+        return 1;
+    }
+    //P("not accepted [");P(str);P("]\n");
+    return 0;
+}
+
+//---------------------------------------------------
+
+float fast_prealloc(float size){
+    float store = malloc(size+2)
+    store[0] = 2;
+    store[1] = size+2;
+    return store;
+}
+
+float fast_alloc(float store, float size){
+    float wp = store[0];
+    float sp = store[1];
+    if(wp+size <= sp){
+        float ptr = wp;
+        wp = wp+size;
+        return store+ptr;   
+    }else{
+        return 0;
+    }
+}
+
+
+float sizeof_fast_vec = 2;
+
+float new_fast_vec(float size){
+    float fv = fast_alloc(sizeof_fast_vec+size);
+    fast_vec_constructor(fv,size);
+    return fv;
+}
+
+float fast_vec_data(float fv){return fv+sizeof_fast_vec;}
+
+float fast_vec_push(float fv, float item){
+    float ptr = fv[0];
+    float size = fv[1];
+    if(ptr < size){
+        ptr = ptr+1;
+        fv[ptr] = item;
+    }   
+}
+
+float fast_vec_constructor(float fv, float size){
+    fv[0] = 0;
+    fv[1] = size;
+}
+
+//---------------------------------------------------------
+
+float syntax_analyze(float Vtokens){
+    float input = 0;
+    float size = vector_size(Vtokens);
+    while(input < size){
+        if(syntax_accept_preproc(Vtokens,&input)){continue;}
+        if(syntax_accept_func_def(Vtokens,&input)){continue;}
+        float T = vector_get(Vtokens,0,input);
+        P("Next token is ");PrintToken(T);P("\n");
+        Perr("Syntax error\n");
+        P("Blarg.\n");
+        return 0;
+    }
+    return 1;
+}
+
+float syntax_accept_preproc(float Vtokens, float *inp){
+    float inp1 = *inp;
+    if(syntax_accept_tok(Vtokens,inp, TOKEN_INCLUDE)){
+    if(syntax_accept_tok(Vtokens,inp, TOKEN_STRING)){goto sax_pp_yes;}}
+    sax_pp_no:
+    *inp = inp1;
+    return 0;
+    sax_pp_yes:
+    P("Preproc NT accepted\n");
+    return 1;
+}
+
+float syntax_accept_tok(float Vtokens, float *inp, float tok){
+    float I = *inp;
+    float T = vector_get(Vtokens,0,I);
+    float tok2 = T[2];
+    if(tok2 == tok){
+        *inp = *inp+1;
+        P("Token ");Pn(tok);P(" (");P(T[1]);P(") accepted @ ");Pn(I);P("\n");
+        return 1;
+    }
+        P("Token ");Pn(tok);P(" not accepted @ ");Pn(I);P("\n");
+    return 0;
+}
+
+float syntax_accept_func_def(float Vtokens, float *inp){
+    float inp1 = *inp;
+    if(syntax_accept_tok(Vtokens,inp, TOKEN_INT)){goto sax_fd_yes;}    
+    else{
+    if(syntax_accept_tok(Vtokens,inp, TOKEN_IDENT)){
+    if(syntax_accept_tok(Vtokens,inp, TOKEN_BRACKET_LEFT)){goto sax_fd_yes;}
+    }}
+    sax_fd_no:
+    *inp = inp1;
+    return 0;
+    sax_fd_yes:
+    P("Func NT accepted\n");
+    return 1;
+}

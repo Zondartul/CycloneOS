@@ -1,0 +1,155 @@
+//
+// class stuff
+//
+// - structs have a pointer-to-typename thing
+// - classes also have a pointer-to-typeinfo
+// 
+// class typeinfo contains:
+//  0 - typename(class)
+//  1 - classname
+//  2 - vector<pair<varname>> member vars;
+//  3 - vector<pair<funcname,funcptr>> methods;
+//  4 - vector<typeinfo*> parent_classes;
+//
+
+typeof_class: db "class", 0;
+float sizeof_class = 5;
+
+typeof_class_instance: db "class_instance",0;
+
+float class_new(float name){
+    float C = malloc(sizeof_class);
+    class_constructor(C,name);
+    return C;
+}
+
+float class_constructor(float this, float name){
+    assert_arity(ecx,2);
+    this[0] = typeof_class;
+    this[1] = name;
+    this[2] = vector_new();
+    this[3] = vector_new();
+    this[4] = vector_new();
+}
+
+void class_add_member(float this, float name){
+    assert_arity(ecx,2);
+    assert_type(this,typeof_class);
+    float members = this[2];
+    vector_push(members,name);
+}
+
+void class_add_method(float this, float name, float func){
+    assert_arity(ecx,3);
+    assert_type(this,typeof_class);
+    float functions = this[3];
+    vector_push(functions,name);
+    vector_push(functions,func);
+}
+
+float class_get_size(float class){
+    float members = class[2];
+    float methods = class[3];
+    float size = 2;
+    size += vector_get_size(members);
+    size += vector_get_size(methods);
+    return size;
+}
+
+float mcall(float instance, float name){//,...)
+    float arity = ecx;
+    assert_type(instance,typeof_class_instance);
+    float class = instance[1];
+    assert_type(class,typeof_class);
+    float functions = class[3];
+    float size = vector_size(functions);
+    float I = 0;
+    for(I = 0; I < size; I = I+2){
+        float fname = vector_get(functions,0,I);
+        float fptr = vector_get(functions,0,I+1);
+        if(strcmp(fname,name) == 0){
+            float J = 0;
+            float dp = &name-&instance; //probably 1 or -1, direction to the right on the argument list
+            
+            for(J = arity-1; J >= 2; J--){
+                float parg = &instance+J*dp;
+                float arg = *parg;
+                push arg;
+            }
+            float newarity = arity-2 /*this func args, instance+name*/ + 1 /*new func args, instance*/;
+            push instance;
+            mov ecx, newarity;
+            call fptr;
+            float res = eax;
+            return res;
+        }
+    }
+    float classname = class[1];
+    printf("%mError: no method [%s] in class [%s]\n",900,name,classname);
+    shell_panic();
+}
+
+float mget(float instance, float name){
+    assert_type(instance,typeof_class_instance);
+    float class = instance[1];
+    assert_type(class,typeof_class);
+    float members = class[2];
+    float size = vector_size(members);
+    float I = 0;
+    for(I = 0; I < size; I = I+1){
+        float mname = vector_get(members,0,I);
+        if(strcmp(mname,name) == 0){
+            float res = instance[2+I];
+            return res;
+        }
+    }
+    float classname = class[1];
+    printf("%mError: no member [%s] in class [%s]\n",900,name,classname);
+    shell_panic();
+}
+
+void mset(float instance, float name, float val){
+    assert_type(instance,typeof_class_instance);
+    float class = instance[1];
+    assert_type(class,typeof_class);
+    float members = class[2];
+    float size = vector_size(members);
+    float I = 0;
+    for(I = 0; I < size; I = I+1){
+        float mname = vector_get(members,0,I);
+        if(strcmp(mname,name) == 0){
+            instance[2+I] = val;
+            return;
+        }
+    }
+    float classname = class[1];
+    printf("%mError: no member [%s] in class [%s]\n",900,name,classname);
+    shell_panic();
+}
+
+void class_instance_constructor(float instance, float class){
+    instance[0] = typeof_class_instance;
+    instance[1] = class;
+    mcall(instance, str_constructor);
+}
+
+float new(float class){
+    float size = class_get_size(class);
+    float instance = malloc(size)
+    class_instance_constructor(instance,class);
+    return instance;
+}
+
+str_constructor: db "constructor",0;
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,5 @@
+//terminal: used to enter text, print text, and scroll text.
+//the "interface" part of CLI.
+//see "shell" for actual command execution
+
+//gotta make sure multitasking works first.

@@ -1,0 +1,78 @@
+//#define ptrScreen 65536 or similar in master program
+#ifndef LIBCONSOLESCREEN_GUARD
+#define LIBCONSOLESCREEN_GUARD
+LIBCONSOLESCREEN_CODE:
+void PrintStringXY(float x, float y, char str, float col)
+{
+    /*
+    float P = (y*30+x)*2;
+    float I = 0;
+    float C = str[I++];
+    while(C)
+    {
+        AdrScreen[P++] = C;
+        AdrScreen[P++] = col;
+        C = str[I++];
+    }
+    */
+    while(*str){
+        mcs_putchar(*str++,col,x++,y);
+    }
+}
+// prints single character to screen coords.
+void printCharXY(float X, float Y, char C, float col){
+    //float P = AdrScreen+2*(X+Y*30);
+   // *P++ = C;
+    //*P = col;
+    mcs_putchar(C,col,X,Y);
+}
+
+void delaysimple(float time)
+{
+    preserve edx;
+    timer edx;
+    float T = edx;
+    while((edx-T)<time)
+    {
+        NOP;
+        timer edx;
+    }
+    zap edx;
+}
+
+void screen_set(float scr){AdrScreen = scr;}
+void screen_clear(){AdrScreen[2041] = 1;}
+void screen_cursor_enable(){AdrScreen[2046] = 1;}
+void screen_cursor_disable(){AdrScreen[2046] = 0;}
+void screen_set_cursor_pos(float I){AdrScreen[2045] = 2*I;}
+void screen_set_cursor_pos_xy(float x, float y){AdrScreen[2045] = 2*(30*y+x);}
+void screen_force_refresh(){AdrScreen[2020]=1; delaysimple(/*1*/0.16);} //AdrScreen[2020]=1;
+void screen_set_shift_box_x1(float n){AdrScreen[2031]=n;} //AdrScreen[2031]=0;
+void screen_set_shift_box_x2(float n){AdrScreen[2032]=n;} //AdrScreen[2032]=28;
+void screen_set_shift_box_y1(float n){AdrScreen[2033]=n;} //AdrScreen[2033]=0;
+void screen_set_shift_box_y2(float n){AdrScreen[2034]=n;} //AdrScreen[2034]=16;
+void screen_set_shift_box(float x1, float x2, float y1, float y2){
+    AdrScreen[2031] = x1;
+    AdrScreen[2032] = x2;
+    AdrScreen[2033] = y1;
+    AdrScreen[2034] = y2;
+}
+float screen_print_x_min = 0;
+float screen_print_y_min = 0;
+float screen_print_x_max = 0;
+float screen_print_y_max = 0;
+void screen_set_print_box(float x1, float y1, float x2, float y2){
+    screen_print_x_min = x1;
+    screen_print_y_min = y1;
+    screen_print_x_max = x2;
+    screen_print_y_max = y2;
+}
+void screen_shift_vertical(float n){AdrScreen[2038]=n;}
+void screen_shift_horizontal(float n){AdrScreen[2037]=n;}
+void screen_set_blink_rate(float rate){AdrScreen[2043] = rate;}
+void screen_set_cursor_size(float size){AdrScreen[2044] = size;}
+LIBCONSOLESCREEN_CONSTANTS:
+LIBCONSOLESCREEN_VARS:
+float AdrScreen;
+LIBCONSOLESCREEN_END:
+#endif

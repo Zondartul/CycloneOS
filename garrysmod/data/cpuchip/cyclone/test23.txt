@@ -1,0 +1,352 @@
+//test23
+//this is an extension of test22 with a larger memory model
+//and different hardware.
+//Use 128kb ram/rom memory model for the zCPU.
+//#pragma no_export all
+//#pragma set AlwaysEnterLeave true
+//AlwaysEnterLeave reduces speed but makes calltraces more accurate
+#define _65kb 65536
+#define _128kb 131072
+#define size_EB 32
+#define size_keyboard 300
+//#define size_console 3000
+#define size_console 12500
+#define size_RAM 131072
+#define size_HDD 131072
+#define size_port 131072
+#define programslot_size 1000
+//#pragma set OutputToFile true
+//#pragma set OutputTokenListing true
+//programslot is needed so that programs mapped to page 0
+//do not interfere with kernel-internal calls
+//programslot:
+#include <cyclone/defines.txt>
+MAIN_CODE:
+boot();
+alloc 120;
+
+float size;
+void boot(){
+    size = programsize;
+    if( programsize  > 128*1024){
+        mov eax,  programsize ;
+        div eax, 1024;
+        frnd eax;
+        out 0,eax;
+        int 40;
+    }
+
+    float nullcall_size = NULL_CODE_END - NULL_CODE;
+    memcpy(0,NULL_CODE,nullcall_size);
+    
+    init_hardware();
+    screen_set(AdrScreen);
+    mcs_screen_clear();
+    
+    printf("Loading Cyclone OS\n");
+    printf("boot size:   %d k\n", BOOT_CODE_END/1024);
+    printf("kernel size: %d k\n", size/1024);
+    //if(size > 128*1024){int 0;}
+    /*
+    if(programsize > 128*1024){
+        printf("ERROR: kernel too large (> 128k)\n",programsize);
+        printf("Boot aborted\n");
+        
+        //interrupt 40: kernel too big
+        out programsize,0;
+        int 40;
+        
+        //int 1;
+        int 0; //reset
+    }
+    */
+    float time = compileTimeStamp();
+    OSversion = time;
+    float str = timeStampToString(time);
+    printf("compile timestamp:\n%s\n",str);    
+    main();
+}
+
+NULL_CODE:
+nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; //1
+nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; //2
+nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; //3
+nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; //4
+nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; //5
+nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; //6
+nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; //7
+nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; //8
+nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; //9
+nop; nop; nop; nop; nop; nop; nop; nop; nop; nop; //10
+nullcall_error();
+NULL_CODE_END:
+
+void nullcall_error(){
+    printf("Error: jump to physical 0\n");
+    shell_panic();
+}
+
+
+float AdrEB;
+float AdrRAM;
+float AdrKb;
+//float AdrScreen;
+float AdrHDD;
+float AdrPort;
+float OSversion;
+
+float num_screens_x;
+float num_screens_y;
+screens:
+alloc 10;
+
+void init_hardware(){
+    AdrEB = _128kb;
+    AdrRAM = AdrEB+size_EB;
+    AdrKb = AdrRAM+size_RAM;
+    AdrScreen = AdrKb+size_keyboard;
+    AdrHDD = AdrScreen+size_console;
+    AdrPort = AdrHDD+size_HDD;
+
+    float I = 0;
+    for(I = 0; I < 32; I++){
+        AdrEB[I] = 0;
+    }
+    
+    AdrEB[0] = 0;             //ram
+    AdrEB[1] = size_RAM-1;
+    AdrEB[2] = AdrEB[1]+1;    //kb
+    AdrEB[3] = AdrEB[2]+size_keyboard-1;
+    AdrEB[4] = AdrEB[3]+1;    //console
+    AdrEB[5] = AdrEB[4]+size_console-1;
+    AdrEB[6] = AdrEB[5]+1;    //hdd
+    AdrEB[7] = AdrEB[6]+size_HDD-1;
+    AdrEB[8] = AdrEB[7]+1;    //port
+    AdrEB[9] = AdrEB[8]+size_port-1;
+
+    for(I = 0; I < 32; I++){
+        AdrScreen[I] = 0;
+    }
+    //setup console EB
+    float AdrScreen2 = 0;
+    float size_console2 = 3000;
+    AdrScreen[0] = 0;
+    AdrScreen[1] = size_console2-1;
+    AdrScreen[2] = AdrScreen[1]+1;
+    AdrScreen[3] = AdrScreen[2]+size_console2-1;
+    AdrScreen[4] = AdrScreen[3]+1;
+    AdrScreen[5] = AdrScreen[4]+size_console2-1;
+    AdrScreen[6] = AdrScreen[5]+1;
+    AdrScreen[7] = AdrScreen[6]+size_console2-1;
+    AdrScreen += size_EB;
+    
+//    num_screens_x = 2;
+//    num_screens_y = 2;
+    screens[0] = AdrScreen;
+    screens[1] = screens[0]+size_console2;
+    screens[2] = screens[1]+size_console2;
+    screens[3] = screens[2]+size_console2;
+    mcs_init(2,2);
+    //while(1){NOP;}
+}
+
+alloc programslot_size;
+
+BOOT_CODE:
+#include <cyclone/libs/libstring.txt>
+#include <cyclone/libs/boot.txt>
+#include <cyclone/libs/libnumber.txt>
+#include <cyclone/libs/printf.txt>
+#include <cyclone/libs/timestamp.txt>
+#include <cyclone/libs/libconsolescreen.txt>
+#include <cyclone/libs/libmulticonsolescreen.txt>
+#include <cyclone/libs/stackalloc.txt>
+BOOT_CODE_END:
+//void main(){printf("boot test complete\n");int 1;}
+
+//alloc 10000;
+#include <cyclone/libs/zmalloc.txt>
+#include <cyclone/libs/libsetalloc.txt>
+#include <cyclone/libs/zvector.txt>
+#include <cyclone/libs/zstring.txt>
+#include <cyclone/libs/zlist.txt>
+#define STRINGTRACKER_TEST
+#include <cyclone/libs/libkeyboard.txt>
+
+//#include <cyclone/libs/class_stringtracker.txt>
+
+//#include <cyclone/progs/prognotepad.txt>
+#include <cyclone/progs/shell.txt>
+//#include <cyclone/libs/libcrc.txt>
+//////#include <filesystem.txt>
+#include <cyclone/libs/fs_support.txt>
+#include <cyclone/libs/lightfs2.txt>
+
+//#include <cyclone/progs/assembler.txt>
+
+#include <cyclone/libs/libpaging.txt>
+#include <cyclone/libs/libthread.txt>
+#include <cyclone/libs/libinterrupt.txt>
+#include <cyclone/libs/librecord.txt>
+#include <cyclone/libs/libclass.txt>
+#include <cyclone/libs/loader2.txt>
+//program_load: //dummy
+//addToLoadedPrograms://dummy
+//printProgInfo: //dummy
+//getLoadedProgram: //dummy
+//program_run: //dummy
+//program_run_background://dummy
+Perr(str_thissuppressed);
+shell_panic();
+str_thissuppressed: db "This function is suppressed\n"; db 0;
+//#include <cyclone/progs/compiler.txt>
+#include <cyclone/libs/libtrace.txt>
+#include <cyclone/generated/func_table.txt>
+//#include <cyclone/libs/typesystem.txt>
+#include <cyclone/libs/libdynamicstruct.txt>
+
+//#include <cyclone/libs/libwsi.txt>
+//#pragma no_export
+
+
+
+float main()
+{
+    out 0,0;
+    out 1,0;
+    out 2,0;
+    out 3,0;
+    out 4,0;
+    out 5,0;
+    out 6,0;
+    out 7,0;
+    
+    mov EBP:#1,0; //end of stack (for tracing)
+    mov EBP:#2,0;
+    //OSversion = curTimeStamp();//__DATE_DAY__*1000000+__DATE_MONTH__*10000+__DATE_YEAR__*1+__DATE_HOUR__*0.01+__DATE_MINUTE__*0.0001;
+    
+    setKeyboard(AdrKb);
+    
+    
+    
+    
+    
+    
+    //float day,month,year,hour,minute,second;
+    //decodeTimeStamp(time,&day,&month,&year,&hour,&minute,&second);
+    //printf("decoded timestamp:\n");
+    //printf("day %d\n",day);
+    //printf("month %d\n",month);
+    //printf("year %d\n",year);
+    //printf("hour %d\n",hour);
+    //printf("minute %d\n",minute);
+    //printf("second %d\n",second);
+    
+    
+    //PrintStringXY(0,0,"Loading Cyclone OS...",999);
+    //P("Loading Cyclone OS...\n");
+    //MaxMem = 65536;
+    //print_init();
+    //malloc_set_disk(Heap, MaxMem-Heap); - use this for default Laptop4 setup
+    malloc_set_disk(AdrRAM, _128kb);
+    malloc_init();
+    malloc_print = P;
+    malloc_num2str = num2str;
+    malloc_debug = 0;
+    
+    setalloc_init();
+    
+    filesystem_init();
+    float a; in a,0;
+    float b; in b,1;
+    float c; in c,2;
+    float d; in d,3;
+    printf("Switch 1: Mount disk: %d\n",a);
+    printf("Switch 2: Autorun: %d\n",b);
+    //if(a){PrintStringXY(0,1,"Switch 1: Mount disk: ON\n",999);}
+    //else {PrintStringXY(0,1,"Switch 1: Mount disk: OFF\n",999);}
+    //if(b){PrintStringXY(0,2,"Switch 2: Autorun: ON\n",999);}
+    //else {PrintStringXY(0,2,"Switch 2: Autorun: OFF\n",999);}
+    //if(c){PrintStringXY(0,3,"Switch 3: Unassigned: ON\n",999);}
+    //else {PrintStringXY(0,3,"Switch 3: Unassigned: OFF\n",999);}
+    //if(d){PrintStringXY(0,4,"Switch 4: Unassigned: ON\n",999);}
+    //else {PrintStringXY(0,4,"Switch 4: Unassigned: OFF\n",999);}
+//    P("Switch 1: Mount disk: "); if(a){P("ON\n");}else{P("OFF\n");}
+//    P("Switch 2: Autorun "); if(b){P("ON\n");}else{P("OFF\n");}
+//    P("Switch 3: Unassigned "); if(c){P("ON\n");}else{P("OFF\n");}
+//    P("Switch 4: Unassigned "); if(d){P("ON\n");}else{P("OFF\n");}
+    
+    if(a){
+        //PrintStringXY(0,5,"Mounting disk...",999);
+        printf("Mounting disk...");
+        //P("Mounting disk...");
+        filesystem_read(AdrHDD);
+        //PrintStringXY(16,5,"OK",999);
+        printf("OK\n");
+        //P("OK");
+    }
+    initPaging(pageTable,512,0,0);
+    setupInterrupts();
+    //printPtrX = 0;
+    //printPtrY = 0;
+    
+    //printScrX = 0;
+    //printBuffX = 0;
+    //printScrY = 0;
+    //printBuffY = 0;
+    //printLineOffset = 0;
+    
+    //screen_clear();
+    initThreads();
+    initLoader();
+    //init_type_system();
+    libdynamicstruct_init();
+    
+    shell();
+    //float main_thread = thread_create(shell,0);
+    //thread_enter(main_thread);
+    printf("End of main()\n");
+    while(1){NOP;}
+}
+
+pageTable:
+alloc 513*2;
+
+intTable:
+alloc 256*4;
+
+
+
+void setupInterrupts(){
+    float flags = int_enabled;
+    initInterrupts(intTable,0,256,errIntHandler,flags);
+    extendedModeEnable();
+    interruptsEnable();
+    printf("Interrupts initialized\n");
+}
+
+
+//this will caclulate the available memory
+//and then probably break the CPU...
+//outputs:
+//port 0 - memory detected in bytes
+//port 1 - memory detected in kilobytes
+void memtest2(){
+    float I = End;
+    while(1){
+        *I = 1;
+        if(*I != 1){int 1;}
+        *I = 0;
+        if(*I != 0){int 1;}
+        out 0, I;
+        out 1, I/1024;
+        I = (I+1)*1.0005;
+        fint I;
+    }
+}
+
+MAIN_CONSTANTS:
+OSname: db "test 23"; db 0;
+MAIN_VARS:
+End:
+

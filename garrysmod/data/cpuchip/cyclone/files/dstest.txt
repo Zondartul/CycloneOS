@@ -1,0 +1,150 @@
+db programsize;
+zds_table_of_tables:
+    db zds_table_ti;
+    db zds_stringstore;
+zds_table_of_tables_end: db 0;
+
+zds_table_ti:
+    db ti_boop;
+    db ti_test;
+    db ti_ti_variant_0;
+    db ti_ti_variant_1;
+    db ti_what;
+    db ti_noms;
+    db ti_vector;
+zds_table_ti_end: db 0;
+
+ti_boop:
+    db 0; // name
+    db 2; // type
+    db 2; //num entries
+    //name, type, isexplicit, param1, param2, param3, subentry
+        db 1,	1,	1,	0,	0,	0,	-1; // entry 0	"adr"
+        db 2,	2,	1,	0,	0,	0,	-1; // entry 1	"name"
+ti_boop_end: db 0;
+
+ti_test:
+    db 3; // name
+    db 2; // type
+    db 16; //num entries
+    //name, type, isexplicit, param1, param2, param3, subentry
+        db -1,	0,	0,	0,	0,	0,	0; // entry 0	""
+        db 2,	7,	1,	0,	0,	0,	0; // entry 1	"name"
+        db -1,	0,	0,	0,	0,	0,	0; // entry 2	""
+        db 4,	6,	1,	1,	3,	0,	2; // entry 3	"vec"
+        db 5,	1,	1,	0,	0,	0,	-1; // entry 4	"size"
+        db 6,	1,	1,	1,	1,	0,	-1; // entry 5	"num"
+        db 7,	1,	1,	4,	13,	0,	-1; // entry 6	"where"
+        db -1,	0,	0,	0,	0,	0,	0; // entry 7	""
+        db -1,	0,	0,	0,	0,	0,	0; // entry 8	""
+        db 8,	7,	1,	0,	0,	0,	8; // entry 9	"arr1"
+        db -1,	0,	0,	0,	0,	0,	0; // entry 10	""
+        db 9,	6,	1,	1,	0,	0,	10; // entry 11	"boops"
+        db 10,	4,	1,	6,	11,	0,	-1; // entry 12	"V"
+        db 12,	1,	1,	0,	0,	0,	-1; // entry 13	"word"
+        db -1,	9,	1,	4,	13,	5,	-1; // entry 14	""
+        db 14,	11,	1,	5,	15,	0,	-1; // entry 15	"happy"
+ti_test_end: db 0;
+
+ti_ti_variant_0:
+    db 16; // name
+    db 5; // type
+    db 3; //num entries
+    //name, type, isexplicit, param1, param2, param3, subentry
+        db 17,	1,	1,	0,	0,	0,	-1; // entry 0	"beep"
+        db 18,	1,	1,	0,	0,	0,	-1; // entry 1	"bap"
+        db 0,	1,	1,	0,	0,	0,	-1; // entry 2	"boop"
+ti_ti_variant_0_end: db 0;
+
+ti_ti_variant_1:
+    db 19; // name
+    db 5; // type
+    db 1; //num entries
+    //name, type, isexplicit, param1, param2, param3, subentry
+        db 20,	2,	1,	0,	0,	0,	-1; // entry 0	"hi"
+ti_ti_variant_1_end: db 0;
+
+ti_what:
+    db 13; // name
+    db 3; // type
+    db 2; //num entries
+    //name, type, isexplicit, param1, param2, param3, subentry
+        db 16,	0,	0,	0,	0,	0,	0; // entry 0	"ti_variant_0"
+        db 19,	0,	0,	0,	0,	0,	0; // entry 1	"ti_variant_1"
+ti_what_end: db 0;
+
+ti_noms:
+    db 15; // name
+    db 4; // type
+    db 2; //num entries
+    //name, type, isexplicit, param1, param2, param3, subentry
+        db 20,	2,	1,	0,	0,	0,	-1; // entry 0	"hi"
+        db 21,	2,	1,	0,	0,	0,	-1; // entry 1	"apple"
+ti_noms_end: db 0;
+
+ti_vector:
+    db 11; // name
+    db 1; // type
+    db 5; //num entries
+    //name, type, isexplicit, param1, param2, param3, subentry
+        db 5,	1,	1,	0,	0,	0,	-1; // entry 0	"size"
+        db 22,	1,	1,	0,	0,	0,	-1; // entry 1	"capacity"
+        db -1,	0,	0,	0,	0,	0,	0; // entry 2	""
+        db -1,	0,	0,	0,	0,	0,	0; // entry 3	""
+        db 23,	7,	1,	0,	0,	0,	3; // entry 4	"array"
+ti_vector_end: db 0;
+
+zds_stringstore:
+    db str_boop;
+    db str_adr;
+    db str_name;
+    db str_test;
+    db str_vec;
+    db str_size;
+    db str_num;
+    db str_where;
+    db str_arr1;
+    db str_boops;
+    db str_V;
+    db str_vector;
+    db str_word;
+    db str_what;
+    db str_happy;
+    db str_noms;
+    db str_ti_variant_0;
+    db str_beep;
+    db str_bap;
+    db str_ti_variant_1;
+    db str_hi;
+    db str_apple;
+    db str_capacity;
+    db str_array;
+zds_stringstore_end: db 0;
+
+zds_stringstore_strings:
+    str_boop: db "boop", 0;
+    str_adr: db "adr", 0;
+    str_name: db "name", 0;
+    str_test: db "test", 0;
+    str_vec: db "vec", 0;
+    str_size: db "size", 0;
+    str_num: db "num", 0;
+    str_where: db "where", 0;
+    str_arr1: db "arr1", 0;
+    str_boops: db "boops", 0;
+    str_V: db "V", 0;
+    str_vector: db "vector", 0;
+    str_word: db "word", 0;
+    str_what: db "what", 0;
+    str_happy: db "happy", 0;
+    str_noms: db "noms", 0;
+    str_ti_variant_0: db "ti_variant_0", 0;
+    str_beep: db "beep", 0;
+    str_bap: db "bap", 0;
+    str_ti_variant_1: db "ti_variant_1", 0;
+    str_hi: db "hi", 0;
+    str_apple: db "apple", 0;
+    str_capacity: db "capacity", 0;
+    str_array: db "array", 0;
+zds_stringstore_strings_end: db 0;
+

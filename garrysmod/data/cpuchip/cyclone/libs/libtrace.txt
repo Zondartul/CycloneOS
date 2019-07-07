@@ -1,0 +1,134 @@
+//trace
+
+//stack:
+//
+//
+//
+//
+//
+
+void getStackTrace(float buff){
+    float ptrBase;// = &buff+1;
+    mov ptrBase, ebp;
+    float ptrPrevIP = ptrBase+1;
+    float I = 0;
+    while(I < 80){
+        float prevIP = *ptrPrevIP;
+        //printf("I = %d, prevIP = %d\n",I,prevIP);
+        float prevBase = *ptrBase;
+        buff[I] = prevIP;
+        I++;
+        if(prevBase == 0){break;}
+        ptrBase = prevBase;
+        ptrPrevIP = ptrBase+1;
+    }
+    buff[I] = 0;
+}
+
+void printStackTrace(float buff){
+    /*
+    printf("printing IPs\n");
+    float I = 0;
+    float fIP;
+    while(buff[I] != 0){
+        fIP = buff[I];
+        printf("%d: %d\n",I,fIP);
+        I++;
+    }
+    */
+    //printf("printing funcs\n");
+    printf("call trace:\n");
+    float I = 0;
+    float fIP;
+    while(buff[I] != 0){
+        fIP = buff[I];
+        float funcIP = findClosestFunc(fIP);
+        float funcName = getFuncName(funcIP);
+        float IPdiff = fIP-funcIP;
+        printf("%d: %s +%d\n",I,funcName,IPdiff);
+        I++;   
+    }
+}
+
+float findClosestFunc(float fIP){
+    if(!fIP){return 0;}
+    float bestf = 0;
+    float bestdiff = 9999999;
+    float ptr = func_table;
+    while(ptr < func_table_end){
+        //if(ptr[0] < fIP){f2 = ptr[0];}
+        float f2 = ptr[0];
+        if(f2 < fIP){
+            float diff = fIP-f2;
+            if(diff < bestdiff){
+                bestdiff = diff;
+                bestf = f2;
+            }
+        }
+        ptr += 2;
+    }
+    return bestf;
+}
+
+float getFuncName(float fIP){
+    if(!fIP){return 0;}
+    float ptr = func_table;
+    while(ptr < func_table_end){
+        if(ptr[0] == fIP){return ptr[1];}
+        ptr += 2;
+    }
+    return 0;
+}
+
+float getVarName(float vIP){
+    if(!vIP){return 0;}
+    float ptr = var_table;
+    while(ptr < var_table_end){
+        if(ptr[0] == vIP){return ptr[1];}
+        ptr += 2;
+    }
+    return 0;
+}
+
+float getSymbolName(float sIP){
+    float name = getFuncName(sIP);
+    if(!name){name = getVarName(sIP);}
+    return name;
+}
+
+float findSymbolByName(float name){
+    float def = findFuncByName(name);
+    if(def == -1){def = findVarByName(name);}
+    return def;
+}
+
+float findFuncByName(float name){
+    float ptr = func_table;
+    while(ptr < func_table_end){
+        float name2 = ptr[1];
+        if(strcmp(name2,name) == 0){
+            return ptr[0];
+        }
+        ptr += 2;
+    }
+    return -1;
+}
+
+float findVarByName(float name){
+    float ptr = var_table;
+    while(ptr < var_table_end){
+        float name2 = ptr[1];
+        if(strcmp(name2,name) == 0){
+            return ptr[0];
+        }
+        ptr += 2;
+    }
+    return -1;
+}
+
+
+
+
+
+
+

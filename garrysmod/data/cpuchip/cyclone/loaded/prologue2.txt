@@ -1,0 +1,21 @@
+//prologue2
+//for kernel modules
+//those are supposed to be position-independent and also not rely on paging
+org 7000000; //7MB mark for dummy functions
+#include <cyclone/defines.txt>
+prologue_start:
+db epilogue_end-prologue_start; //don't forget to include "epilogue.txt"
+db P_FE_FILEBASE, prologue_start;
+db P_FE_CODESTART, reference_name_table_end;
+db P_FE_EXE_STYLE, EXE_STYLE_SYMBOL;
+db P_FE_LINK_STYLE, LINK_REFTABLE_REQUESTED;
+db P_FE_REFTABLE_START, db reference_table;
+db P_FE_REFTABLE_END, db reference_table_end;
+db 0,0;
+//db "programsize",0, db programsize;
+//db "programstart",0, db prologue_start;
+//db "exe_style",0, db EXE_STYLE_
+//db "codestart",0, db prologue_end;
+//db "reftable_start",0, db reference_table; //also generate and include "reference_table.txt"
+//db "reftable_end",0, db reference_table_end;
+prologue_end:

@@ -1,0 +1,130 @@
+//written a long time ago
+//last updated August 13th 2015
+//string library
+//requires <zvector.txt>
+#ifndef ZSTRING_GUARD
+#define ZSTRING_GUARD
+#include <cyclone/libs/zvector.txt>
+ZSTRING_CODE:
+//--------------------
+//c2str_str: alloc 2;
+//float c2str(char C){
+//    c2str_str[0] = C;
+//    c2str_str[1] = 0;
+//    return c2str_str;
+//}
+// [string]
+// wraps [vector]
+// ---------
+// funcs:
+// void   string_constructor(self, str)   //construct a string object
+// ptr    string_c_str(self)              //pointer to the internal c string
+// void   string_clear(self)              //set to empty string
+// void   string_adds(self, *string)      //add another string object
+// void   string_addc(self, C)            //add a char.
+// void   string_addcs(self, *c_string)   //add a null-terminated c-string.
+// void   string_addn(self, N)            //add a number.
+// float  string_equals(self, *string)    //compare two string objects
+// float  string_length(self)             //how many characters are in the string
+// ???
+
+void string_constructor(void *self, char *str){
+//    P("sc 0\n");
+//    if(malloc_test()){shell_panic();}
+//    P("sc 1\n");
+    vector_constructor(self, 1);
+//    if(malloc_test()){shell_panic();}
+//    P("sc 2\n");
+    float len = strlen(str);
+//    if(malloc_test()){shell_panic();}
+//    P("sc 3\n");
+    vector_resize(self, len+1);
+//    if(malloc_test()){shell_panic();}
+//    P("sc 4\n");
+    vector_push(self,0);//S[0] = '\0'
+//    if(malloc_test()){shell_panic();}
+//    P("sc 5\n");
+    string_addcs(self, str);
+//    if(malloc_test()){shell_panic();}
+//    P("sc 6\n");
+}
+void string_destructor(void *self){
+    vector_destructor(self);
+}
+
+float string_c_str(void *self){return vector_array(self);}
+void string_clear(void *self){vector_clear(self); vector_push(self, 0);}
+void string_adds(void *self, void *str){string_addcs(self, vector_array(str));}
+void string_addc(void *self, char C){float CEOF = vector_pop(self,0);vector_push(self, C); vector_push(self, CEOF);}//{string_addcs(self, c2str(C));}
+void string_addn(void *self, float N){string_addcs(self, num2str(N));}
+void string_equals(void *self, void *str){return (strcmp(string_c_str(self), string_c_str(str))==0);}
+void string_equals_cs(void *self, char *str){return (strcmp(string_c_str(self), str)==0);}
+void string_length(void *self){return vector_size(self)-1;}
+void string_addcs(void *self, char *c_str){
+    float I = 0;
+    float C = 0;
+    float CEOF = 0;
+    string_addcs_loop:
+    C = c_str[I];
+    if(C != 0){
+        CEOF = vector_pop(self,0);
+        vector_push(self,C);
+        vector_push(self,CEOF);   
+        I++;
+        goto string_addcs_loop;
+    }    
+}
+float string_find_first_of(void *self, char C){
+    float I = 0;
+    float S = string_c_str(self);
+    float C1 = S[I];
+    while(C1 != 0){
+        if(C1 == C){return I;}
+        I++;
+        C1 = S[I];
+    }
+    return -1;
+}
+
+float string_find_last_of(void *self, char C){
+    float I = string_length(self)-1;
+    float S = string_c_str(self);
+    float C1 = S[I];
+    while(I != -1){
+        if(C1 == C){return I;}
+        I--;
+        C1 = S[I];
+    }
+    return -1;
+}
+
+float string_substr(void *self, float start1, float count){
+    float S = malloc(sizeof_vector);
+    float maxlen = string_length(self);
+    string_constructor(S,"");
+    
+    if(count < 0){count = maxlen;}
+    if(count == 0){return S;}
+    float S1 = string_c_str(self);
+    string_substr_loop:
+    string_addc(S,S1[start1]);
+    start1++;
+    count--;
+    if(count == 0){return S;}
+    goto string_substr_loop;
+//    if(end1 > maxlen){end1 = maxlen;}
+//    if(end1 == -1){end1 = maxlen;}
+//    if(end1 < start1){return S;}
+//    float S1 = string_c_str(self);
+//    string_substr_loop:
+//    string_addc(S,S1[start1]);
+//    start1++;
+//    if((end1 > start1)||(end1 == start1)){goto string_substr_loop;}
+//    return S;
+}
+
+
+ZSTRING_CONSTANTS:
+ZSTRING_VARS:
+ZSTRING_END:
+#endif

@@ -1,0 +1,378 @@
+//libdynamicstruct
+//
+// dynamic, reflective structures
+//
+#include <cyclone/libs/ds/type_entry.txt>
+#include <cyclone/libs/ds/type_info.txt>
+
+float v_ds_typeinfos;
+
+//------------------------
+//name, type, isexplicit, param1, param2, param3, subentry
+// struct type_entry
+// 0. canary/typeof
+// 1. string name
+// 2. int type
+// 3. bool isexplicit
+// 4. float param1
+// 5. float param2
+// 6. float param3
+// 7. float subentry
+
+
+//------------------------
+
+float libdynamicstruct_init(){
+    printf("init lib dynamic struct\n");
+    
+    v_ds_typeinfos = malloc(sizeof_vector);
+    vector_constructor(v_ds_typeinfos,1);
+    
+}
+
+float libdynamicstruct_initCommands(){
+    addShellCmd("libds_test", libds_test, libds_test_help); 
+}
+
+float libds_test(float argc, float argv){
+    printf("libds_test\n");
+    printf("argc = %d\n",argc);
+    float I;
+    for(I = 0; I < argc; I++){
+        printf("argv[%d] = [%s]\n",I,argv[I]);
+    }
+    
+    float filename = argv[0];
+    float f = fopen(filename,"r");
+    if(!f){
+        printf("can't open %s\n",filename);
+    }else{
+        printf("opened ok\n");
+    }
+    
+    //1: read the ds structs from file
+    ds_read_definition(f);
+    //2: try creating some of the structs
+    //3: and editing them
+    //4: save and load
+    //5: print
+    
+    
+    //---------------------
+    //1: create a simple struct
+        //1.1: create a typeinfo
+        
+    
+    
+    //2: create a struct with another struct in it
+    //3: create a struct with a c-list of things
+    //4: create a struct with a len-list of things
+    //5: create a struct with everything
+    
+    
+    printf("done\n");
+}
+libds_test_help:db "run a unit test of the dynamic struct library\n", db 0;
+
+
+float fgetfloat(float f){float byte = 0; fread(&byte,1,f); return byte;}
+
+float asslen(float f, float len){
+    float len2 = fsize(f);
+    if(len2 != len){
+        printf("file length error! length %d instead of %d\n",len2, len);
+        shell_panic();
+    }
+}
+
+//fileHandle file
+float ds_read_definition(float fileHandle){
+    //float flen = fsize(fileHandle);
+    //printf("flen = %d\n",flen);
+    printf("reading header...\n");
+    float f = fileHandle;
+    //asslen(f,flen);
+    fseek(f,1,0);
+    
+    //asslen(f,flen);
+    float ti_table = fgetfloat(f);    //position of the list of typeinfos in the file
+    //asslen(f,flen);
+    printf("ti_table @ %d\n", ti_table);
+    float ti_strings = fgetfloat(f);  //position of the stringstore in the file
+    //asslen(f,flen);
+    printf("ti_strings @ %d\n", ti_strings);
+    printf("reading ti table...\n");    
+    fseek(f,ti_table,0);  
+    float v_ti_table = malloc(sizeof_vector); //vector for typeinfo positions in the file
+    vector_constructor(v_ti_table,1);
+    
+    float stop = 0;
+    while(!stop){
+        float ti = fgetfloat(f);    //typeinfo positions
+        if(ti == 0){stop = 1;}
+        else{
+            vector_push(v_ti_table,ti);
+        }
+    }
+    
+    //asslen(f,flen);
+    printf("reading string table...\n");
+    fseek(f,ti_strings,0);    
+    float v_ti_strings = malloc(sizeof_vector); //vector for string positions in the file
+    vector_constructor(v_ti_strings,1);
+    
+    stop = 0;
+    while(!stop){
+        float s = fgetfloat(f);   //reading string position
+        if(s == 0){stop = 1;}
+        else{
+            vector_push(v_ti_strings,s);
+        } 
+    }
+
+    printf("reading stringstore...\n");   
+    float v_ti_strings_actual = malloc(sizeof_vector); //vector for actual strings
+    vector_constructor(v_ti_strings_actual,1);
+    
+    float size = vector_get_size(v_ti_strings); 
+    
+    float buff[80];
+    float I;
+    float pos;
+    for(I = 0; I < size; I++){
+        pos = vector_get(v_ti_strings,0,I); 
+        fseek(f,pos,0);
+        fread(buff,80,f);
+        
+        //float len = strlen(buff)+1;
+        //float s2 = malloc(len);
+        //memcpy(s2,buff,len);
+        float s2 = stralloc(buff);
+        vector_push(v_ti_strings_actual,s2);
+    }
+    
+    
+    //printf("Stringstore:\n");
+    //size = vector_get_size(v_ti_strings_actual);
+    //for(I = 0; I < size; I++){
+    //    float s3 = vector_get(v_ti_strings_actual,0,I);
+    //    printf("%s\n",s3);
+   // }
+    printf("reading typeinfos...\n");
+    printf("-------------------------\n");
+    size = vector_get_size(v_ti_table);
+    for(I = 0; I < size; I++){
+        pos = vector_get(v_ti_table,0,I);
+        fseek(f,pos,0);
+        //
+        // typeinfo (disk):
+        // 0 - name
+        // 1 - type
+        // 2 - num entries
+        //
+        // typeinfo (RAM):
+        // 0 - name
+        // 1 - type
+        // 2 - vector(entries)
+        
+        fread(buff,3,f);
+
+        float name = buff[0];
+        float type = buff[1];
+        float num_entries = buff[2];
+        
+        float typeinfo = type_info_new();
+
+        float typeinfo_name = vector_get(v_ti_strings_actual,0,name); //translate stringtable index to actual string-in-RAM pointer
+        
+        printf("typeinfo [%s]:\n",typeinfo_name);
+        float typeinfo_entries = malloc(sizeof_vector);
+        
+        vector_constructor(typeinfo_entries,1);
+        
+        type_info_set_name(typeinfo, typeinfo_name);
+        type_info_set_type(typeinfo, buff[1]);
+        type_info_set_entries(typeinfo, typeinfo_entries);
+        
+        float J;
+        for(J = 0; J < num_entries; J++){
+             fread(buff,sizeof_type_entry,f);
+            //struct type_entry
+            //    0: name
+            //    1: type
+            //    2: isexplicit
+            //    3: param1
+            //    4: param2
+            //    5: param3
+            //    6: subentry
+            float entry = malloc(sizeof_type_entry);
+            type_entry_copy_constructor(entry, buff);
+            float e_name = buff[0];
+            if(e_name == -1){
+                e_name = 0;
+                printf(" entry []\n");
+            }else{
+                e_name = vector_get(v_ti_strings_actual,0,e_name);
+                printf(" entry [%s]\n");
+            }
+            type_entry_set_name(entry,e_name);
+            
+            vector_push(typeinfo_entries, entry);
+        }
+        printf("end typeinfo\n\n");
+        vector_push(v_ds_typeinfos, typeinfo);
+    }
+    printf("-------------------------\n");
+    
+}
+
+
+// ds_get_typeinfo("test");
+// ds_new(type);
+// ds_set(ds, "*name", stralloc("MyAwesomeTest"));
+// ds_set(ds, "vec[0]", 5);
+// ds_set(ds, "happy.apple", stralloc("horse"));
+// ds_get(dyn, "where");
+// ds_get_ref(ds, "*arr1");
+// ds_set_index(arr, 1, 3);
+// ds_push(dyn, "boops", boop);
+// ds_print(ds);
+//
+
+float ds_get_typeinfo(float name){
+    float size = vector_get_size(v_ds_typeinfos);
+    float I;
+    for(I = 0; I < size; I++){
+        float ti = vector_get(v_ds_typeinfos,0,I);
+        float name2 = type_info_get_name(ti);
+        if(strcmp(name,name2) == 0){
+            return ti;
+        }
+    }
+    return 0;
+}
+
+//
+// dynamic struct:
+// 0. typeof dynamic_struct
+// 1. ds name
+// 2. data
+//
+//
+//
+
+#define TE_ERROR 0
+#define TE_FLOAT 1
+#define TE_STRING 2
+#define TE_CHAR 3
+#define TE_CS 4
+#define TE_DS 5
+#define TE_ARRAY 6
+#define TE_PTR 7
+#define TE_ADDR 8
+#define TE_VARIANT 9
+#define TE_SUBVARIANT 10
+#define TE_UNION 11
+#define TE_RECORD 12
+
+typeof_dynamic_struct:
+db "dynamic_struct", 0;
+
+float ds_new(float type){
+    float ti_entries = type_info_get_entries(type);
+    float numEntries = vector_get_size(ti_entries);
+    float curSize = 4+numEntries;
+    float dyn = malloc(curSize);
+        
+    dyn[0] = typeof_dynamic_struct;
+    dyn[1] = type_info_get_name(type);    
+    float dynI = 2;
+    
+    float I;
+    for(I = 0; I < numEntries; I++){
+        float entry = vector_get(ti_entries,0,I);
+        //name, type, isexplicit, param1, param2, param3, subentry
+        float e_name = type_entry_get_name(entry);
+        float e_type = type_entry_get_type(entry);
+        float e_isexplicit = type_entry_get_isexplicit(entry);
+        float e_param1 = type_entry_get_param1(entry);
+        float e_param2 = type_entry_get_param2(entry);
+        float e_param3 = type_entry_get_param3(entry);
+        float e_subentry = type_entry_get_subentry(entry);
+        
+        if(e_isexplicit){
+            if(e_type == TE_ERROR){
+                Perr("entry ");
+                if(e_name){Perr(e_name);}
+                PErr(" is broken.\n");
+                shell_panic();
+            }
+            if(e_type == TE_FLOAT){
+                Perr("new TE_FLOAT unimplemented\n");
+            }
+            if(e_type == TE_STRING){
+                Perr("new TE_STRING unimplemented\n");
+            }
+            if(e_type == TE_CHAR){
+                Perr("new TE_CHAR unimplemented\n");
+            }
+            if(e_type == TE_CS){
+                Perr("new TE_CS unimplemented\n");
+            }
+            if(e_type == TE_DS){
+                Perr("new TE_DS unimplemented\n");
+            }
+            if(e_type == TE_ARRAY){
+                Perr("new TE_ARRAY unimplemented\n");
+            }
+            if(e_type == TE_PTR){
+                Perr("new TE_PTR unimplemented\n");
+                //also implement owning/non-owning pointers?
+            }
+            if(e_type == TE_ADDR){
+                Perr("new TE_ADDR unimplemented\n");
+                //addresses should be translateable
+            }
+            if(e_type == TE_VARIANT){
+                Perr("new TE_VARIANT unimplemented\n");
+            }
+            if(e_type == TE_SUBVARIANT){
+                Perr("new TE_SUBVARIANT unimplemented\n");
+            }
+            if(e_type == TE_UNION){
+                Perr("new TE_UNION unimplemented\n");
+            }
+            if(e_type == TE_RECORD){
+                Perr("new TE_RECORD unimplemented\n");
+            }
+        }
+        
+    }
+    
+    return 0;
+}
+
+float ds_set(float dyn, float member, float value){
+    Perr("ds_set unimplemented\n");
+}
+
+float ds_get(float dyn, float member){
+    Perr("ds_get unimplemented\n");
+}
+
+float ds_get_ref(float dyn, float member){
+    Perr("ds_get_ref unimplemented\n");
+    return 0;
+}
+
+float ds_set_index(float dyn, float index, float value){
+    Perr("ds_set_index unimplemented\n");
+}
+
+float ds_push(float dyn, float member, float value){
+    Perr("ds_push unimplemented\n");
+}
+
+float ds_print(float dyn){
+    Perr("ds_print unimplemented\n");
+}

@@ -1,0 +1,93 @@
+//libsetalloc
+//
+// allows one to change the currently active allocator
+//
+
+
+float curAllocator = 0;
+float defaultAllocator[5];
+
+void setalloc_init(){
+    allocator_constructor(defaultAllocator);
+    allocator_set_malloc(defaultAllocator, zmalloc);
+    allocator_set_realloc(defaultAllocator, zrealloc);
+    allocator_set_free(defaultAllocator, zfree);
+    curAllocator = defaultAllocator;
+}
+
+void setallocator(float all){
+    curAllocator = all;
+}
+
+float malloc(float n){
+    if(curAllocator){
+        float i = curAllocator[1];
+        float m = curAllocator[2];
+        if(m){return m(n, i);}
+    }
+    return 0;
+}
+
+float realloc(float p, float n){
+    if(curAllocator){
+        float i = curAllocator[1];
+        float r = curAllocator[3];
+        if(r){return r(p,n, i);}
+    }
+    return 0;
+}
+
+float free(float p){
+    if(curAllocator){
+        float i = curAllocator[1];
+        float f = curAllocator[4];
+        if(f){return f(p, i);}
+    }
+    return 0;
+}
+
+//struct allocator
+// typeof
+// void *impl
+// void (*malloc)(int n)
+// void (*realloc)(void *p, int n)
+// void (*free)()
+//
+
+typeof_allocator: db "allocator", 0;
+float sizeof_allocator = 5;
+
+float allocator_new(){
+    float all = malloc(sizeof_allocator)
+    allocator_constructor(all);
+    return all;
+}
+
+float allocator_constructor(float all){
+    all[0] = typeof_allocator;
+    all[1] = 0;
+    all[2] = 0;
+    all[3] = 0;
+    all[4] = 0;
+}
+
+float allocator_set_impl(float all, float impl){
+    assert_arity(ecx,2);
+    assert_type(all,typeof_allocator);
+    all[1] = impl;
+}
+float allocator_set_malloc(float all, float mal){
+    assert_arity(ecx,2);
+    assert_type(all,typeof_allocator);
+    all[2] = mal;
+}
+float allocator_set_realloc(float all, float rel){
+    assert_arity(ecx,2);
+    assert_type(all,typeof_allocator);
+    all[3] = rel;
+}
+float allocator_set_free(float all, float fre){
+    assert_arity(ecx,2);
+    assert_type(all,typeof_allocator);
+    all[4] = fre;
+}

@@ -1,0 +1,36 @@
+/*
+    current executable format:
+    style 2:
+    struct exe
+    {
+    0   typeof_exe;
+    1   float exe_style;
+    2   float size;
+    3   float import_size;
+    4   float ptrimport;
+    5   float entry;
+    }
+*/
+//#define COMPILE_TIMESTAMP
+
+db __PROGRAMSIZE__;
+db PROP_FILE_EXE_EXE_STYLE, EXE_STYLE_ALLFUNC;
+db PROP_FILE_EXE_PROGRAMSIZE, __PROGRAMSIZE__;
+db PROP_FILE_EXE_PROGRAMSTART, entry;
+db PROP_FILE_EXE_ALLFUNC_SIZE, funcs-entry;
+db PROP_FILE_EXE_TIMESTAMP;
+db __DATE_SECOND__+60*(__DATE_MINUTE__+60*(__DATE_HOUR__+24*(__DATE_DAY__+31*(__DATE_MONTH__+12*__DATE_YEAR__))));
+ 
+//db programsize;
+//db 2;             //exe_style
+//db programsize;   //size;
+//db entry-funcs;   //import_size
+//db funcs;         //ptr_import
+//db entry;         //float entry
+
+//db __DATE_SECOND__+60*(__DATE_MINUTE__+60*(__DATE_HOUR__+24*(__DATE_DAY__+31*(__DATE_MONTH__+12*__DATE_YEAR__)))); //3
+//float linkfunc;
+//str2_exe: db "exe",0;
+funcs:
+#include <cyclone/generated/func_import_table.txt>
+entry:

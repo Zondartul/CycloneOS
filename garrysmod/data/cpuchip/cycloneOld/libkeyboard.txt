@@ -1,0 +1,110 @@
+//#define ptrKB 70536 or similar in master program
+
+// key table stolen from Yevano's keyboard driver.
+#define KEY_TAB       9
+#define KEY_ENTER     13
+#define KEY_UP        17
+#define KEY_DOWN      18
+#define KEY_LEFT      19
+#define KEY_RIGHT     20
+#define KEY_BACKSPACE 127
+#define KEY_INSERT    147
+#define KEY_DELETE    148
+#define KEY_HOME      149
+#define KEY_END       150
+#define KEY_PAGE_UP   151
+#define KEY_PAGE_DOWN 152
+#define KEY_SHIFT     154
+#define KEY_CTRL      158
+
+float ptrKB;
+// sets the address of the keyboard
+void setKeyboard(float ptr){
+    ptrKB = ptr;
+}
+
+// returns if a key is a printable character.
+float isPrint1(char c){
+    return (c > 31) && (c < 127);
+}
+
+// reads a single key and removes it from kb buffer.
+char readKey(){
+    char C = *(ptrKB+1);
+    *ptrKB = 0;
+    return C;
+}
+
+// tells whether or not a key is waiting to be read, but does not read it.
+float hasKey(){return *ptrKB;}
+
+// calls custom func for every key currently present in keyboard buffer.
+void readKB(void *func){
+    while(hasKey()){
+        func(readKey());
+    }
+}
+
+// waits until a key is pressed.
+char waitKey(){
+    while(!hasKey()){}
+    return readKey();
+}
+
+// returns a character the first time it is pressed,
+// then, after a delay, every repeat_time seconds
+float readKeyTimed_delay_time = 0.5;
+float readKeyTimed_repeat_time = 0.1;
+float readKeyTimed_keyState = 0; //0 - not seen yet, 1 - seen once, 2 - seen twice or more
+float readKeyTimed_lastSeen = 0; //last time this function returned a key
+float readKeyTimed_lastKey = 0;
+ char readKeyTimed(){
+    //char C = ptrKB[1];
+    float T;
+    if(ptrKB[0]){
+        char C = ptrKB[ptrKB[0]];
+        if((readKeyTimed_keyState == 0) || (C != readKeyTimed_lastKey)){
+            timer eax;
+            readKeyTimed_lastSeen = eax;
+            readKeyTimed_lastKey = C;
+            readKeyTimed_keyState = 1;
+            return C;
+        }
+        if(readKeyTimed_keyState == 1){
+            timer eax;
+            T = eax;
+            if((T - readKeyTimed_lastSeen) > readKeyTimed_delay_time){
+                readKeyTimed_lastSeen = T;
+                readKeyTimed_keyState = 2;
+                return C;
+            }
+            return 0;
+        }
+        if(readKeyTimed_keyState == 2){
+            timer eax;
+            T = eax;
+            if((T - readKeyTimed_lastSeen) > readKeyTimed_repeat_time){
+                readKeyTimed_lastSeen = T;
+                return C;
+            }
+            return 0;
+        }
+    }
+    readKeyTimed_keyState = 0;
+    return 0;
+}
+
+// Reads a single line from keyboard (until ENTER or 63 chars).
+strLinebuff: alloc 64;
+char* readline()
+{
+    char C = waitKey();
+    float P = strLineBuff;
+    while((C != KEY_ENTER) && (P < strLinebuff+63))
+    {
+        *P++ = C;
+        C = waitKey();
+    }
+    *P = 0;
+    return strLinebuff;
+}

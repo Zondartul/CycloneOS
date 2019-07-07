@@ -1,0 +1,36 @@
+//CycloneFS: File metadata
+//------------------------------------------------
+//FileMetadata
+// this object exists on disk as part of the Folder data.
+//
+//  0: size            - size of actual data in bytes
+//  1: read_allowed    - file is readable
+//  2: write_allowed   - file is writable
+//  3: execute_allowed - file is executable
+//  4: is_directory    - file is actually a folder
+//
+//------------------------------------------------
+float sizeof_fs_file_metadata = 5;
+
+void fs_file_metadata_constructor(float *self){
+    self[0] = 0; //size 0
+    self[1] = 1; //read allowed
+    self[2] = 1; //write allowed
+    self[3] = 0; //execute forbidden
+    self[4] = 0; //not a directory
+}
+//getters
+float fs_file_metadata_get_size(float *self){return self[0];}
+float fs_file_metadata_get_read_allowed(float *self){return self[1];}
+float fs_file_metadata_get_write_allowed(float *self){return self[2];}
+float fs_file_metadata_get_execute_allowed(float *self){return self[3];}
+float fs_file_metadata_get_is_directory(float *self){return self[4];}
+//setters
+void fs_file_metadata_set_size(float *self, float n){self[0] = n;}
+void fs_file_metadata_set_read_allowed(float *self, float n){self[1] = n;}
+void fs_file_metadata_set_write_allowed(float *self, float n){self[2] = n;}
+void fs_file_metadata_set_execute_allowed(float *self, float n){self[3] = n;}
+void fs_file_metadata_set_is_directory(float *self, float n){self[4] = n;}
+
+//-------------------------------------------------
+

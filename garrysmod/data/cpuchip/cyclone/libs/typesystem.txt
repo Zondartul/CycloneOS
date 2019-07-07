@@ -1,0 +1,265 @@
+//CycloneOS type system
+//
+// init_type_system()  - initialize this module
+
+// Provided functions:
+// assert_type(ptr, type) - throw an error if ptr does not point to object of given type
+// type_to_string(type) - return a c-string corresponding to type name
+// new(type,...)   - construct a new object on the heap
+// here(type,...)  - construct a new object on the stack 
+// serialize(type) - convert to a linear record for storage 
+// deserialize(type) - convert from a linear record to a valid object tree
+// -to be discussed:
+// --m(ptr,member,...) - call an object's member
+// --get(ptr,member) - return an object's member (eax or eax->stack)
+// --set(ptr,member,val) - set an object's member (val or memcpy(val))
+//
+// assert_signature(va_args,typeof,typeof,typeof...) -- ensure that a function is called correctly
+//
+//
+//
+
+// object structure:
+// 0: typeof -- typeof is an enum (constant value for each type)
+// 1+: data
+//
+// record object:
+// 0: typeof_record
+// 1: size
+// 2+: object
+// x: subobject1
+// y: sub-subobject 1.1
+// y: subobject2
+//
+//
+// typeinfo:
+//  0:typeof_typeinfo
+//    object:
+//  1:typeof(object)   -- (enum)     which object type is this structure referring to
+//  2:name             -- (cstr)     human-readible name for the type.
+//  3:sizeof           -- (float)    size(shallow) of the object.
+//                              size 0 objects are basic types (float, address, char)
+//                              size -1 objects are null-terminated arrays of one member.
+//                              size -2 objects are of calculable length
+//                              size -3 objects are of unknown length
+//                              size 1 objects contain just the typeinfo (wat)
+//                              size 2 objects contain typeinfo and 1 byte of data, and so on.
+//  4:vtable           -- (vector)      pointer to vector of member functions
+//    -- null-terminated list of member types (0:typeof is not considered a member)
+//    member1:   
+//  0:typeof(member1) 
+//  1:name
+//  2:pointerlevel     -- (float)    how many dereferences it takes to get to the actual object.
+//                              level 0 members are inserted verbatim in the body of the parent object (without typeof), but their sizeof is still as if typeof was there...
+//                              level 1 members are pointers to the object, and so on.
+//  3:typeof_member2
+//  4+:0
+
+
+//I don't remember where I put these so here
+#define TI_OTYPE 1
+#define TI_ONAME 2
+#define TI_OSIZE 3
+#define T_ENUM 1
+#define T_CSTR 2
+#define T_FLOAT 3
+#define T_VECTOR 4
+#define T_TI_M_ARR 5
+
+//---------------------------------------------
+// example: typeinfo of typeinfo
+// 0 (typeof)  : typeof_typeinfo
+//  object
+// 1 (o.typeof): typeof_typeinfo
+// 2 (o.name)  : "typeinfo"
+// 3 (o.sizeof): -2
+// 4 (o.vtable): 0 
+//  member list
+//   member1
+// 5 (m1.type) : typeof_enum
+// 6 (m1.name) : "o_typeof"
+// 7 (m1.plvl) : 0
+//   member2
+// 8 (m2.type) : typeof_cstr
+// 9 (m2.name) : "name"
+//10 (m2.plvl) : 1
+//   member3
+//11 (m3.type) : typeof_float
+//12 (m3.name) : "sizeof"
+//13 (m3.plvl) : 0
+//   member4
+//14 (m4.type) : typeof_vector
+//15 (m4.name) : "vtable"
+//16 (m4.plvl) : 1
+//   member5
+//17 (m5.type) : typeof_typeinfo_member_array
+//18 (m5.name) : "member"
+//19 (m5.plvl) : 0
+//--------
+// typeinfo of typeinfo_member_array
+// 0 (typeof)  : typeof_typeinfo
+//  object
+// 1 (o.typeof): typeof_typeinfo_member_array
+// 2 (o.name)  : 0 //= array(member1.name)
+// 3 (o.sizeof): -1
+// 4 (o.vtable): 0
+//  member1
+// 5 (m1.type) : typeof_typeinfo_member
+///6 (m1.name) : 0
+// 7 (m1.plvl) : 0
+//--------
+// typeinfo of typeinfo_member
+// 0 (typeof)  : typeof_typeinfo
+//  object
+// 1 (o.typeof): typeof_typeinfo_member
+// 2 (o.name)  : typeinfo_member
+// 3 (o.sizeof): 4
+// 4 (o.vtable): 0
+//  member list
+//   member1
+// 5 (m1.type) : typeof_enum
+// 6 (m1.name) : "type"
+// 7 (m1.plvl) : 0
+//   member2
+// 8 (m2.type) : typeof_cstr
+// 9 (m2.name) : "name"
+//10 (m2.plvl) : 1
+//   member3
+//11 (m3.type) : typeof_float
+//12 (m3.name) : "plvl"
+//13 (m3.plvl) : 0
+//-------------------------------------------
+//
+// maybe some typeinfo consruction tools?
+// nah, those can be done as constructors
+//
+//-------------------------------------------
+//
+// vtable: vector of (enum)funcname - (ptr)funcptr pairs
+//
+
+
+
+//type_table is a vector of typeinfos
+
+
+float type_table;
+
+float init_type_system(){
+    type_table = malloc(sizeof_vector);
+    vector_constructor(type_table,1);
+    
+    //typeinfo_typeinfo
+    float ti;
+    //ti = typeinfo_make_typeinfo(); type_add(ti);
+    type_add(typeinfo_make_typeinfo()); //you like to live dangerously
+}
+
+float type_add(float typeinfo){
+    assert_type(typeinfo,T_TYPEINFO);
+    float type = typeinfo[ TI_OTYPE ];
+    vector_push(type_table,type);
+    vector_push(type_table,typeinfo);
+}
+
+float typeinfo_make_typeinfo(){
+    //make a function table for type "typeinfo"
+    float vt = malloc(sizeof_vector);
+    vector_constructor(vt,1);
+    
+    vector_push(vt, VT_NEW);
+    vector_push(vt, typeinfo_new);
+    
+    vector_push(vt, VT_CONSTRUCTOR);
+    vector_push(vt, typeinfo_constructor);
+    
+    //list the class members of type "typeinfo"
+    float vmembers = malloc(sizeof_vector);
+    vector_constructor(vmembers,1);
+    
+    float member;
+    member = typeinfo_member_new(T_ENUM,"o_type",0); vector_push(vmembers,member);
+    member = typeinfo_member_new(T_CSTR,"o_name",1); vector_push(vmembers,member);
+    member = typeinfo_member_new(T_FLOAT,"o_size",0); vector_push(vmembers,member);
+    member = typeinfo_member_new(T_VECTOR,"o_vtable",1); vector_push(vmembers,member);
+    member = typeinfo_member_new(T_TI_M_ARR,"member",0); vector_push(vmembers,member);
+    
+    float ti = typeinfo_new(T_TYPEINFO, "typeinfo", -2, vt, vmembers);
+    return ti;
+}
+
+float typeinfo_member_new(float type, float name, float flag){
+    //i have no fucking clue what those params even do
+    shell_panic();
+}
+
+float typeinfo_new(float type, float name, float size, float vt, float vmembers){
+    float ti_size = TI_MEMBER;
+    float num_members = vector_get_size(vmembers);
+    ti_size = ti_size + num_members*sizeof_typeinfo_member;
+    float self = malloc(ti_size);
+    typeinfo_constructor(self,type, size, name,vt,vmembers);
+    return typeinfo;
+}
+
+//constructs a typeinfo
+// name - name of the new type
+// size - size of the new type
+// vt   - virtual table for the new type
+// vmembers - vector of typeinfo_members
+float typeinfo_constructor(float self, float type, float name, float size, float vt, float vmembers){
+    float ti_size = TI_MEMBER;
+    float num_members = vector_get_size(vmembers);
+    ti_size = ti_size + num_members*(sizeof_typeinfo_member-1);
+    
+    self[0] = T_TYPEINFO;
+    self[TI_OTYPE] = type;
+    self[TI_ONAME] = name;
+    self[TI_OSIZE] = size;//size of the type, not of typeinfo.//ti_size;
+    float I = 0;
+    for(I = 0; I < num_members; I++){
+        float member = vector_get(vmembers,0,I)+1;
+        ptr = self+TI_MEMBER + (sizeof_typeinfo_member-1)*I;
+        memcpy(ptr,member,sizeof_typeinfo_member-1);
+        //self[ptr+TI_M_TYPE-1] = member[TI_M_TYPE];
+        //self[ptr+TI_M_NAME-1] = member[TI_M_NAME];
+        //self[ptr+TI_M_PLVL-1] = member[TI_M_PLVL];
+    }
+}
+
+float assert_type(float ptr, float type){
+    if(ptr[0] != type){
+        float type_requested = type_to_string(type);
+        float type_actual = type_to_string(ptr[0]);
+        if(type_requested == -1){
+            printf("type error: invalid type %d requested for ptr %d\n",type,ptr);
+        }else{
+            printf("type error: %d is not a %s",ptr,type_requested);
+            if(type_actual != -1){
+                printf(" but a %s",type_actual);
+            }
+            printf("\n");
+        }
+        shell_panic();
+    }
+}
+
+float type_to_string(float type){
+    float typeinfo = get_typeinfo(type);
+    if(!typeinfo){return 0;}
+    else{return typeinfo[ TI_NAME ];}
+}
+
+float get_typeinfo(float type){
+    float I;
+    float size = vector_get_size(type_table);
+    for(I = 0; I < size; I++){
+        float typeinfo = vector_get(type_table,0,I);
+        if(typeinfo[ TI_OTYPE ] == type){
+            return typeinfo;
+        }
+    }
+    return 0;
+}
+
+

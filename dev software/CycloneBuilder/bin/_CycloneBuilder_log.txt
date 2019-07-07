@@ -1,0 +1,2 @@
+hello world!
+can't read main file

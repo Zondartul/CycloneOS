@@ -1,0 +1,45 @@
+//#include <cyclone/loaded/prologue.txt>
+#include <cyclone/loaded/prologue2.txt>
+#include <cyclone/generated/reference_table.txt>
+#include <cyclone/generated/func_import_table.txt>
+//#include <standalone_tiny.txt>
+//ponder - keep OS version with installed files? have Builder compute checksum of all lines.
+void main2(){ 
+    out 0,999;
+    //out 1,2;
+    //out 2,3;
+    //initHardware();
+    //out 3,AdrScreen;
+    //out 4,main;
+    //out 5,clearScreen;
+    //out 6,P;
+    //out 7,test1;
+    //test1(123);
+    //clearScreen();
+    //test2(str1);
+    //test3("P = ",P);
+    //int 2;
+    Print("I am a tiny space horse\n");
+    //float foo = funcs[0];
+    //out 5, foo;
+    //foo();
+    //out 5,linkfunc;
+    //linkfunc();
+    //PXY(0,1,"linkfunc tested");
+    //PXY(0,2,"press any key");
+    Print("press any key to continue\n");
+    
+    //out 0,AdrKB;
+    out 0,111;
+    while(!hasKey()){}
+    out 0,120;
+   // clearScreen();
+}
+
+str1: db "buy some apples",0;
+//
+//void PXY(float x, float y, float str){
+//    PrintY = y; PrintX = x;
+//    P(str);
+//}
+#include <cyclone/loaded/epilogue.txt>

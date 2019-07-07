@@ -1,0 +1,439 @@
+//sub, explode, reverse, to string, tonumber;
+#ifndef LIBSTRING_GUARD
+#define LIBSTRING_GUARD
+LIBSTRING_CODE:
+#include <cyclone/libs/zcrt/string.txt>
+#include <cyclone/libs/variadic.txt>
+//#include <stackalloc.txt>
+
+float explode(char *str, char *del)
+{
+    //persist R0;
+    float Start = str;
+    float End = str;
+    float I = 0;
+    float Count = 0;
+    float lenD = strlen(del);
+    float lenS = strlen(str);
+    float Finish = 0;
+    while(!Finish)
+    {
+        Count++;
+        End = strstr(Start, del);
+        if(End)
+        {
+        *End = 0;
+        *(Array+I) = Start;
+        I++;
+        Start = End+lenD;
+        if((I>13)|(Start>(str+lenS))){Finish = 1;}   
+        }else{Finish = 1}
+    }
+    Array[I] = Start; I++;
+    Array[I] = 0;
+    return Array;
+}
+
+
+float str2num(char* str)
+{
+    // -1243.0423
+    // 0b1010101011
+    // 0o1702403715
+    // 0xFF0035EA12
+    float End = 0;
+    float I = 0;
+    float Num = 0;
+    float Minus = 0;
+    float Frac = 0;
+    float N = 0;
+    float Base = 10;
+    float C = str[I];
+    if(C == 0){return 0;}
+    else
+    {
+        if(C == '-'){Minus = 1;}
+        if(C == '0')
+        {
+            if(str[I+1]=='b'){Base = 2;I+=2;}
+            if(str[I+1]=='o'){Base = 8;I+=2;}
+            if(str[I+1]=='x'){Base = 16;I+=2;}
+            
+        }
+    }
+    while(!End)
+    {
+        C = str[I++];
+        if(C == 0){End = 1;}else
+        {
+         if(C == '.'){End = 1; Frac = 1;}
+         else
+         {
+            N = 0;
+            if(C == '0'){N=0;}
+            if(C == '1'){N=1;}
+            if(C == '2'){N=2;}
+            if(C == '3'){N=3;}
+            if(C == '4'){N=4;}
+            if(C == '5'){N=5;}
+            if(C == '6'){N=6;}
+            if(C == '7'){N=7;}
+            if(C == '8'){N=8;}
+            if(C == '9'){N=9;}
+            if(C == 'A'){N=10;}
+            if(C == 'B'){N=11;}
+            if(C == 'C'){N=12;}
+            if(C == 'D'){N=13;}
+            if(C == 'E'){N=14;}
+            if(C == 'F'){N=15;}
+            Num = Num*Base+N;
+         }
+        }
+    }
+    if(Frac==1)
+    {
+     End = 0;
+     while(!End)
+     {
+        C = str[I++];
+        if(C == 0){End = 1;}else
+        {
+            N = 0;
+            if(C == '0'){N=0;}
+            if(C == '1'){N=1;}
+            if(C == '2'){N=2;}
+            if(C == '3'){N=3;}
+            if(C == '4'){N=4;}
+            if(C == '5'){N=5;}
+            if(C == '6'){N=6;}
+            if(C == '7'){N=7;}
+            if(C == '8'){N=8;}
+            if(C == '9'){N=9;}
+            if(C == 'A'){N=10;}
+            if(C == 'B'){N=11;}
+            if(C == 'C'){N=12;}
+            if(C == 'D'){N=13;}
+            if(C == 'E'){N=14;}
+            if(C == 'F'){N=15;}
+            Num = Num*Base+N;
+            Frac++;
+        }
+     }
+    }
+    if(Frac){Num /=(Base^^(Frac-1));}
+    if(Minus){Num = -Num;}
+    return Num;
+}
+
+float getNdigit(float num, float digit, float Base)
+{
+   preserve eax, edx;
+   eax = Nlog(num, Base);
+   fint eax;
+   inc eax;
+   sub eax, digit;
+   mov edx, Base;
+   fpwr edx, eax;
+   mov eax, num;
+   div eax, edx;
+   fint eax;
+   mod eax, Base;
+   return eax;
+}
+
+void num2strSet(float base, float precision)
+{
+    Nbase = base;
+    Nprec = precision;
+    out 5, Nbase;
+}
+
+
+
+//  1  0  0  0  0  0
+//  5  4  3  2  1  0
+//  32 16 8  4  2  1
+
+//  F  F
+//  1  0
+//  16 1
+char num2str(float num)
+{
+    preserve eax;
+    float NI = 0;
+    float End =0;
+    float NM = num;
+    float Base = 10;
+    float Prec = 3;
+    //mov eax, Nbase; mov eax, #eax;
+    //Base = eax;
+    Base = Nbase;
+    out 1, Base;
+    //mov eax, Nprec; mov eax, #eax;
+    //Prec = eax;
+    Prec = Nprec 
+    out 2, Prec;  
+    //float Base = *Nbase;
+    //float Prec = *Nprec;
+    if(NM<0){NM = -NM; Nstack[NI++] = '-';}
+    if(Base == 2){Nstack[NI++] = '0';Nstack[NI++] = 'b'}
+    if(Base == 8){Nstack[NI++] = '0';Nstack[NI++] = 'o'}
+    if(Base == 16){Nstack[NI++] = '0';Nstack[NI++] = 'x'}
+    if(NM<1){Nstack[NI++] = '0';}
+    eax = Nlog(NM, Base);
+    //frnd eax;
+    out 3, eax;
+    float Len = eax+1;
+    float N;
+    float C;
+    float I = 0;
+    for(I = 1;I<=Len;I++)
+    {
+        C = 'F';
+        N = getNdigit(NM, I, Base);
+        if(N==0){C='0';}
+        if(N==1){C='1';}
+        if(N==2){C='2';}
+        if(N==3){C='3';}
+        if(N==4){C='4';}
+        if(N==5){C='5';}
+        if(N==6){C='6';}
+        if(N==7){C='7';}
+        if(N==8){C='8';}
+        if(N==9){C='9';}
+        if(N==10){C='A';}
+        if(N==11){C='B';}
+        if(N==12){C='C';}
+        if(N==13){C='D';}
+        if(N==14){C='E';}
+        if(N==15){C='F';}
+        Nstack[NI++] = C;
+    }
+    mov eax, NM; FFRAC eax;
+    if((eax>0)&&(Prec>0))
+    {
+        float K = 0;
+        Nstack[NI++] = '.';
+        for(K = I;K<I+Prec;K++)
+        {
+        C = 'F';
+        N = getNdigit(NM, K, Base);
+        if(N==0){C='0';}
+        if(N==1){C='1';}
+        if(N==2){C='2';}
+        if(N==3){C='3';}
+        if(N==4){C='4';}
+        if(N==5){C='5';}
+        if(N==6){C='6';}
+        if(N==7){C='7';}
+        if(N==8){C='8';}
+        if(N==9){C='9';}
+        if(N==10){C='A';}
+        if(N==11){C='B';}
+        if(N==12){C='C';}
+        if(N==13){C='D';}
+        if(N==14){C='E';}
+        if(N==15){C='F';}
+        Nstack[NI++] = C;
+        }
+    }
+    Nstack[NI] = 0;
+    //len = strlen(Nstack);
+    return Nstack;
+    //stack_return(Nstack, len+1, 1);
+}
+float Nlog(float A, float B)     {preserve eax, edx, ecx, ebx;mov eax, A; mov ebx, B; FLN edx, eax; FLN ecx, ebx; div edx, ecx; return edx;}
+
+float isPrint(char C){return (31<C)&&(C<127);}
+float isNum(char C){return (47<C)&&(C<58);}
+float isAlpha(char C){return ((64<C)&&(C<91))||((96<C)&&(C<123))}
+float toLower(char C){if((64<C)&&(C<91)){return C+32;}else{return C;}}
+float toUpper(char C){if((96<C)&&(C<123)){return C-32;}else{return C;}}
+
+float Con(char* str1, char* str2, char* str3, char* str4, char* str5)
+{
+    float I = 0;
+    float I2 = 0;
+    float C = str1[I++];
+    while((C>0)&(I2<256))
+    {
+        Constr[I2++] = C;
+        C = str1[I++];
+    }
+    I = 0;C = str2[I++];
+    while((C>0)&(I2<256))
+    {
+        Constr[I2++] = C;
+        C = str2[I++];
+    }
+    I = 0;C = str3[I++];
+    while((C>0)&(I2<256))
+    {
+        Constr[I2++] = C;
+        C = str3[I++];
+    }
+    I = 0;C = str4[I++];
+    while((C>0)&(I2<256))
+    {
+        Constr[I2++] = C;
+        C = str4[I++];
+    }
+    I = 0;C = str5[I++];
+    while((C>0)&(I2<256))
+    {
+        Constr[I2++] = C;
+        C = str5[I++];
+    }
+    Constr[I2] = 0;
+    return Constr;
+}
+
+
+float concat(){ //VARIADIC
+    float n = ecx;
+    float I = 0;
+    float va = va_start_0();
+    float len = 0;
+    //1 determine the length of strings provided
+    while(I < n){
+        float str = va_next(&va);
+        float J = 0;
+        float C = str[J++];
+        while(C){
+            len++;
+            C = str[J++];
+        }
+        I++;
+    }
+    //2 allocate the memory for a new string on the stack
+    float newstr = stack_alloc(len+1);
+    //float newstr = malloc(len+1);//stack_alloc(len+1);
+    //3 copy strings to the new string
+    I = 0;
+    va = va_start_0();
+    float J2 = 0;
+    while(I < n){
+        str = va_next(&va);
+        J = 0;
+        C = str[J++];
+        while(C){
+            newstr[J2++] = C;
+            C = str[J++];
+        }
+        I++;
+    }
+    newstr[J2] = 0;
+    //4 return the resulting string by value
+    //return 0;
+    //return newstr;
+    return stack_return(newstr,len+1,n);
+}
+
+float c2str(char C){
+    if(C == '\n'){
+        stack_return(c2str_n,3,1);
+    }
+    if(C == 0){
+        stack_return(c2str_0,3,1);
+    }
+    c2str_str[0] = C;
+    c2str_str[1] = 0;
+    stack_return(c2str_str,2,1);   
+}
+
+float unescapeStr(float str){
+    //printf("unescapeStr:\n");
+    float len1 = strlen(str)+1;
+    float str2 = malloc(len1);//cstr_stack_copy(str);
+    float I = 0;
+    float ptr = str;
+    float ptr2 = str2;
+    while(1){
+        float C = *ptr++;
+        float C2= *ptr;
+        //printf("chars [%c][%c]:",C,C2);
+        if(C == 0){
+         //   printf("end\n");
+            break;
+        }
+        if(C == 92){// == '\\'){
+            if(C2 == 0){continue;}
+            if(C2 == 'n'){*ptr2++ = '\n';}
+            if(C2 == '0'){*ptr2++ = 0;}
+            if(C2 == 'r'){*ptr2++ = '\r';}
+            if(C2 == 'b'){*ptr2++ = '\b';}
+            if(C2 == 'f'){*ptr2++ = '\f';}   
+            ptr++;
+        }else{
+     //       printf("*\n"); 
+            *ptr2++ = C; 
+        }
+    }
+    *ptr2 = 0;
+    //printf("string [%s] unescaped to [%s]\n",str,str2);
+    //stack_return(str2,I,1);
+    return str2;
+}
+
+float cstr_find_first_of(char *S, char C){
+    float I = 0;
+    float C1 = S[I];
+    while(C1 != 0){
+        if(C1 == C){return I;}
+        I++;
+        C1 = S[I];
+    }
+    return -1;
+}
+
+float cstr_find_last_of(char *S, char C){
+    float I = strlen(S)-1;
+    float C1 = S[I];
+    while(I != -1){
+        if(C1 == C){return I;}
+        I--;
+        C1 = S[I];
+    }
+    return -1;
+}
+
+//makes a local copy of the object on the stack.
+float stack_copy(float ptr, float size){
+    return stack_return(ptr,size,2);
+}
+
+//makes a local copy of a string on the stack.
+char *cstr_stack_copy(char *str){
+    float len = strlen(str);
+    return stack_return(str,len+1,1);
+}
+
+float isspace(float C){
+    if(C == ' '){return 1;}
+    if(C == '\t'){return 1;}
+    if(C == '\n'){return 1;}
+    if(C == '\v'){return 1;}
+    if(C == '\f'){return 1;}
+    if(C == '\r'){return 1;}
+    return 0;
+}
+
+float stralloc(float S){
+    float len = strlen(S)+1;
+    float S2 = malloc(len);
+    memcpy(S2,S,len);
+    return S2;
+}
+
+LIBSTRING_CONSTANTS:
+c2str_n: db '\\'; db 'n'; db 0;
+c2str_0: db '\\'; db '0'; db 0;
+LIBSTRING_VARS:
+c2str_str:alloc 2;
+Constr:alloc 256
+float Nbase = 10;//Nbase:db 10;
+float Nprec = 3;//Nprec:db 3;
+Nstack:alloc 16;
+Array:alloc 16
+LIBSTRING_END:
+#endif

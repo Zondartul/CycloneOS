@@ -1,0 +1,486 @@
+//lightfs2 -alternative
+
+float files = 0;
+float filenames = 0;
+str_backslash:
+db "/",0;
+void filesystem_init(){
+    //P("fs init\n");
+    current_path = str_backslash;
+    files = malloc(100);
+    if(!files){P("can't init fs (1)!\n");return;}
+    filenames = malloc(100);
+    if(!filenames){P("can't init fs (2)!\n");return;}
+    float I;
+    for(I = 0; I < 100; I++){
+        files[I] = 0;
+    }
+}
+
+float find_file(char *filename){
+    //P("find file [");P(filename);P("]\n");
+    float I;
+    for(I = 0; I < 100; I++){
+        if(files[I]){
+            float str = filenames[I];
+            float compare = strcmp(str,filename);
+            //P("str = ");P(str);P("\n");
+            //P2("compare = ",compare,"\n");
+            if(compare == 0){
+                return I;
+            }
+        }
+    }
+    return -1;
+}
+
+float find_free(){
+    float I;
+    for(I = 0; I < 100; I++){
+        if(!files[I]){
+            return I;
+        }
+    }
+    return -1;
+}
+
+float fopen(char *filename, char *mode){
+    filename = filepath_abs(filename);
+    //P("fopen [");P(filename);P("]\n");
+    float write = 0;
+    float read = 0;
+    float keepdata = 0;
+    float from = 0;
+    float newfile = 0;
+    translate_fopen_mode(mode, &read, &write, &keepdata, &from, &newfile);
+    //P2("write = ",write,"\n");
+    //P2("read = ",read,"\n");
+    //P2("keep = ",keepdata,"\n");
+    //P2("from = ",from,"\n");
+    //P2("newfile = ",newfile,"\n");
+    float f_index = find_file(filename);
+    //P2("f_index = ",f_index,"\n");
+    float body = 0;
+    if(f_index==-1){
+        if(newfile){
+            f_index = find_free();
+            //P2("free = ",f_index,"\n");
+            if(f_index==-1){return -1;}
+            body = malloc(sizeof_vector);
+            files[f_index] = body;
+            vector_constructor(body,1);
+            float len = strlen(filename);
+            float filename_str = malloc(len+1);
+            strcpy(filename_str,filename);
+            filenames[f_index] = filename_str;
+        }else{
+            return -1;
+        }
+    }
+    body = files[f_index];
+    if(!keepdata){
+        vector_clear(body);
+    }
+    float size = vector_get_size(body);
+    float fp = malloc(sizeof_file_handle);
+    file_handle_constructor(fp);
+    file_handle_set_imp(fp,body);
+    if(from){
+        file_handle_set_rw_ptr(fp,size);
+    }
+    return fp;   
+}
+
+//fwrite: writes <size> bytes from <from> to <fp>
+//byte *from
+//int size
+//fileHandle *fp
+float fwrite(float *from, float size, float *fp){
+    //P("fwrite\n");
+    if(!fp){return 0;}
+    float body = file_handle_get_imp(fp);
+    //P2("body = ",body,"\n");
+    float idx = file_handle_get_rw_ptr(fp);
+    //P2("size = ",size,"\n");
+    
+    
+    //while(size--){
+    //    //P2("idx = ",idx,"\n");
+    //    vector_set(body,*from,idx);
+    //    idx++;
+    //    from++;
+    //}
+    float curcapacity = vector_get_capacity(body);
+    
+    float cursize = vector_get_size(body);
+    float newsize = idx+size;
+    
+    if(newsize > curcapacity){
+        float newcapacity = newsize*1.5;
+        vector_resize(body,newcapacity);
+    }
+    
+    if(newsize > cursize){
+        vector_set_size(body,newsize);
+    }
+    
+    float arr = vector_get_array(body);
+    float ptr = arr;
+    ptr += idx;
+    mov esi,from;
+    mov edi,ptr;
+    mcopy size;
+    
+    //printf("fwrite(%d,%d,%d)\n",from,size,fp);
+    //printf("body %d\n",body);
+    //printf("idx %d\n",idx);
+    //printf("cursize %d\n",cursize);
+    //printf("newsize %d\n",newsize);
+    //printf("newsize2 %d\n",newsize2);
+    //printf("arr %d\n", arr);
+    //printf("ptr %d\n",ptr);
+    ptr += size;
+    ptr -= arr;
+    //printf("ptrf %d\n",ptr);
+    
+    file_handle_set_rw_ptr(fp,ptr);
+    //shell_panic();
+    return 1;
+}
+
+//resizes the file to a given size (for faster writes)
+float fresize(float size, float *fp){
+    if(!fp){return 0;}
+    float body = file_handle_get_imp(fp);
+    vector_resize(body,size);
+    return 1;
+}
+
+//read <size> bytes to buffer <to> from <fp>.
+//returns 1 if read sucessful, 0 otherwise (EOF reached before size.)
+float fread(float *to, float size, float *fp){
+    //P("fread\n");
+    if(!fp){return 0;}
+    float body = file_handle_get_imp(fp);
+    float idx = file_handle_get_rw_ptr(fp);
+    float end = vector_get_size(body);
+    float arr = vector_get_array(body);
+    
+    if(size > end){return 0;}
+    float ptr = arr;
+    ptr += idx;
+    mov esi,ptr;
+    mov edi,to;
+    mcopy size;
+    
+    /* alright this is some slow-ass bullshit
+    while(size--){
+        if(idx == end){return 0;}
+        else{
+            float C = vector_get(body,0,idx);
+            *to = C;
+            idx++;
+            to++;
+        }
+    }
+    */
+     
+    
+    
+    //file_handle_set_rw_ptr(fp,idx);
+    ptr += size;
+    ptr -= arr;
+    file_handle_set_rw_ptr(fp,ptr);
+    return 1;
+}
+
+void frename(float name1, float name2){
+    name1 = filepath_abs(name1);
+    name2 = filepath_abs(name2);
+    float file1_index = find_file(name1);
+    float file2_index = find_file(name2);
+    if(file2_index != -1){printf("file still exists: [%s]\n",name2); return;}
+    if(file1_index == -1){printf("no such file: [%s]\n",name1); return;}
+    free(filenames[file1_index]);
+    filenames[file1_index] = str_alloc(name2);
+}
+
+float fgetstring(float *fp, float *str, float num){
+    if(!fp){return 0;}
+    if(num<2){return 0;}
+    float body = file_handle_get_imp(fp);
+    float idx = file_handle_get_rw_ptr(fp);
+    float end = vector_get_size(body);
+    if(idx >= end){return 0;}
+    float ptr = vector_get_array(body);
+    float len = 0;
+    float nread = 0;
+    float strptr = str;
+    fgetsloop:
+        float C = ptr[idx];
+        float previdx = idx;
+        idx++;
+        nread++;
+        if(C == 0){goto fgets_end;}
+        if(previdx == end){goto fgets_end;}
+        if(C == 10){goto fgets_end;}
+        if(nread == num){goto fgets_end;}
+        *strptr++ = C;
+        goto fgetsloop;
+    fgets_end:
+    *strptr = 0;
+    file_handle_set_rw_ptr(fp,idx);
+    return str;
+}
+
+float feof(float fp){
+    if(!fp){return 1;}
+    float body = file_handle_get_imp(fp);
+    float idx = file_handle_get_rw_ptr(fp);
+    float end = vector_get_size(body);
+    if(idx == end){return 1;}
+    else{return 0;}
+}
+
+float fsize(float fp){
+    if(!fp){return 1;}
+    float body = file_handle_get_imp(fp);
+    float end = vector_get_size(body);
+    return end;
+}
+
+//set the read-write pointer to <offs>.
+//<origin> = 0: offset relative to beginning of file.
+//<origin> = 1: offset relative to end of file.
+void fseek(float fp, float offs, float origin){
+    if(!fp){return;}
+    if(!origin){
+        file_handle_set_rw_ptr(fp,offs);
+    }else{
+        float size = fsize(fp);
+        file_handle_set_rw_ptr(fp,size+offs);
+    }
+}
+
+//return the current read-write pointer relative to beginning of file.
+float ftell(float fp){
+    if(!fp){return -1;}
+    return file_handle_get_rw_ptr(fp);
+}
+
+float flist(char *filepath){//ignoring path
+    float I;
+    float V = malloc(sizeof_vector);
+    vector_constructor(V,1);
+    float fplen = strlen(filepath);
+    for(I = 0; I < 100; I++){
+        if(files[I]){
+            float str = filenames[I];
+            if(strncmp(filepath,str,fplen)==0){
+                vector_push(V,str);
+            }
+        }
+    }
+    return V;
+}
+
+void fdelete(char *filepath){
+    filepath = filepath_abs(filepath);
+    float idx = find_file(filepath);
+    if(idx == -1){printf("no such file: [%s]\n",filepath); return;}
+    float body = files[idx];
+    vector_clear(body);
+    free(body);
+    files[idx] = 0;
+    float str = filenames[idx];
+    free(str);
+    filenames[idx] = 0;
+}
+
+float vector_get_linear_size(float V){
+    float size = vector_get_size(V);
+    return size+sizeof_vector;
+}
+//creates a new, linearized vector at pos
+float vector_move(float *V, float *newpos){
+    //P("vm 1\n");    
+    float size = vector_get_size(V);
+    //P("vm 2\n");    
+    float dat = vector_get_array(V);  
+    //P("vm 3\n");     
+    memcpy(newpos,V,sizeof_vector);
+    //P("vm 4\n");    
+    //free(V);
+    //P("vm 5\n");    
+    V = newpos;
+    //P("vm 6\n");    
+    newpos = newpos+sizeof_vector;
+    //P("vm 7\n");    
+    memcpy(newpos,dat,size);
+    //P("vm 8\n");    
+    vector_set_capacity(V,size);
+    //P("vm 9\n");    
+    vector_set_array(V,newpos);
+    //P("vm 10\n");    
+    //free(dat);
+    //P("vm 12\n");    
+    return V;
+}
+float vector_linearize(float V){
+    float size = vector_get_linear_size(V);
+    float newpos = malloc(size);
+    vector_move(V,newpos);
+    return newpos;
+}
+float vector_delinearize(float V){
+    //P("vd 1\n");
+    float newV = malloc(sizeof_vector);
+    //P("vd 2\n");
+    memcpy(newV,V,sizeof_vector);
+    //P("vd 3\n");
+    V = newV;
+    float size = vector_get_size(V);
+    //P("vd 4\n");
+    float dat = vector_get_array(V);
+    //P("vd 5\n");
+    float newdat = malloc(size);
+    //P("vd 6\n");
+    memcpy(newdat,dat,size);
+    //P("vd 7\n");
+    vector_set_array(V,newdat);
+    //P("vd 8\n");
+    return V;   
+}
+
+float filesystem_get_size(){
+    float size = 200;
+    float I =0;
+    for(I = 0; I < 100; I++){
+        if(files[I]){
+            size = size+vector_get_linear_size(files[I]);
+            size = size+strlen(filenames[I])+1;
+        }
+    }
+    return size;
+}
+
+//incremental copy (increments ptr by the size copied)
+float inc_cpy(float *ptr, float from, float size){
+    memcpy(*ptr,from,size);
+    *ptr = *ptr+size;
+}
+
+float inc_move(float *ptr, float *from, float size){
+    float oldptr = *ptr;
+    inc_cpy(ptr,*from,size);
+    //free(*from);
+    *from = oldptr;
+}
+
+float filesystem_move(float newpos){
+    //P("fm 1\n");
+    float ptr = newpos;
+    float oldfiles = files;
+    float oldfilenames = filenames;
+    //P("fm 2\n");
+    inc_move(&ptr,&files,100);
+    //P("fm 3\n");
+    inc_move(&ptr,&filenames,100);
+    //P("fm 4\n");
+    float I;
+    //P("fm 5\n");
+    for(I = 0; I < 100; I++){
+    //P("fm 6\n");
+        if(files[I]){
+    //P("fm 7\n");
+            float V = files[I];
+    //P("fm 8\n");
+            float size = vector_get_linear_size(V);
+    //P("fm 9\n");
+            V = vector_move(V,ptr);
+    //P("fm 10\n");
+            files[I] = V;
+    //P("fm 11\n");
+            ptr = ptr+size;
+    //P("fm 12\n");
+            V = filenames[I];
+            //P2("filename ",I,":\n");
+            //P("[");P(filenames[I]);P("]\n");
+    //P("fm 13\n");
+            size = strlen(V)+1;
+    //P("fm 14\n");
+            filenames[I] = ptr;
+    //P("fm 15\n");
+            inc_cpy(&ptr,V,size);
+            //P("after moving:\n");
+            //P("[");P(filenames[I]);P("]\n");
+    //P("fm 16\n");
+        }
+    //P("fm 17\n");
+    }
+    //P("fm 18\n");
+    files = oldfiles;
+    filenames = oldfilenames;
+}
+
+void filesystem_write(float disk){
+    //P("fw 1\n");
+    strcpy(disk,"lightfs2");
+    //P("fw 2\n");
+    disk = disk + strlen("lightfs2")+1;
+    //P("fw 3\n");
+    float size = filesystem_get_size();
+    //P("fw 4\n");
+    *disk = size;
+    disk++;
+    //P("fw 5\n");
+    filesystem_move(disk);
+    //P("fw 6\n");
+}
+
+float str_delinearize(float str){
+    float size = strlen(str);
+    float newstr = malloc(size+1);
+    strcpy(newstr,str);
+    return newstr;
+}
+
+void filesystem_read(float disk){
+    //PrintStringXY(0,6,"oh fuck");
+    //P("fr 1\n");
+    if(strcmp(disk,"lightfs2")){
+        Print("Error: not a lightfs2 disk\n",900);
+        return;
+    }
+    disk = disk+strlen("lightfs2")+1;
+    //P("fr 2\n");
+    float fssize = *disk;
+    disk++;
+    memcpy(files,disk,100);
+    //files = disk;
+    disk = disk+100;
+    memcpy(filenames,disk,100);
+    //filenames = disk;
+    disk = disk+100;
+    //P("fr 3\n");
+    float I;
+    for(I = 0; I < 100; I++){
+    //P("fr 4\n");
+        float V = files[I];
+        if(V){
+    //P("fr 5\n");
+            //this check will be broken if location of typeof_vector changes within kernel
+            //assert_type(V,typeof_vector);
+            V[0] = typeof_vector;
+    //P("fr 5.5\n");
+            files[I] = vector_delinearize(V); //this is needed for mem to be free-able.
+    //P("fr 6\n");
+            V = filenames[I];
+    //P("fr 7\n");
+            filenames[I] = str_delinearize(V);
+    //P("fr 8\n");
+        }
+    //P("fr 9\n");
+    }
+    //P("fr 10\n");
+}

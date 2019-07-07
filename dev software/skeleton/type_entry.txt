@@ -1,0 +1,78 @@
+#ifndef type_entry_GUARD
+#define type_entry_GUARD
+
+//generated using:
+//skeleton.exe type_entry name type isexplicit param1 param2 param3 subentry 
+
+//struct type_entry
+//    0: name
+//    1: type
+//    2: isexplicit
+//    3: param1
+//    4: param2
+//    5: param3
+//    6: subentry
+//
+
+float sizeof_type_entry(){return 7};
+
+//default constructor
+void type_entry_constructor(float this){
+    this[0] = 0;
+    this[1] = 0;
+    this[2] = 0;
+    this[3] = 0;
+    this[4] = 0;
+    this[5] = 0;
+    this[6] = 0;
+}
+
+//copy constructor
+void type_entry_copy_constructor(float this, float that){
+    this[0] = that[0];
+    this[1] = that[1];
+    this[2] = that[2];
+    this[3] = that[3];
+    this[4] = that[4];
+    this[5] = that[5];
+    this[6] = that[6];
+}
+
+//default destructor
+void type_entry_destructor(float this){
+    //add your code here
+}
+
+//equivalent to "new type_entry"
+float type_entry_new(){
+    float size = sizeof_type_entry();
+    float p = malloc(size);
+    type_entry_constructor(p);
+    return p;
+}
+
+//equivalent to "delete type_entry"
+void type_entry_delete(float this){
+    type_entry_destructor(this);
+    free(this);
+}
+
+//getters
+float type_entry_get_name(float this){return this[0];}
+float type_entry_get_type(float this){return this[1];}
+float type_entry_get_isexplicit(float this){return this[2];}
+float type_entry_get_param1(float this){return this[3];}
+float type_entry_get_param2(float this){return this[4];}
+float type_entry_get_param3(float this){return this[5];}
+float type_entry_get_subentry(float this){return this[6];}
+
+//setters
+void type_entry_set_name(float this, float N){this[0] = N;}
+void type_entry_set_type(float this, float N){this[1] = N;}
+void type_entry_set_isexplicit(float this, float N){this[2] = N;}
+void type_entry_set_param1(float this, float N){this[3] = N;}
+void type_entry_set_param2(float this, float N){this[4] = N;}
+void type_entry_set_param3(float this, float N){this[5] = N;}
+void type_entry_set_subentry(float this, float N){this[6] = N;}
+
+#endif

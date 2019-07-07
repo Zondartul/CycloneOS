@@ -1,0 +1,72 @@
+//executable properties and info
+
+
+
+void printProginfo(float proginfo){
+    //assert_type(proginfo,typeof_proginfo);
+    //float ptr   = proginfo[1];
+    //float name  = proginfo[2];
+    //float entry = proginfo[3];
+    //printf("program [%s]\n",name);
+    //printf("code  @ %d\n",ptr);
+    //printf("entry @ %d\n",entry);
+    printf("p1\n");
+    float name = mget(proginfo,"name");
+    printf("p2\n");
+    float codestore = mget(proginfo, "codestore");
+    printf("p3\n");
+    float codeptr = mget(codestore,"codeptr");
+    printf("p4\n");
+    float codearr = vector_get_array(codeptr);
+    printf("p1\n");
+    printf("program [%s]\n",name);
+    printf("code @ %d\n",codearr);
+    
+}
+
+
+float make_proginfo(float ptr, float name, float entry){
+    printf("make_proginfo(%d, %s, %d)\n",ptr,name,entry);
+    float proginfo = malloc(sizeof_proginfo);
+    proginfo[0] = typeof_proginfo;
+    proginfo[1] = ptr;
+    proginfo[2] = str_alloc(name);
+    proginfo[3] = entry;
+//    proginfo[4] = getPageTable(); //=vector, and applyPageTable(v) and makePageTable().
+    return proginfo;
+}
+
+
+float getTableEntry(float table, float entry, float *val){
+    float ptr = table;
+    float found = 0;
+    while(*ptr){
+        if(ptr[0] == entry){
+            *val = ptr[1];
+            found = 1;
+        }
+        ptr+=2;
+    }
+    return found;
+}
+
+//struct tableEntry{
+//  EnumProperty name;
+//         float val;
+//}
+//
+//typedef propertyTable null_term_array[tableEntry]
+
+//a property table is a null-terminated array of property-value pairs
+//where a property is a number between 6M and 7M as defined in <cyclone/defines.txt>
+float isPropertyTable(float table){
+    float I = 0;
+    while(*table){
+        //printf("table %d = %d\n",I,table[0]);
+        if(table[0] < 6000000){return 0;}
+        if(table[0]>= 7000000){return 0;}
+        table += 2;
+        I += 2;
+    }
+    return 1;
+}

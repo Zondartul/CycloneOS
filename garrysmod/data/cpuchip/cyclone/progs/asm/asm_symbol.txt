@@ -1,0 +1,122 @@
+
+//struct symbol
+//0: typeof_symbol
+//1: string name
+//2: absolute definition address (calculated after library is found)
+//3: reference addresses (vector)
+//4: reference type (external, internal, stack, param)
+//5: library to link to
+//6: library definition address 
+
+float asm_symTable;
+
+void initSymbolTable(){
+    //printf("init symbol table\n");
+    asm_symTable = malloc(sizeof_vector);
+    vector_constructor(asm_symTable,1);
+}
+
+void addSymbolDef(float str){
+    float sym = findSymbol(str);
+    float symaddr = cur_address;
+    if(!sym){    
+        sym = malloc(4);
+        sym[0] = typeof_symbol;
+        sym[1] = str_alloc(str);
+        sym[2] = symaddr;
+        sym[3] = 0;
+        vector_push(asm_symTable,sym);
+       // printf("added new sym def:\n%s @ %d\n",str,symaddr);
+    }else{
+        //printf("sym before:\n");
+        //printSymbol(sym);
+        if(sym[2] != -1){Perr("symbol ");Perr(str);Perr(" already defined\n"); shell_panic();}
+        sym[2] = cur_address;
+        //printf("added def to existing sym:\n%s @ %d\n",str,symaddr);
+    }
+    //printf("sym after:\n");
+    //printSymbol(sym);
+}
+
+void addSymbolRef(float str, float offs){
+    float sym = findSymbol(str);
+    float reftable = 0;
+    float sym_addr = cur_address+offs;
+    if(!sym){
+        //printf("making new symbol [%s] as ref\n",str);
+        sym = malloc(4);
+        sym[0] = typeof_symbol;
+        sym[1] = str_alloc(str);
+        sym[2] = -1;
+        reftable = malloc(sizeof_vector);
+        vector_constructor(reftable,1);
+        sym[3] = reftable;
+        vector_push(asm_symTable,sym);
+        
+    }else{
+        //printf("adding ref to existing symbol [%s]\n",str);
+        //printf("sym before:\n");
+        //printSymbol(sym);
+        assert_type(sym,typeof_symbol);
+        reftable = sym[3];
+        if(!reftable){
+            reftable = malloc(sizeof_vector);
+            vector_constructor(reftable,1);
+            sym[3] = reftable;
+        }
+    }
+    assert_type(reftable,typeof_vector);
+    vector_push(reftable, sym_addr);
+    //emit(UNLINKED_SYMBOL); nope, have each procedure do that
+    //in case of multi-byte instructions (i.e. most of them)
+    //printf("added symbol ref:\n%s @ %d\n",str, sym_addr);
+    
+    //printf("sym after:\n");
+    //printSymbol(sym);
+}
+
+float findSymbol(float str){
+    float I = 0;
+    float size = vector_get_size(asm_symTable);
+    for(I = 0; I < size; I++){
+        float sym = vector_get(asm_symTable,0,I);
+        assert_type(sym,typeof_symbol);
+        float str2 = sym[1];
+        if(strcmp(str,str2)==0){
+            //printf("symbol found: %s\n",str);
+            return sym;
+        }
+    }
+    //printf("symbol not found: %s\n",str);
+    return 0;
+}
+
+void printSymbol(float sym){
+    assert_type(sym,typeof_symbol);
+    float name = sym[1];
+    float def = sym[2];
+    float refs = sym[3];
+    printf("symbol [%s]\n",name);
+    if(def != -1){printf(" defined: %d\n",def);}
+    else{printf(" no def\n");}
+    if(refs){
+        float n = vector_get_size(refs);
+        printf(" %d refs:\n",n);
+        float J = 0;
+        for(J = 0; J < n; J++){
+            float r = vector_get(refs,0,J);
+            printf("  @ %d\n",r);
+        }
+    }else{
+        printf(" no refs\n");
+    }
+}
+
+void printSymbolTable(float symtable){
+    float I = 0;
+    float size = vector_get_size(symtable);
+    for(I = 0; I < size; I++){
+        float sym = vector_get(symtable,0,I);
+        printSymbol(sym);
+    }
+}

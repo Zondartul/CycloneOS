@@ -1,0 +1,1450 @@
+
+/*
+    Current executable format:
+    0: executable style
+        0: flat binary (entry at 0)
+        1: alcorPC binary (entry at 1)
+        2: with all-func import/export table
+        3: with symbol table
+        
+    if style == 0:
+    1: program size
+    2+: program data
+    
+    if style == 1:
+    1: program size
+    2+: program data
+    
+    if style == 2:
+    1: program size
+    2: import table size (can't load if mismatch)
+    3: ptr to import table
+    4: ptr to program data
+    ..: import table
+    ..: program data
+    
+    if style == 3:
+    1: linking style
+        0: no linking needed
+        1: compile-time (static) requested
+        2: load-time (dynamic) requested
+    2: has static links?
+    3: compile timestamp
+    4+: section list 
+    ..: sections
+       
+   section list:
+     section:
+     0: type 
+        0: data+code
+        1: code
+        2: data
+        3: symbol table
+     1: size
+     2:+ data
+
+//
+//
+//
+ tl;dr:
+ style 3
+ 0: exe style = 3
+ 1: link style = 2
+ 2: has static = 0
+ 3: compile timestamp
+    section list (null-term arrray)
+ 4: 0: section1 = 7
+ 5: 1: section2 = 9+x
+ 6: 2: end = 0
+    section1
+ 7: 0: type = 3 (sym table)
+ 8: 1: size = x
+ 9: 2: sym table data
+    section2
+9+x:0: type = 0 (data+code)
+10+x:1:size = y
+11+x:2:program data 
+ 
+
+
+
+// exe:
+// {variant type,
+    type 0{
+        program.size,
+        blob program
+    },
+    type 1{
+        program.size,
+        blob progam
+    },
+    type 2{
+        program.size,
+        num,
+        blob import_table,
+        blob program
+    },
+    type 3{
+        num,
+        num,
+        num,
+        v<section> sections,
+        sections.data
+    }
+    }
+    
+// section:
+// {num, data.size, 8x num, blob data}
+    
+    
+// section list:
+// {num,blob.'a'.size,blob.'a'.data}
+//
+
+//old:        
+//    1: &main()
+//    2: executable style
+//        0: flat binary (
+//    2: linking style
+//        0: no linking
+//        1: all func import/export table
+//        2: compile-time linking
+//        3: symbol rewrite table
+//    3: compilation timestamp       
+//    
+//    if style == 1:
+//    4: all-func table (export written over import on link)
+//    
+//    if style == 3:
+//    
+    
+*/
+
+
+/*
+    style 3:
+    struct exe
+    {
+    0   typeof_exe;
+    1   float exe_style;
+    2   float link_style;
+    3   float has_static;
+    4   float compile_timestamp;
+    5   ptr<nt_array<section>> section_list;     
+    };
+    
+    nt_array<x>:
+        x,x,x,x,0;
+        
+    struct section{
+        typeof_section;
+        float type;
+        float size;
+        blob data;
+    }
+*/
+/*
+    style 0,1:
+    struct exe
+    {
+    0   typeof_exe;
+    1   float exe_style;
+    2   float size
+    }
+    
+    style 2:
+    struct exe
+    {
+    0   typeof_exe;
+    1   float exe_style;
+    2   float size;
+    3   float import_size;
+    4   float ptrimport;
+    5   float ptrcode
+    }
+*/
+
+#include <cyclone/progs/loader/linker.txt>
+#include <cyclone/progs/loader/symbol.txt>
+#include <cyclone/progs/loader/executable.txt>
+#include <cyclone/defines.txt>
+typeof_exe: db "exe", 0;
+float sizeof_exe = 6;
+
+typeof_section: db "section", db 0;
+float sizeof_section = 4;
+
+typeof_symbol: db "symbol", db 0;
+float sizeof_symbol = 4;
+
+float checkProgramHeader(float header){
+    float debug = 0;
+    if(debug){
+        float I = 0;
+        printf("header:\n");
+        for(I = 0; I < 30; I++){
+            printf("%d: %d\n",I,header[I]);
+        }
+    }
+    //float header[10];
+    //fseek(fp,0,0);
+    //if(!fread(&header,10,fp)){printf("can't read header\n");return 0;}
+    //fseek(fp,0,0);
+    
+    float _type = header[0];
+    float _exe_style = header[1];
+    float _link_style = header[2];
+    float _has_static = header[3];
+    float _compile_timestamp = header[4];
+    float _section_list = header[5];
+    
+    //ignore type cause it may have moved
+    
+    
+    /*
+    float _size = header[0];
+    float _main = header[1];
+    float _style = header[2];
+    float _version = header[3];
+    float str;
+    float c1 = _main <= 0; //can't have main at 0 cause that's where the header is
+    float c2 = _size < 0;
+    float c3 = _main > _size;
+    float c4 = _size < 0;
+    float c5 = _style > 3;
+    float c6 = _version < 0;
+    if(debug){
+        printf("program header:\n");
+        printf("size: %d\n",_size);
+        printf("main: %d\n",_main);
+        printf("style: %d\n",_style);
+        printf("version: %d\n",_version);
+        printf("conditions %d %d %d, %d %d %d \n",c1,c2,c3,c4,c5,c6);
+    }
+    */
+    float c1 = (_type == 0);
+    float c2 = (_exe_style < 0);
+    float c3 = (_exe_style > 3);
+    float c4 = (_link_style < 0);
+    float c5 = (_link_style > 3);
+    float c6 = (_compile_timestamp < 0);
+    float c7 = (_compile_timestamp == 0);
+    float c8 = (_section_list < 0);
+    float c9 = (_section_list == 0);
+    
+    if(debug){
+        printf("program header:\n");
+        printf("exe style: %d\n",_exe_style);
+        printf("link style: %d\n",_link_style);
+        printf("compile timestamp: %d\n",_compile_timestamp);
+        printf("section list: %d\n",_section_list);
+        if(_section_list > 0){
+            float offs = header;
+            float sl_len = strlen(offs+_section_list);
+            printf("num sections: %d\n",sl_len);
+        }
+        
+    }
+    //if((_main <= 0) || (_size < 0) || (_main > _size) || (_size < 0) || (_style > 3) || (_version < 0)){
+    if(c1+c2+c3+c4+c5+c6+c7+c8+c9){
+        printf("broken or unsupported program header\n");
+        return 0;
+    }
+    /*
+    if(_version < OSversion){
+    
+        //skipped check
+        
+        if(0){//if(_style == 1){
+            printf("link-style is all-func inport/export table, but program older than kernel:\n");
+            str = timeStampToString(OSversion);
+            printf("kernel timestamp:\n%s\n",str);
+            str = timeStampToString(_version);
+            printf("program timestamp:\n%s\n",str);
+            cph_YN_loop:
+            printf("continue loading? Y/N\n");
+            
+            if(!getYN()){return 0;}
+        }
+        
+        if(_style == 2){
+            printf("link-style is compile-time static, but program older than kernel:\n");
+            str = timeStampToString(OSversion);
+            printf("kernel timestamp:\n%s\n",str);
+            str = timeStampToString(_version);
+            printf("program timestamp:\n%s\n",str);
+            printf("cannot continue loading.\n");
+            return 0;
+        }  
+    }
+    */
+    return 1;
+}
+
+//loads programs
+void msize(){return *AdrPort;}
+void mdump(float dest){
+    float size = msize();
+    memcpy(dest,AdrPort,size);
+    //P("dumped %d bytes to %d\n",size,dest);
+}
+
+
+
+
+float progressive_read(float ptr, float size, float fp, float step){
+    float sizeleft = size;
+    float sizedone = 0;
+    float percent = 0;
+    PrintProgressBar(0);
+    while(sizeleft){
+        if(step > sizeleft){step = sizeleft;}
+        if(!fread(ptr,step,fp)){return 0;}
+        ptr = ptr+step;
+        sizeleft = sizeleft-step;
+        sizedone = sizedone+step;
+        percent = sizedone*100/size;
+        PrintProgressBar(percent);
+    }
+    return 1;
+}
+
+
+float mallocPageAligned(float size){
+    float m = malloc(size+256);
+    float page = toPage(m)+1;
+    float ptr = page*128;
+    return ptr;
+}
+
+
+float remapProgram(float ptr, float programsize){
+    float page = ptr/128;
+    // round just in case
+    mov eax, page;
+    frnd eax;
+    mov page, eax;
+    //
+    float sizePages = toPage(programsize)+1;
+    float I;
+    for(I = 0; I < sizePages; I++){
+    //see void mapPage(float PT, float virt, float phys, float flags, float runlevel)
+        mapPage(pageTable,I,page+I, page_remapped, 0);
+        //mapPage(I,page+I+1);        
+        //mapPage(page+I,I);
+        printf("mapped virt %d to phys %d\n",I,page+I);
+    }
+    printf("program uses %d k of v.space\n",sizePages*128/1024);
+}
+
+float loadCode(float programcode, float programsize, float fp){
+    printf("loadCode(%d, %d, %d)\n",programcode, programsize, fp);
+    fseek(fp,programcode,0);
+    
+    float ptr = mallocPageAligned(programsize);
+        
+    //float prog = malloc(programsize+256);
+    //if(!prog){Perr("not enough RAM to load program\n");}
+    //float page = toPage(prog)+1;
+    //float ptr = page*128;
+       
+    //printf("ptr = %d\n",ptr);
+    //copy file contents to ptr+1 because cell[0] is progsize and erased during memdump
+    float ticks = curticks();
+    //if(!progressive_read(ptr+1,size,fp,500)){Perr("can't read file\n");}
+    if(!progressive_read(ptr,programsize,fp,4000)){Perr("can't read file\n"); shell_panic();}
+    P("\n");
+    ticks = ticks-curticks();
+        
+    //remapProgram(ptr,programsize);    
+    return ptr;
+}
+
+//loads program from file to heap.
+//links the program
+//remaps the pages loaded to, so that they appear to start at IP 0
+
+float program_load_old(float filename){
+    out 0,0;
+    float fp  = fopen(filename, "r");
+    if(!fp){Perr("can't open file\n");}
+    //float size = fsize(fp);
+    //P2("loading ",size,"+256 bytes\n");
+    
+    // ----------------- 1. read executable header to figure out where everything is -------------------
+    //                                                  
+    printf("pl: reading exe header\n");
+    float buff[30]; 
+    float headersize = fsize(fp);
+    if(headersize > 30){headersize = 30;}
+    fread(&buff,headersize,fp);
+    //byte 0 is programsize
+    float header = buff+1;
+    
+    if(!isPropertyTable(header)){Perr("Broken property table\n"); shell_panic();}
+    
+    //float exe_style = header[1];
+    //float programoffset = 0; //program is compiled at this address but moved to 0
+    //float programentry = 0;//which virtual address to jump to when running
+    float ptr_loaded = 0;  //location to which the program code was loaded
+    float res = 0;
+    
+    float filebase;    //all pointers within file are offset by this number
+    float codebase;    //all pointers within code block are offset by this number
+    float filesize;    //size of the program
+    float exe_style;   //which executable file format is used
+    float link_style;  //type of linking op to perform
+    float programcode; //pointer within file to program code
+    float programentry;//address to jump to when running the program
+    float codesize;    //size of the code block to load
+    
+    float reftable_start;
+    float reftable_end;
+
+    
+    if(!getTableEntry(header,P_FE_EXE_STYLE,&exe_style)){Perr("EXE_STYLE not specified\n"); shell_panic();}
+    if(!getTableEntry(header,P_FE_LINK_STYLE,&link_style)){Perr("LINK_STYLE not specified\n"); shell_panic();}
+
+    if(!getTableEntry(header,P_FE_FILEBASE,&filebase)){filebase = 0;}   
+    if(!getTableEntry(header,P_FE_CODEBASE,&codebase)){codebase = filebase;}
+    if(!getTableEntry(header,P_FE_PROGRAMSIZE,&filesize)){filesize = fsize(fp);}
+    getTableEntry(header,P_FE_REFTABLE_START,&reftable_start);
+    reftable_start -= filebase;
+    if(getTableEntry(header,P_FE_REFTABLE_END,&reftable_end)){reftable_end -= filebase; programcode = reftable_end;}
+    
+    
+    if(!getTableEntry(header,P_FE_CODESTART,&programcode)){Perr("CODESTART not specified\n"); shell_panic();}
+    programcode -= filebase;
+    programentry = programcode;   
+    
+    codesize = filesize;
+    
+    printf("finished reading property table\n");
+    printf("filebase: %d\n",filebase);
+    printf("codebase: %d\n",codebase);
+    printf("filesize: %d\n",filesize);
+    printf("exe_style: %d\n",exe_style);
+    printf("link_style: %d\n",link_style);
+    printf("programcode: %d\n",programcode);
+    printf("rfstart: %d\n",reftable_start);
+    printf("rfend: %d\n",reftable_end);
+    printf("ptr_load: %d\n",ptr_loaded);
+    printf("res: %d\n",res);
+
+    //----------------- 2. different actions based on executable format -------------
+
+    if(exe_style == EXE_STYLE_FLAT){
+        //------------- 2.1 simply load for flat binaries ---------------------------
+        printf("exe_style = 0\n");
+        programentry = programcode;
+        //fseek(fp,0,0);
+        //fread(&header,3,fp);
+        //programcode = 3;
+        //programsize = header[2];
+        //programentry = 0;
+        ptr_loaded = loadCode(programcode,codesize,fp);
+        
+        res = make_proginfo(ptr_loaded, filename, programentry);
+        return res;
+    }
+    if(exe_style == EXE_STYLE_ALCOR){
+        //-------------- 2.2 also simply load for alcorPC binaries
+        printf("exe_style = 1\n");
+        programentry = programcode+1;
+        //fseek(fp,0,0);
+        //fread(&header,3,fp);
+        //programcode = 3;
+        //programsize = header[2];
+        //programentry = 1;
+        ptr_loaded = loadCode(programcode,codesize,fp);
+        
+        res = make_proginfo(ptr_loaded, filename, programentry);
+        return res;
+    }
+    if(exe_style == EXE_STYLE_ALLFUNC){
+        //-------------- 2.3 perform all-func-linking against binary for all-func binaries
+        printf("exe_style = 2\n");
+        programentry = programcode;
+        //fseek(fp,0,0);
+        //fread(&header,6,fp);
+        
+        //programcode = 0;
+        //programsize = header[2];
+        //programentry = header[5];
+        ptr_loaded = loadCode(programcode,codesize,fp);
+        
+        linkAllFunc(header,ptr_loaded);
+        res = make_proginfo(ptr_loaded, filename, programentry);
+        return res;
+    }
+    if(exe_style == EXE_STYLE_SYMBOL){
+        //--------------- 2.4 do lots of symbol shit for symbol binaries
+        if(link_style == LINK_REFTABLE_REQUESTED){
+            //---------------- 2.4.1 the executable needs to have an intial symbol table constructed from a reference table
+            printf("loading code for re-linking\n");
+            codesize = filesize-programcode;
+            
+            ptr_loaded = loadCode(programcode,codesize,fp);
+            
+            printf("loading reftable\n");
+            float reftable_size = reftable_end - reftable_start;
+            float reftable_loadsize = programcode - reftable_start;
+            float reftable = malloc(reftable_loadsize);
+            fseek(fp,reftable_start,0);
+            if(!fread(reftable,reftable_loadsize,fp)){Perr("can't read reftable\n"); shell_panic();}
+            printf("retable = %d\n",reftable);
+            //struct symbol
+            //0: typeof_symbol
+            //1: string name
+            //2: definition address
+            //3: reference addresses (vector)
+            
+            //float reftable2_size = reftable_end-reftable_start;
+            float reftable2 = malloc(sizeof_vector);
+            vector_constructor(reftable2,1);
+            printf("reftable2 = %d\n",reftable2);
+            
+            float symTable = malloc(sizeof_vector);
+            vector_constructor(symTable,1);
+            printf("symTable = %d\n",symTable);
+            //printf("reftable2_arr = %d\n",reftable2_arr);
+            
+            float sym;            
+            
+            printf("making a symbol table\n");
+            float ptr_end = reftable + (reftable_end - reftable_start);
+            float ptr = reftable;
+            float ref_ptr;
+            float ref_name;
+            float ref_ext;
+            float N = 0;
+            PrintProgressBar(0);
+            //----------------------------- i believe the reftable is being
+            //                              deserialzied, and then has
+            //                              it's addresses fixed from file-relative to RAM-absolute        
+            while(ptr < ptr_end){
+                //go through the whole reftable
+                //make make symbols, and put them in the second
+                //reftable.
+                ref_ptr = ptr[0];
+                ref_name = ptr[1]-filebase+reftable-reftable_start;
+                ref_ext = (ref_ptr == 0);//((ref_ptr-filebase+reftable-reftable_start) == 0)//ptr) 
+                
+                //printf("ptr = %d\n",ptr);
+                //printf("ref_ptr = %d\n",ref_ptr);
+                //printf("ref \"%s\"\n",ref_name);
+                //printf("ext = %d\n", ref_ext);
+                
+                //if(ref_ext){
+                //    printf("ref \"%s\" (ext)\n",ref_name);
+                //}else{
+                //    printf("ref \"%s\"\n",ref_name);
+                //}
+                
+                sym = malloc(sizeof_symbol);
+                sym[0] = typeof_symbol
+                sym[1] = str_alloc(ref_name);
+                
+                if(ref_ext){
+                    sym[2] = 0;//check if external or not
+                }else{
+                    sym[2] = ptr;
+                }
+                float refvec = malloc(sizeof_vector);
+                vector_constructor(refvec,1);
+                sym[3] = refvec;
+                
+                vector_push(reftable2,ref_ptr);
+                vector_push(reftable2,sym);
+                vector_push(symTable,sym);
+                //tip: read code once,
+                //look for pointers to *anywhere* in reftable
+                //then figure out specifics
+                N++;
+                if(N > 20){
+                    N = 0;
+                    PrintProgressBar((ptr-reftable)*100/(ptr_end-reftable));
+                }
+                //printf("found %d refs\n",N);
+                ptr += 2;
+            }
+            PrintProgressBar(100);
+            printf("\n");
+            printf("codesize = %d\n",codesize);
+            printf("filesize = %d\n",filesize);
+            printf("symbolizing code\n");
+            
+            //----------------------------------- this next section does code relocation
+            float reftable2_arr = vector_get_array(reftable2);
+            N = 0;
+            float ptr2 = ptr_loaded;
+            float ptr2_end = ptr_loaded+codesize;
+            PrintProgressBar(0);
+            out 0,1;
+            float symsparsed = 0;
+            float M = 0;
+            while(ptr2 < ptr_end){
+                out 0,2;
+                
+                //------------------------------ r.1 loop begin
+                if(*ptr2 >= filebase){ //aka 7M
+                    out 0,3;
+                    //printf("ptr2 = %d\n",ptr2);
+                    //printf("*ptr2 = %d\n",*ptr2);
+                    //printf("filebase = %d\n",filebase);
+                    //printf("reftable2_arr = %d\n",reftable2_arr);
+                    //printf("reftable_start = %d\n",reftable_start);
+                    
+                    //address translation
+                    //comment this out
+                    //and pass translated address to "symbol search" function
+                    //that first checks it as ext.ref (this ptr = table ptr)
+                    //and if not that then then goes through whole table
+                    //looking for this ptr.
+                    //float symptr = (*ptr2)-filebase+reftable2_arr-reftable_start;
+                    
+                    //------------------------------------ check if it's an external reference
+                    float symptr = 0;
+                    float ptr_ref = *ptr2;
+                    float reftable_index = ptr_ref-filebase-reftable_start;
+                    float cond = 0;
+                    float ptrcode = ptr2-ptr_loaded+programcode;
+                    out 0,4;
+                    if(reftable_index < reftable_size){
+                        out 0,5;
+                        cond = 1;
+                        symptr = ptr_ref - filebase + reftable2_arr - reftable_start;
+                        //--------------------------------------------------------------- ref is in the table, so it's external, so we grab a symbol in the table and continue.
+                    }else{
+                        out 0,6;
+                        //continue;
+                        goto symbolize_continue;
+                        
+                        //--------------------------------------------------------------- otherwise, ref is internal, and this code was supposed to search the table for it.
+                        //                                                                the table-search loop was scrapped due to below problems.
+                        //                                                                
+                    /*
+                                                                                /------ problem ---------------------------------------------------\
+                                                                                |  code is generated with labels like __temp that have             |
+                                                                                |  program-internal address (between 70k and 70k+progsize).        |
+                                                                                |  that means it is impossible to provide a symbol for every       |
+                                                                                |  internal address at compile-time.                               |
+                                                                                |  therefore, not every internal reference will have a symbol.     |
+                                                                                +------ solution --------------------------------------------------+
+                                                                                |  - internal addresses can be relocated without a symbol          |
+                                                                                |  - anonymous symbols can be created during symtable generation   |
+                                                                                \------------------------------------------------------------------/
+                    
+                    
+                        apparrently we can't do internal variables because of
+                        autogenerated labels like __6
+                        fuuuuuuuuuuuuuuuuck
+                                                                                /------ problem ---------------------------------------------------\
+                        also there is the constexpr (Arr+1) problem but         |  you have a label "Arr";                                         |
+                        making them floats instead of labels fixes that.        |  you want to calculate an offset from Arr, "Arr+1"               |
+                                                                                |  the expression "Arr+1" is optimized away as a constexpr         |
+                                                                                |  and the label value disappears from assembly.                   |
+                                                                                |  therefore, the label is impossible to refer to by symbol.       |
+                                                                                |  a reftable entry in the form of a label would sometimes fail.   |
+                                                                                +------ solution --------------------------------------------------+
+                                                                                |  reftable entries can all be made into variables,                |
+                                                                                |  however this would cause every function call to be indirect,    |
+                                                                                |  causing a performance hit.                                      |
+                                                                                \------------------------------------------------------------------/
+                        NOTE: for calls and jumps, also change RM value when relocating.
+                        
+                        cond = 2;
+                        //we search the table
+                        //printf("searching table\n");
+                        float I = 0;
+                        while(I < reftable2_size){
+                            //printf("I = %d, ptr = %d\n",I,reftable2_arr[I]);
+                            if(reftable2_arr[I] == ptr_ref){
+                                symptr = reftable2_arr+I;
+                                sym = symptr[1];
+                                //printf("found sym: %s\n",sym[1]);
+                                cond = 3;
+                                break;
+                            }else{
+                                //printf("not ptr_ref %d\n",ptr_ref);
+                            }
+                            I += 2;
+                        }
+                        if(!symptr){
+                            cond = 4;
+                            printf("ref %d:\n",ptr_ref);
+                            printf("not found, making new sym\n");
+                            //printf("symbol not found\n"); shell_panic();
+                            //so... sometimes HCOMP makes new labels
+                            //that we don't have in source code. usually
+                            //for things like "if", "for" and "while".
+                            //so... we make a new symbol.
+                            sym = malloc(sizeof_symbol);
+                            sym[0] = typeof_symbol;
+                            sym[1] = 0; //oh no nameless symbol, waaa
+                            sym[2] = ptr_ref;
+                            refvec = malloc(sizeof_vector);
+                            vector_constructor(refvec,1);
+                            sym[3] = refvec;
+                            vector_push(symTable,sym);
+                            
+                            vector_push(reftable2,ptr_ref);
+                            vector_push(reftable2,sym);
+                            reftable2_size = vector_get_size(reftable2); //hope I didn't
+                            reftable2_arr = vector_get_array(reftable2); //forget anything
+                            
+                            symptr = reftable2_arr+reftable2_size-2;
+                        }
+                        */
+                    }
+                    
+                    
+                    //printf("symptr = %d\n",symptr);
+                    //printf("symptr[0] = %d\n",symptr[0]);
+                    //printf("symptr[1] = %d\n",symptr[1]);
+                    //float c1 = (symptr[0] != *ptr2);
+                    //float c2 = (symptr[0] < filebase);
+                    //if(strcmp(sym[0],typeof_symbol) != 0)
+                    out 0,7;
+                    
+                    if((symptr%2) != (reftable2_arr %2)){
+                        printf("reftable misalignment\n");
+                        goto brokentables;
+                    }
+                    
+                    //this is a temporary hack to find one very specific iteration 
+                    // / pointer arithmetic bug.
+                    if(symptr == 7000609)//if(ptr_ref == 7000609)
+                    {
+                        brokentables:
+                        printf("\ntables broke\n"); 
+                        printf("cond = %d\n",cond);
+                        printf("symptr = %d\n",symptr);
+                        printf("symptr[0] = %d\n",symptr[0]);
+                        printf("symptr[1] = %d\n",symptr[1]);
+                        printf("*ptr2 = %d\n",*ptr2);
+                        printf("ptr2 = %d\n",ptr2);
+                        float reftable2_size;
+                        reftable2_size = vector_get_size(reftable2);
+                        printf("ref2size = %d\n",reftable2_size);
+                        printf("ref2arr = %d\n",reftable2_arr);
+                        printf("ptrcode = %d\n",ptrcode);
+                        printf("symsparsed = %d\n",symsparsed);
+                        printf("M = %d\n",M);
+                        printf("filesize = %d\n",filesize);
+                        printf("codesize = %d\n",codesize);
+                        printf("programcode = %d\n",programcode);
+                        shell_panic();
+                    }
+                    out 0,8;
+                    sym = symptr[1];
+                    if(sym == 7000609){goto brokentables;}
+                    
+                    out 0,9;
+                    //printf("sym = %d\n",sym);
+                    assert_type(sym,typeof_symbol);
+                    out 0,10;
+                    if((sym+3) == 7000609){goto brokentables;}
+                    float refs = sym[3];
+                    out 0,11;
+                    if(refs == 7000609){goto brokentables;}
+                    
+                    //printf("refs = %d\n",refs);
+                    ref_ptr = ptr2-ptr_loaded;
+                    out 0,12;
+                    //printf("ref_ptr = %d\n",ref_ptr);
+                    vector_push(refs,ref_ptr);
+                    symsparsed++;
+                    out 0,13;
+                }
+                //----------- if it's not a byte > 70k then it's not a code address
+                symbolize_continue:
+                out 0,14;
+                N++;
+                if(N > 500){                    
+                    out 0,15;
+                    float percent = (ptr2-ptr_loaded)*100/codesize;
+                    PrintProgressBar(percent);
+                    N = 0;
+                }
+                //if(*ptr2 == ref_ptr){
+                //    N++;
+                //    *ptr2 = 0; //actually no we should add this position to symbol table
+                   //that we should be making
+                //}
+                ptr2++;   
+                M++;       
+                out 0,16;
+                //-------------- check the next byte in code.
+            }
+            out 0,17;
+            PrintProgressBar(100);
+            printf("\n");
+            printf("code symbolized\n")
+            printf("printing symbol table\n");
+            printSymbolTable(symTable);            
+        }
+        
+        //ok we dont wanna break the rest of this stuff cause it's super fragile
+        
+        printf("exe_style = 3\n");
+        //fseek(fp,0,0);
+        //fread(&header,sizeof_exe,fp);
+        //if(!fread(&header,30,fp)){printf("can't read header\n");return 0;}
+        //if(!checkProgramHeader(header)){return 0;}
+        
+        float ptrSectionList = header[5];
+        float sectionList[2];
+        fseek(fp,ptrSectionList,0);
+        fread(sectionList,2,fp);
+        
+        //float sectionList = header+header[5];
+        float sectionSymlist = sectionList[0];
+        float sectionCode = sectionList[1];
+        
+        float sectionSymHeader[4];
+        printf("pl: reading s.t. header\n");
+        fseek(fp,sectionSymlist,0);
+        if(!fread(sectionSymHeader,4,fp)){printf("can't read s.t. section header\n"); return 0;}
+        sectionSymHeader[0] = typeof_section;
+        //--assert_type(sectionSymHeader,typeof_section);
+        
+        float sizeSymTable = sectionSymHeader[2];
+        //--float numSyms = sizeSymTable/sizeof_symbol;
+        float sectionSymTableData = sectionSymHeader[3];
+        printf("malloc(%d)\n",sizeSymTable);
+        float symTableData = malloc(sizeSymTable);
+        fseek(fp,sectionSymTableData,0);
+        if(!fread(symTableData,sizeSymTable,fp)){printf("can't read symtable data\n"); return 0;}
+        
+        float numSyms = symTableData[2];
+        //--printf("num symbols: %d\n",numSyms);
+        
+        symTable = malloc(sizeof_vector);
+        vector_constructor(symTable,1);
+        float varray = symTableData+symTableData[1];
+        float I = 0;
+        for(I = 0; I < numSyms; I++){
+            ptr = varray+I;
+            //printf("symbol %d at %d\n",I,*ptr);
+            sym = *ptr+symTableData;
+            sym[0] = typeof_symbol;   //typeofs get broken between compiles
+                                      //so we need to restore them
+            sym[1] += symTableData;   //name at offset
+            if(sym[3]){
+                sym[3] += symTableData;
+                refs = sym[3];
+                refs[0] = typeof_vector;
+                refs[1] += symTableData;
+            }
+            vector_push(symTable,sym);
+        }
+        //printf("symbol table:\n");
+        //printSymbolTable(symTable);
+        printf("linking...\n");
+        if(!linkSymbolTable(symTable)){return 0;}
+        
+        float sectionHeader[4];
+        printf("pl: reading c.s. header\n");
+        //printf("sectionCode = %d\n",sectionCode);
+        fseek(fp,sectionCode,0);
+        if(!fread(sectionHeader,4,fp)){printf("can't read c.s. section header\n"); return 0;}
+        sectionheader[0] = typeof_section;
+        //assert_type(sectionheader,typeof_section);
+        
+        float size = sectionHeader[2];
+        float sectionData = sectionHeader[3];
+        printf("pl: reading program code\n");
+        //printf("size = %d\n",size);
+        //printf("sectionData = %d\n",sectionData);
+        
+        programcode = sectionData;
+        programsize = size;
+        programentry = 0;
+        ptr_loaded = loadCode(programcode, codesize, fp);
+        
+        //P2("Load took ",ticks," ticks\n");
+        //program_link(ptr);
+        printf("linking code\n");
+        linkCode(ptr_loaded,symTable);
+        //printf("printing code listing\n");
+        //printCodeListing(ptr,size);
+        
+        //printf("ptr = %d\n",ptr);
+        
+        //delaysimple(5);
+        //printf("halt");
+        //int 1;
+        res = make_proginfo(ptr_loaded, filename, programentry);
+        return res;
+    }
+    printf("usupported exe_style (%d)\n",exe_style);
+    return 0;
+}
+
+
+
+void program_run_background(float args){
+    float ptr = args[0];
+    float argv = args+1;
+    float argc = strlen(argv);
+    program_run(ptr,argc,argv);
+}
+
+//runs the program by enabling paging and then jumping to it.
+void program_run(float proginfo,float argc, float argv){
+    //P2("running program ",ptr, "\n");
+    //float entry = proginfo[3];//ptr;//ptr[1];
+    float entry = mget(proginfo,"entry_main");
+    //P2("entry at ",entry,"\n");
+    //P("derp?\n");
+    //float import = ptr+2;
+    //import[0] = testfunc;
+    //printf("running\n");
+    //out 0,1;
+    pagingEnable();
+    //out 0,2;
+    //call entry;
+    entry(argc, argv);
+    //out 0,3;
+    pagingDisable(); //libpaging.txt must be mapped to runlevel 0 because CLM is priviliged; else error 13.012.
+    //out 0,4;
+    //P("program done\n");
+    //out 0,0;
+}
+
+
+
+//todo: make a process info structure, containing:
+//filename of the loaded program
+//acquired resources (prog allocation)
+//page table (alloc and init new pagetables when loading)
+//status (loaded, running, paused, finished)
+
+float loadedProgs = 0;
+
+float sizeof_proginfo = 4;
+typeof_proginfo: db "proginfo", db 0;
+
+//old:
+//proginfo
+// 0: typeof
+// 1: ptr
+// 2: name
+// 3: entry
+//new:
+//class proginfo
+// codeptr
+// symtable
+// name
+//
+
+float initLoader(){
+    initLoaderTypes();
+    loadedProgs = malloc(sizeof_vector);
+    vector_constructor(loadedProgs,1);
+}
+
+float addToLoadedPrograms(float proginfo){
+    if(!proginfo){printf("program not loaded (nullptr)\n");return 0;}
+    //float name = ptr[2];
+    float name = mget(proginfo,"name");
+    float ptr2 = getLoadedProgram(name);
+    if(ptr2){deleteLoadedProgram(name);}
+    //float ptr2 = getLoadedProgram(name);
+    //if(ptr2){printf("[%s] already loaded\n",name); return ptr2;}
+    //float proginfo = ptr;
+    //float proginfo = malloc(3);
+    //proginfo[0] = typeof_proginfo;
+    //proginfo[1] = ptr;
+    //proginfo[2] = str_alloc(name);
+    vector_push(loadedProgs,proginfo);
+    printf("added [%s] to loaded programs\n",name);
+}
+
+float deleteLoadedProgram(float name){
+    float I = 0;
+    float num = vector_get_size(loadedProgs);
+    for(I = 0; I < num; I++){
+        float proginfo = vector_get(loadedProgs,0,I);
+        //assert_type(proginfo, typeof_proginfo);
+        //float name2 = proginfo[2];
+        float name2 = mget(proginfo,"name");
+        if(strcmp(name,name2) == 0){
+            //float ptr = proginfo[1];
+            //free(ptr); actually ptr is page-aligned and the outside malloc is not.
+            vector_remove(loadedProgs,I);
+            I--; num--;
+        }
+    }
+}
+
+float getLoadedProgram(float name){
+    printf("getLoadedProgram(%s)\n",name);
+    float I = 0;
+    float num = vector_get_size(loadedProgs);
+    for(I = 0; I < num; I++){
+        float proginfo = vector_get(loadedProgs,0,I);
+        //assert_type(proginfo, typeof_proginfo);
+        //float name2 = proginfo[2];
+        float name2 = mget(proginfo,"name");
+        printf("name2 = [%s]\n",name2);
+        if(strcmp(name,name2) == 0){
+            //float ptr = proginfo[1];
+            return proginfo;//ptr;
+        }
+    }
+    return 0;
+}
+
+float proginfoKind;
+float codestoreKind;
+float symtableKind;
+float symbolKind;
+
+float initLoaderTypes(){
+    proginfoKind = class_new("proginfo");
+    class_add_member(proginfoKind, "codestore");
+    class_add_method(proginfoKind, "constructor", proginfoKind_constructor);
+    class_add_member(proginfoKind, "symtable");
+    class_add_member(proginfoKind, "name");
+    class_add_method(proginfoKind, "get_num_unlinked", proginfoKind_get_num_unlinked);
+    class_add_member(proginfoKind, "entry_main");
+
+    codestoreKind = class_new("codestoreKind");
+    class_add_member(codestoreKind, "codeptr");
+    class_add_member(codestoreKind, "writeoffset");
+    class_add_method(codestoreKind, "constructor", codestoreKind_constructor);
+    class_add_method(codestoreKind, "readAddr", codestoreKind_readAddr);
+    class_add_method(codestoreKind, "writeAddr", codestoreKind_writeAddr);
+    class_add_method(codestoreKind, "getAddr", codestoreKind_getAddr);
+    class_add_method(codestoreKind, "setCode", codestoreKind_setCode);
+    class_add_method(codestoreKind, "getPtr", codestoreKind_getPtr);
+    class_add_method(codestoreKind, "getIdx", codestoreKind_getIdx);
+    class_add_method(codestoreKind, "getCodeSize", codestoreKind_getCodeSize);
+    
+    symtableKind = class_new("symtableKind");
+    class_add_method(symtableKind, "constructor", symtableKind_constructor);
+    class_add_member(symtableKind, "symbols");
+    class_add_method(symtableKind, "add_self_ref", symtableKind_add_self_ref);
+    class_add_method(symtableKind, "getSymbol", symtableKind_getSymbol);
+    
+    symbolKind = class_new("symbolKind");    
+    class_add_method(symbolKind, "constructor", symbolKind_constructor);
+    class_add_member(symbolKind, "from");
+    class_add_member(symbolKind, "to");
+    class_add_method(symbolKind, "addRef", symbolKind_addRef);
+}
+
+//returns a symbol referring to <to>
+float symtableKind_getSymbol(float this, float to){
+    assert_arity(ecx,2);
+    float symbols = mget(this,"symbols");
+    float I = 0;
+    float size = vector_size(symbols);
+    for(I = 0; I < size; I++){
+        float sym = vector_get(symbols,0,I);
+        float to2 = mget(sym,"to");
+        if(to == to2){
+            return sym;
+        }
+    }
+    return 0;
+}
+
+//adds a reference (of program referring to it's own code)
+float symtableKind_add_self_ref(float this, float to, float from){
+    assert_arity(ecx,3);
+    float sym = mcall(this,"getSymbol",to);
+    if(!sym){
+        sym = new(symbolKind);
+        mset(sym,"to",to);
+        float symbols = mget(this,"symbols");
+        vector_push(symbols,sym);
+    }
+    mcall(sym,"addRef",from);
+    return 0;
+}
+
+float symtableKind_constructor(float this){
+    assert_arity(ecx,1);
+    float symbols = vector_new();
+    mset(this, "symbols", symbols);
+    return 0;
+}
+
+float symbolKind_constructor(float this){
+    assert_arity(ecx,1);
+    float from = vector_new();
+    mset(this,"from",from);
+    mset(this,"to",0);
+    return 0;
+}
+
+float symbolKind_addRef(float this, float from){
+    assert_arity(ecx,2);
+    float vfrom = mget(this,"from");
+    //reference:
+    //0 - from - code addr that is referring to this symbol
+    //1 - linked - 0 if not linked
+    
+    vector_push(vfrom,from);
+    vector_push(vfrom,0);
+}
+
+float proginfoKind_constructor(float this){
+    assert_arity(ecx,1);
+    mset(this,"codestore",0);
+    mset(this,"symtable",0);
+    return 0;
+}
+
+float proginfoKind_get_num_unlinked(float this){
+    assert_arity(ecx,1);
+    float symtable = mget(this,"symtable");
+    float symbols = mget(symtable,"symbols");
+    
+    float unlinked = 0;
+    float I = 0;
+    float size = vector_size(symbols);
+    for(I = 0; I < size; I++){
+        float sym = vector_get(symbols,0,I);
+        float vfrom = mget(sym,"from");
+        float J = 0;
+        float Jsize = vector_size(vfrom);
+        for(J = 0; J < Jsize; J += 2){
+            float from = vector_get(vfrom,0,J);
+            float linked = vector_get(vfrom,0,J+1);
+            if(!linked){unlinked++;}
+        }
+    }
+    return unlinked;
+}
+
+float codestoreKind_constructor(float this){
+    assert_arity(ecx,1);
+    mset(this,"codeptr",0);
+    mset(this,"writeoffset",0);
+    return 0;
+}
+
+float codestoreKind_getIdx(float this, float addr){
+    assert_arity(ecx,2);
+    float offs = mget(this,"writeoffset");
+    float addr_true = addr-offs;
+    float codeptr = mget(this,"codeptr");
+    float size = vector_size(codeptr);
+    if((addr_true < 0) || (addr_true > size)){
+        return 0;
+    }
+    return addr_true;
+}
+
+float codestoreKind_getPtr(float this, float addr){
+    assert_arity(ecx,2);
+    float codeptr = mget(this,"codeptr");
+    float offs = vector_get_array(codeptr);
+    float offs2 = mget(this,"writeoffset");
+    
+    float addr_true = addr-offs2;
+    float ptr = addr_true+offs;
+    
+    if(addr == 0){ptr = 0;}
+    return ptr;
+}
+
+//returns a byte of data written to the given write-pointer <addr>.
+float codestoreKind_readAddr(float this, float addr){
+    assert_arity(ecx,2);
+    if(addr == 0){printf("%merror: nullptr\n",900);shell_panic();}
+
+    float addr_true = mcall(this,"getIdx",addr);
+    //printf("codestore readAddr(%d)\n",addr);
+    float codeptr = mget(this,"codeptr");
+    //printf("codestore  bound check:\n");
+    float size = vector_size(codeptr);
+    //printf(" addr_true = %d\n size = %d\n",
+            //addr_true, size);
+    if((addr_true < 0) || (addr_true > size)){
+        printf("%merror: address out of bounds\n",900);
+        shell_panic();
+    }
+    //printf(" bounds ok\n");
+    float val = vector_get(codeptr,0,addr_true);
+    return val;
+}
+
+float codestoreKind_writeAddr(float this, float addr, float val){
+    assert_arity(ecx,3);
+    if(addr == 0){printf("%merror: nullptr\n",900);shell_panic();}
+    float addr_true = mcall(this,"getIdx",addr);
+    float codeptr = mget(this,"codeptr");
+    float size = vector_size(codeptr);
+    if((addr_true < 0) || (addr_true > size)){
+        printf("%merror: address out of bounds\n",900);
+        shell_panic();
+    }
+    vector_set(codeptr,val,addr_true);
+    return val;
+}
+
+//returns the write-pointer associated with the naked pointer <ptr>
+float codestoreKind_getAddr(float this, float ptr){
+    assert_arity(ecx,2);
+    float codeptr = mget(this,"codeptr");
+    float offs = vector_get_array(codeptr);
+    float addr_true = ptr-offs;
+    
+    float offs2 = mget(this,"writeoffset");
+    float addr = addr_true+offs2;
+    if(ptr == 0){addr = 0;}
+    //printf("codestore returns %d\n",addr);
+    return addr;
+}
+
+float codestoreKind_setCode(float this, float newcodeptr){
+    assert_arity(ecx,2);
+    assert_type(newcodeptr,typeof_vector);
+    mset(this,"codeptr",newcodeptr);
+    return 0;
+}
+
+float codestoreKind_getCodeSize(float this){
+    assert_arity(ecx,1);
+    float codeptr = mget(this,"codeptr");
+    float size = vector_get_size(codeptr);
+    return size;
+}
+
+float selfref_relocate(float to, float from, float codestore){
+    
+    float newto = mcall(codestore,"getPtr",to);
+    printf("relocating %d -> %d @ %d\n", to, newto, from);
+    mcall(codestore,"writeAddr",from,newto);
+}
+
+float linkProgram(float proginfo){
+    printf("linking program...\n");
+    float symtable = mget(proginfo,"symtable");
+    float symbols = mget(symtable,"symbols");
+    float codestore = mget(proginfo,"codestore");
+    
+    float I;
+    float size = vector_size(symbols);
+    for(I = 0; I < size; I++){
+        float sym = vector_get(symbols,0,I);
+        float to = mget(sym,"to");
+        float vfrom = mget(sym,"from");
+        float J;
+        float vsize = vector_size(vfrom);
+        for(J = 0; J < vsize; J += 2){
+            float from = vector_get(vfrom,0,J);
+            float linked = vector_get(vfrom,0,J+1);
+            if(!linked){
+                selfref_relocate(to,from,codestore);
+            }
+            linked = 1;
+            vector_set(vfrom,linked,J+1);
+        }
+    }
+    
+    printf("done\n");
+    return 0;
+}
+
+float program_load(float filename){
+    printf("load [%s]\n",filename);
+    
+    float fp  = fopen(filename, "r");
+    if(!fp){Perr("can't open file\n");}
+    
+    printf("reading file...\n");
+    float filesize = fsize(fp);
+    float ptr_loaded;
+    ptr_loaded = loadCode(0,filesize,fp);
+    
+    printf("organizing...\n");
+    filename = stralloc(filename);
+    float codeptr = vector_new();
+    vector_set_array(codeptr, ptr_loaded);
+    vector_set_size(codeptr, filesize);
+    vector_set_capacity(codeptr, filesize);
+    
+    float proginfo = new(proginfoKind);
+    mset(proginfo,"name",filename);
+    float codestore = new(codestoreKind);
+    mset(proginfo,"codestore",codestore);
+    mcall(codestore,"setCode",codeptr);
+    
+    float stable = ptr_loaded+1;
+    printf("ptr_loaded = %d\n",ptr_loaded);
+    
+    float write_offset = stringtable_get_by_idx(stable,0); //implementation detail: write offset should be the first entry,
+                                                           //else we can't access the strings in the stringtable.
+    printf("write_offset = %d\n",write_offset);
+    mset(codestore,"writeoffset",write_offset);
+    
+    
+    //float stable_offset = mcall(codestore,"getAddr",stable);
+    //printf("stable = %d\n",stable);
+    //printf("stable_offset = %d\n",stable_offset);
+    
+    float addrmain;
+    if(!stringtable_get(stable,"main",&addrmain,codestore)){
+        printf("%merror: no main func specified\n",900);
+        shell_panic();
+    }
+    printf("addrmain = %d\n",addrmain);
+    float ptrmain = mcall(codestore,"getPtr",addrmain); 
+    printf("ptrmain = %d\n",ptrmain);
+    
+    mset(proginfo,"entry_main",ptrmain);
+    //float byteAddrMain = mcall(codestore,"readAddr",addrmain);
+    //printf("byteAddrMain = %d\n",byteAddrMain);
+    
+    //float bytePtrMain = *ptrmain;
+    //printf("bytePtrMain = %d\n",bytePtrMain);
+    
+    float oldimport_start = 0;
+    float oldimport_end = 0;
+    if(stringtable_get(stable,"old_func_import_table_start",&oldimport_start,codestore)){
+        if(!stringtable_get(stable,"old_func_import_table_end",&oldimport_end,codestore)){
+            printf("%merror: start ptr but no end ptr\n",900);
+            shell_panic();
+        }
+        
+        printf("linking old import table...\n");
+        float import_size = oldimport_end-oldimport_start;
+        float ptrimport = mcall(codestore,"getPtr",oldimport_start);
+        float export_size = export_end - export_start;
+        printf("import_size = %d\n",import_size);
+        printf("oldimport_start = %d\n",oldimport_start);
+        printf("ptrimprt = %d\n",ptrimport);
+        printf("export_size = %d\n",export_size);
+        if(import_size != export_size){
+            printf("%merror: can't link, all-func table mismatch:\n",900);
+            printf("import size: %d\n",import_size);
+            printf("export size: %d\n",export_size);
+            shell_panic();
+        }
+        memcpy(ptrimport,export_start,export_size);
+        printf("import table linked\n");
+    }else{
+        printf("no old func import table....\n");
+    }
+    
+    float prologue_end;
+    if(!stringtable_get(stable,"prologue_end",&prologue_end,codestore)){
+        printf("%merror: no prologue end\n",900);
+        shell_panic();
+    }
+    
+    float codesize = filesize-mcall(codestore,"getIdx",prologue_end);
+    float symtable = new(symtableKind);
+    mset(proginfo,"symtable",symtable);
+    float addr_ps = prologue_end;
+    float addr_pe = addr_ps+codesize;
+    float addr_oia = oldimport_start;
+    float addr_oie = oldimport_end;
+    code_symbolize(codestore,symtable,addr_ps,addr_pe,addr_oia,addr_oie);
+    
+    return proginfo;
+}
+
+float code_symbolize(float codestore, float symtable,
+                    float program_start_addr, float program_end_addr,
+                    float oldimport_start_addr, float oldimport_end_addr){
+    
+    assert_arity(ecx,6);
+    printf("code_symbolize(\n codestore = %d\n symtable = %d\n p_sa = %d\n p_ea = %d\n oi_sa = %d\n oi_ea = %d\n)\n",
+                              codestore,       symtable,       program_start_addr, program_end_addr,
+                                                                                    oldimport_start_addr, oldimport_end_addr);    
+    float code_size = mcall(codestore,"getCodeSize");
+    float I;
+    printf("start loop\n");
+    for(I = program_start_addr; I < program_end_addr; I++){
+        float C = mcall(codestore,"readAddr",I);
+        //printf("code[%d] = %d\n",I,C);
+        if(C > 7000000){
+            //printf("found ref at %d\n",I);            
+            //no special treatment for oldimport table, since it will be just 
+            printf("@ %d: ",I);
+            if((C >= oldimport_start_addr) && (C <= oldimport_end_addr)){
+                printf("import ref\n");
+                //symtable_add_selfreference(symtable,C,I);  
+                mcall(symtable,"add_self_ref",C,I);
+                continue; 
+            }
+            if((C >= program_start_addr) && (C <= program_end_addr)){
+                printf("self-ref\n");
+                //symtable_add_selfreference(symtable,C,I);
+                mcall(symtable,"add_self_ref",C,I);
+                continue;
+            } 
+            printf("%mwarning: unidentified reference to %d\n",990,C,I);
+        }
+    }
+    printf("end_loop\n");
+}
+
+
+//float symtable_new(){
+//    printf("%mwarning: symtable_new not implemented\n",990);
+//    return 0;
+//}
+
+//float symtable_add_selfreference(float this, float to, float from){
+//    //printf("add selfreference from %d to %d\n",from,to);
+//    return 0;
+//}
+
+float stringtable_get_by_idx(float stable, float idx){
+    assert_arity(ecx,2);
+    float adr = idx*2;
+    adr = adr+1;
+    return stable[adr];
+}
+
+float stringtable_get(float stable, float name, float *res, float *codestore){
+    assert_arity(ecx,4);
+    //printf("..stable_get(%d, %s, %d, %d)\n",stable,name,res,codestore);
+    float I = 0;
+    float S = stable[0];
+    //printf("S.1 = %d\n",S);
+    if(codestore){S = mcall(codestore,"getPtr",S);}
+    //printf("S.2 = %d\n",S);
+    float V = stable[1];
+    while(S){
+      //  printf("S = (%d, %s)\n",S,S);
+        if(strcmp(S,name) == 0){
+      //      printf("got it\n");
+            printf("stable_get(%s) = %d\n",name,V);
+            *res = V;
+            return 1;
+        }
+        I = I+2;
+        S = stable[I];
+       // printf("%d = stable[%d]\n",S,I);
+        if(codestore){
+            S = mcall(codestore,"getPtr",S);
+        }
+        V = stable[I+1];
+    }
+   // printf("not found\n");
+    printf("stable_get(%s) = 0\n",name);
+    return 0;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+

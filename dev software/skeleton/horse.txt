@@ -1,0 +1,72 @@
+#ifndef horse_GUARD
+#define horse_GUARD
+
+//generated using:
+//skeleton horse boop apples -canary 
+
+//struct horse
+//    0: canary
+//    1: boop
+//    2: apples
+//
+
+str_horse: db "horse",0;
+
+#ifndef CANARY_GUARD
+#define CANARY_GUARD
+void error(){int 1;}
+void check_canary(float this, float canary){
+   if(this[0] != canary){
+        error();
+   }
+}
+#endif
+
+float sizeof_horse(){return 3};
+
+//default constructor
+void horse_constructor(float this){
+    this[0] = str_horse;
+    this[1] = 0;
+    this[2] = 0;
+}
+
+//copy constructor
+void horse_copy_constructor(float this, float that){
+    this[0] = that[0];
+    this[1] = that[1];
+    this[2] = that[2];
+    check_canary(this,str_horse);
+}
+
+//default destructor
+void horse_destructor(float this){check_canary(this,str_horse);
+    check_canary(this,str_horse);
+    //add your code here
+}
+
+//equivalent to "new horse"
+float horse_new(){
+    float size = sizeof_horse();
+    float p = malloc(size);
+    horse_constructor(p);
+    return p;
+}
+
+//equivalent to "delete horse"
+void horse_delete(float this){
+    horse_destructor(this);
+    free(this);
+}
+
+//getters
+float horse_get_canary(float this){check_canary(this,str_horse);return this[0];}
+float horse_get_boop(float this){check_canary(this,str_horse);return this[1];}
+float horse_get_apples(float this){check_canary(this,str_horse);return this[2];}
+
+//setters
+void horse_set_canary(float this, float N){check_canary(this,str_horse);this[0] = N;}
+void horse_set_boop(float this, float N){check_canary(this,str_horse);this[1] = N;}
+void horse_set_apples(float this, float N){check_canary(this,str_horse);this[2] = N;}
+
+#endif

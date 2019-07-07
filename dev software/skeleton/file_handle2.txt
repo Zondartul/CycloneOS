@@ -1,0 +1,58 @@
+#ifndef file_handle_GUARD
+#define file_handle_GUARD
+
+//generated using:
+//skeleton file_handle rw_ptr imp -canary -nomalloc 
+
+//struct file_handle
+//    0: canary
+//    1: rw_ptr
+//    2: imp
+//
+
+str_file_handle: db "file_handle",0;
+
+#ifndef CANARY_GUARD
+#define CANARY_GUARD
+void error(){int 1;}
+void check_canary(float this, float canary){
+   if(this[0] != canary){
+        error();
+   }
+}
+#endif
+
+float sizeof_file_handle(){return 3};
+
+//default constructor
+void file_handle_constructor(float this){
+    this[0] = str_file_handle;
+    this[1] = 0;
+    this[2] = 0;
+}
+
+//copy constructor
+void file_handle_copy_constructor(float this, float that){
+    this[0] = that[0];
+    this[1] = that[1];
+    this[2] = that[2];
+    check_canary(this,str_file_handle);
+}
+
+//default destructor
+void file_handle_destructor(float this){check_canary(this,str_file_handle);
+    check_canary(this,str_file_handle);
+    //add your code here
+}
+
+//getters
+float file_handle_get_canary(float this){check_canary(this,str_file_handle);return this[0];}
+float file_handle_get_rw_ptr(float this){check_canary(this,str_file_handle);return this[1];}
+float file_handle_get_imp(float this){check_canary(this,str_file_handle);return this[2];}
+
+//setters
+void file_handle_set_canary(float this, float N){check_canary(this,str_file_handle);this[0] = N;}
+void file_handle_set_rw_ptr(float this, float N){check_canary(this,str_file_handle);this[1] = N;}
+void file_handle_set_imp(float this, float N){check_canary(this,str_file_handle);this[2] = N;}
+
+#endif

@@ -1,0 +1,772 @@
+// cyclone shell
+#ifndef SHELL_GUARD
+#define SHELL_GUARD
+#define CONSOLE_BUFFER_SIZE 6000
+void shell(){
+    
+    screen_force_refresh(); //AdrScreen[2020]=1;
+    screen_set_shift_box(0,27,0,16); //30x18 screen, last pos is 29x17, subscreen corner therefore at 28x16,
+                                     //but for some reason we use 27x15.
+    screen_force_refresh(); //AdrScreen[2020]=1; 
+    cls();
+    float I = 0;
+    for(I=0;I<7;I++)
+    {
+        Print("[dance]\n",(8-I)*100+I*10);
+    }
+    while(1)
+    {
+        checkKB();    
+        shell_panic_ebp = EBP;
+        shell_panic_esp = ESP;
+        shell_panic_exit:
+        if(malloc_test()){
+            
+            P("Heap status:\n");
+            malloc_print_count();
+            malloc_init();
+            P("Heap re-initialized\n");
+        }
+        if(RedrawPending)
+        {
+            RedrawPending = 0;
+            DrawScrollBar();
+            DrawStatusBar();
+        }
+    }
+}
+float shell_panic_ebp;
+float shell_panic_esp;
+
+void shell_panic(){
+    Print("\nSHELL PANIC ACTIVATED\n",9);
+    malloc_init();
+    P("Heap re-initialized\n");
+    MinStrI = 0;
+    MinStr[1] = 0;
+    RedrawPending = 1;
+    EBP = shell_panic_ebp;
+    ESP = shell_panic_esp;
+    jmp shell_panic_exit;
+}
+
+void cls(){
+    screen_clear();
+    memset(ConsoleStrBuff,0,CONSOLE_BUFFER_SIZE);
+    printPtrX = 0;
+    printPtrY = 0;
+    printScrY = 0;
+    RedrawPending = 1;
+}
+
+void drawStatusBar()
+{
+    char status = "Ready";
+    float statCol = 115;
+    float statTextCol = 999;
+    float I = 0;
+    float str = status;
+    if(MinStrI){str = MinStr};    
+    float C = str[0];
+    float len = 0;
+    while(C){len++;C = str[len];}
+    if(len>27){C = str[len-28];}else{C=str[0];}
+    float inp = (str!=status);
+    if(inp){statTextCol = 999;}else{statTextCol = 90};
+    for(I=0;I<29;I++)
+    {
+        if(C)
+        {
+            if((I==0)&&inp)
+            {
+                AdrScreen[60*17] = '>';
+                AdrScreen[60*17+1] = statCol*1000+statTextCol;
+            }
+            else
+            {
+                AdrScreen[60*17+2*I] = C;
+                AdrScreen[60*17+2*I+1] = statCol*1000+statTextCol;
+                if(len>27){C = str[I+len-28-inp];}else{C = str[I+1-inp];}
+            }
+        }
+        else
+        {
+            AdrScreen[60*17+2*I] = ' ';
+            AdrScreen[60*17+2*I+1] = statCol*1000;
+        }
+    }
+}
+void drawScrollBar()
+{
+    AdrScreen[2*29] = '^';
+    AdrScreen[2*29+1] = 115999;
+    float I = 0;
+    float T = 0;
+    T = printPtrY-printScrY;
+    T = round(15*T/100);
+    T++;
+    for(I=1;I<17;I++)
+    {
+        if(I!=T)
+        {
+        AdrScreen[2*(I*30+29)] = '|';
+        AdrScreen[2*(I*30+29)+1] = 115999;
+        }
+    }
+    AdrScreen[2*(17*30+29)] = 'v';
+    AdrScreen[2*(17*30+29)+1] = 115999;
+    
+    AdrScreen[2*(30*T+29)] = ' ';
+    AdrScreen[2*(30*T+29)+1] = 999000; 
+}
+
+float R = 0;
+float Echo = 1;
+float Arr = 0;
+void Console(char str)
+{
+    strcpy(MinStr, str);
+    ParseString(MinStr);
+}
+void ParseString(char str)
+{
+    if(Echo&&strcmp(str,"echo off"))
+    {
+        //Print("PS1",999);
+        if(1)//strlen(CurDir)==0)
+        {Print("User:> ",999);Print(MinStr,999);Print("\n",999);}
+    }
+    Arr = explode(str, " ");
+    float I = CommandBuff;
+    float Match = 0;
+    while(I<CommandBuffEnd)
+    {
+        if(strcmp(Arr[0],I)==0)
+        {
+            I = I+strlen(I)+1;
+            Match = 1;
+            float Ptr = *I;
+            Ptr();
+            I++;
+        }
+        else
+        {
+            I = I+strlen(I)+2;
+        }
+    }
+    if(!Match)
+    {
+        if(R==0){Print("huh?\n",900);}
+        if(R==1){Print("wat\n",900);}
+        if(R==2){Print("No, this is patric.\n",900);}
+        if(R==3){Print("Unrecognised command\n",900);}
+        if(R==4){Print("You do talk nonsense \nsometimes.\n",900);}
+        if(R==5){Print("I\'m afraid I can\'t \nlet you do that.\n",900);}
+        if(R==6){Print("Who are you?!\n",900);}
+        if(R==7){Print("Unknown command\n",900);}
+        if(R==8){Print("Syntax Error\n",900);}
+        if(R==9){Print("ENGLISH MOTHERFUCKER,\nDO YOU SPEAK IT?\n",900);}
+        if(R==10){Print("What you need isnt \nalways what you want.\n",900)}
+        //dosound(0.16, ErrorSound);
+         R++;if(R>10){R=0};
+    }
+    MinStrI=0;
+    MinStr[1]=0;
+    RedrawPending = 1;
+}
+
+void Ps(void *str){Print(string_c_str(str),999);}
+void P(char *str){Print(str,999);}
+//PcStr: db 0; db 0;
+void Pc(char c){}//{*PcStr = c; Print(PcStr,999);}
+void Pn(float N){Print(num2str(N),999);}
+void Pl(char *str){Print(str,999);Print("\n",999);}
+void P2(char *str1, float N, char *str2){Print(con(str1,num2str(N),str2,"",""),999);}
+void Perr(char *str){Print(str,833);}
+
+float RedrawPending = 0;
+float PKSI = 0;
+
+float printPtrY = 0;
+float printPtrX = 0;
+float printScrY = 0;
+float printSpecials = 0;
+//1) writes string to screen
+//2) performs scrolling
+//3) saves scrolled text to buffer
+//4) notifies console that GUI redraw is needed
+void Print(char str, float col)
+{
+    float C = str[0];
+    float I = 1;
+    while(C!=0)
+    {
+        //PrevKey = C;
+        if((printPtrY*60+printPtrX*2)>CONSOLE_BUFFER_SIZE-1){cls();}
+        //if(printScrY<0){ConsoleSnap();}
+        if(printScrY==17){ConsoleShiftUp();}
+        //if(printScrY>17){ConsoleSnap();}
+        
+        if((C=='\n'))
+        {
+            if(printSpecials){
+                ConsoleStrBuff[printPtrY*60+printPtrX*2] = C;
+                ConsoleStrBuff[printPtrY*60+printPtrX*2+1] = col;
+                AdrScreen[printScrY*60+printPtrX*2] = C;
+                AdrScreen[printScrY*60+printPtrX*2+1] = col;
+            }
+            //printPtrX=30;
+            goto print_nextline;
+        }
+        else
+        {
+            ConsoleStrBuff[printPtrY*60+printPtrX*2] = C;
+            ConsoleStrBuff[printPtrY*60+printPtrX*2+1] = col;
+            AdrScreen[printScrY*60+printPtrX*2] = C;
+            AdrScreen[printScrY*60+printPtrX*2+1] = col;
+            printPtrX++
+        }
+        if(printPtrX>28)
+        {
+            print_nextline:
+            printPtrX = 0;
+            printPtrY++;
+            printScrY++;
+            //if(printPtrY>100){BuffShiftUp();}
+        }
+        C= str[I++];
+    }
+}
+void ConsoleShiftUp()
+{
+    screen_shift_vertical(1);
+    printScrY--;
+    float I = 0;
+    for(I=0;I<58;I++)
+    {
+        AdrScreen[16*60+I] = ConsoleStrBuff[60*(printPtrY+16-printScrY)+I];
+    }
+    RedrawPending = 1;
+}
+void ConsoleShiftDown()
+{
+    if((printPtrY-printScrY)>0)
+    {
+        screen_shift_vertical(-1);
+        printScrY++;
+        float I = 0;
+        for(I=0;I<60;I++)
+        {
+            AdrScreen[I] = ConsoleStrBuff[(printPtrY-printScrY)*60+I];
+        }
+    }
+    RedrawPending = 1;
+}
+
+void ParseKey(char key)
+{
+    float C = isPrint(key);
+    float A = isAlpha(key);
+    float B = isNum(key);
+    if(C)
+    {
+        if(MinStrI<255)
+        {
+            MinStr[MinStrI++]=key;
+            MinStr[MinStrI]=0;
+        }
+        RedrawPending = 1;
+    }
+    else
+    {
+        if(key==13){ParseString(MinStr);}//enter
+        if(key==17){ConsoleShiftDown();ConsoleShiftDown();ConsoleShiftDown();}
+        if(key==18){ConsoleShiftUp();ConsoleShiftUp();ConsoleShiftUp();}
+        if(key==127)
+        {
+            if(MinStrI>0){MinStrI--;}
+            MinStr[MinStrI]=0;
+            RedrawPending = 1;
+        }
+    }
+}
+
+void checkKB()
+{
+    while(hasKey())
+    {
+        float key = readKey();
+        ParseKey(key);
+    }
+}
+//float getKeyPending(){
+//    char C = AdrKB[1]
+//    if(C){AdrKB[0] = 0;}
+//    return C;
+//}
+
+void help()
+{
+    float I = CommandBuff;
+    float Match = 0;
+    while(I<CommandBuffEnd)
+    {
+        Print(I,090);
+        Print("\n",090);
+        I = I+strlen(I)+2;
+    }
+}
+float numModules = 0;
+void printversion()
+{
+    P("August 24, 2015\n");
+    P("Official designation:\n");
+    P(OSname);P("\n");
+    P2("Size: ", End/1024 ," kB\n");
+}
+void cmdecho()
+{
+    if(strcmp(Arr[1],"off")==0){Echo = 0;}
+    else
+    {
+        if(strcmp(Arr[1],"on")==0){Echo = 1;}
+        else
+        {
+            float I = 1;
+            float S = Arr[I++];
+            while(S)
+            {
+                Print(S,90);
+                Print(" ",90);
+                S = Arr[I++];   
+            }
+            Print("\n",90);
+        }
+    }
+}
+//void delay(float time)
+//{
+//    preserve edx;
+//    timer edx;
+//    float T = edx;
+//    while((edx-T)<time)
+//    {
+//        timer edx;
+//    }
+//    zap edx;
+//}
+void cmdtime()
+{
+    timer eax;
+    Print(num2str(eax),90);Print("\n",90);
+}
+void curtime()
+{
+    timer eax;
+    return eax;
+}
+CommandBuff:
+db "test",db 0, db test;
+db "test2",db 0, db test2;
+db "test3",db 0, db test3;
+db "test4",db 0, db test4;
+db "test5",db 0, db test5;
+db "test6",db 0, db test6;
+db "test7",db 0, db test7;
+db "test8",db 0, db test8;
+db "test9",db 0, db test9;
+db "test10",db 0, db test10;
+db "test11",db 0, db test11;
+//db "FS",db 0,db FScheck,
+//db "FSinit",db 0, db FSinit,
+//db "File", db 0, db FSfile,
+//db "dir", db 0, db Dir,
+//db "cd", db 0, db changeDir,
+//db "md", db 0, db makeDir,
+//db "mf", db 0, db makeFile
+//db "del", db 0, db DirDel,
+//db "format", db 0, db consFormat,
+//db "s_set", db 0, db s_test_init,
+//db "s_get", db 0, db s_test_get,
+//db "s_put", db 0, db s_test_put,
+//db "s_close", db 0, db s_test_close,
+//db "folder", db 0, db csreadFolder,
+//db "append", db 0, db fileAppend,
+//db "fsll", db 0, db showFSLL,
+//db "file", db 0, db csreadFile,
+//db "rename", db 0, db DirRename,
+db "panic", db 0, db shell_panic;
+db "cls", db 0, db cls;
+db "help", db 0, db help;
+db "version", db 0, db printversion;
+//db "exit", db 0, db test,
+db "echo", db 0, db cmdecho;
+//db "sound", db 0, db cmdsound;
+db "time", db 0, db cmdtime;
+#ifdef PROGNOTEPAD_GUARD
+db "notepad", db 0, db notepad_start;
+#endif
+//db "memview", db 0, db test,
+//db "semaphore", db 0, db test,
+//db "beep", db 0, db test,
+//db "pony", db 0, db test,
+//db "moduleload", db 0, db test,
+//db "modulelist", db 0, db test,
+//db "exec", db 0, db test,
+//db "consoleSuspend", db 0, db test,
+//db "consoleResume", db 0, db test;
+CommandBuffEnd:
+
+#ifdef PROGNOTEPAD_GUARD
+void notepad_start(){
+    if(strlen(Arr)>1){
+        notepad(Arr[1]);
+    }else{
+        notepad(0);
+    }
+}
+#endif
+void test()
+{
+    //dbg = 1;
+    Print("Malloc test\n",990);
+    Print("initHeap...\n",990);
+    //initHeap(8192,64,Heap,Header);
+    //malloc_init(End, 8192);
+    P("um.\n");
+    Print("malloc(32)...\n",990);
+    float mem1 = malloc(32);
+    //Print(con("free(",num2str(mem1),")...\n","",""),999);
+    return;
+    free(mem1);
+    
+    Print("malloc(32)...\n",990);
+    float mem2 = malloc(32);
+    Print(con("free(",num2str(mem2),")...\n","",""),990);
+    free(mem2);
+    
+    Print("two allocs...\n",990);
+    mem1 = malloc(32);
+    mem2 = malloc(32);
+    Print("free1...\n",990);
+    free(mem1);
+    Print("free2\n",990);
+    free(mem2);
+    
+    Print("5 allocs\n",990);
+    //float mems[5] = {};
+    float i = 0;
+    for(i = 0; i<5; ++i)
+    {
+        Print("malloc #",990);
+        Print(num2str(i),990);
+        mems[i] = malloc(32);
+        Print(" = ",990);
+        Print(num2str(mems[i]),990);
+        Print("\n",990);
+    }
+    Print("5 frees\n",990);
+    //dbg = 1;
+    for (i = 0; i < 5; ++i)
+    {
+        //Print("free #",999);
+        //Print(num2str(i),999);
+        //Print("\n",999);
+        free(mems[i]);
+        
+    }
+    Print("Malloc test done!\n",90);
+}
+mems:alloc 5;//used by test 1
+
+void test2(){
+    Print("Vector test\n",990);
+    //initHeap(8192,64,Heap,Header);
+    //malloc_init(End, 8192);
+    P("heap initialized\n");
+    float V = malloc(10);
+    P("V constructor\n");
+    vector_constructor(V, 1);
+    float I = 0;
+    P("V pushing\n");
+    for(I = 0; I < 255; I++){
+        //Pn(I);P(" ");
+        vector_push(V, I);
+    }
+    P("V getting\n");
+    for(I = 0; I < 10; I++){
+        char C = randint1(254);
+        P2("V[",C,"] = ");P2("",vector_get(V,0,C),"\n");
+    }
+    P2("V first [0] =",vector_get(V,0,0),"\n");
+    float N = 1;
+    vector_set(V,N,0);
+    P2("V second [0] =",vector_get(V,0,0),"\n");
+    P2("V size = ",vector_size(V),"\n");
+    P2("V pop = ",vector_pop(V,0),"\n");
+    P2("V size = ",vector_size(V),"\n");
+    P2("V first [10] =",vector_get(V,0,10),"\n");
+    vector_set(V,N,10);
+    P2("V second [10] =",vector_get(V,0,10),"\n");
+    //Print("Large structure test\n",990);
+    Print("Vector test complete!\n",90);
+}
+
+void test3(){
+    Print("String test\n",990);
+    //initHeap(8192,64,Heap,Header);
+    //malloc_init(End,8192);
+    P("heap initialized\n");
+    if(malloc_test()){return;}
+    Print("S constructor\n",990);
+    float S = malloc(sizeof_string);
+    if(malloc_test()){return;}
+    string_constructor(S, "Hello World!\n");
+    if(malloc_test()){return;}
+    Print("Print string\n",990);
+    P("[");Ps(S);P("]\n");
+    Print("S = \"boop\"\n",990);
+    Print("clear\n",990);
+    string_clear(S);
+    if(malloc_test()){return;}
+    Print("Print string\n",990);
+    P("[");Ps(S);P("]\n");
+    Print("addcs\n",990);
+    string_addcs(S,"boop");
+    Print("Print string\n",990);
+    P("[");Ps(S);P("]\n");
+    if(malloc_test()){return;}
+    P("str = ");Ps(S);P("\n");
+    P2("(S == \"boop\") == ",string_equals_cs(S,"boop"),"\n");
+    if(malloc_test()){return;}
+    P2("(S == \"derp\") == ",string_equals_cs(S,"derp"),"\n");
+    if(malloc_test()){return;}
+    Print("Numbers\n",990);
+    string_clear(S);
+    if(malloc_test()){return;}
+    P("num2str(1) = ");P(num2str(1));P("\n");
+    string_addn(S,1);
+    if(malloc_test()){return;}
+    Print("Print string\n",990);
+    Ps(S);P("\n");
+    Print("More numbers\n",990);
+    float I = 0;
+    for(I = 2; I <= 8; I++){
+        string_addcs(S,", ");
+    if(malloc_test()){return;}else{P("comma ");P(num2str(I));P("\n")}
+        string_addn(S,I);
+    if(malloc_test()){return;}else{P("number ");P(num2str(I));P("\n")}
+    }
+    string_addcs(S,"\n");
+    if(malloc_test()){return;}
+    Print("Print string\n",990);
+    Ps(S);
+    if(malloc_test()){return;}
+    Print("String test complete!",90);
+}
+
+void test4(){
+  Print("List test\n", 990);
+}
+
+void test5(){
+    Print("ZMalloc test\n", 990);
+    P2("Stack pointer: ",num2str(esp),"\n");
+    P("\n");
+    P("malloc_init Heap 1000\n")
+    //malloc_init(End,1000);
+    P("\n");
+    P("A = malloc 5\n");
+    float *A = malloc(5);
+    P2("A = ",A,"\n");
+    P("\n");
+    P("B = malloc 5\n");
+    float *B = malloc(5);
+    P2("B = ",B,"\n");
+    P("\n");
+    P("C = malloc 5\n");
+    float *C = malloc(5);
+    P2("C = ",C,"\n");
+    P("\n");
+    P("D = malloc 10\n");
+    float *D = malloc(10);
+    P2("D = ",D,"\n");
+    P("\n");
+    P("R = realloc B 99999\n");
+    float R = realloc(B,99999);
+    if(R){
+        B = R;
+    }
+    P2("R = ",R,"\n");
+    P2("B = ",B,"\n");
+    P("\n");
+    P("R = realloc B 15\n");
+    R = realloc(B,15);
+    if(R){
+        B = R;
+    }
+    P2("R = ",R,"\n");
+    P2("B = ",B,"\n");
+    P("\n");
+    
+    P("F = malloc 935\n");
+    float F = malloc(935);
+    P2("F = ",F,"\n");
+    P("\n");
+    P("A[0] = 12345\n");
+    A[0] = 12345;
+    P("F[mem_free - 1] = 54321\n");
+    F[935-1] = 54321;
+    P("\n");
+    P("free D\n");
+    free(D);
+    Print("Done\n",90);
+}
+
+void test6(){
+    float A;
+    float B;
+    float C;
+    float D;
+    malloc_print_count();
+    malloc_count(&A,&B,&C,&D);
+    P2("heap at ",malloc_disk,"\n");//P("heap at ");P(num2str(malloc_disk));P("\n");
+    P2("free space: ",A," ");P2("(",A/1024," kB)\n");  //P("free space: ");P(num2str(A));P("\n");
+    P2("used space: ",B," ");P2("(",B/1024," kB)\n");  //P("used space: ");P(num2str(B));P("\n");
+    P2("free blocks: ",C,"\n");//P("free blocks: ");P(num2str(C));P("\n");
+    P2("used blocks: ",D,"\n");//P("used blocks: ");P(num2str(D));P("\n");
+    float overhead = malloc_header*(C+D)+1;
+    P2("overhead: ",overhead," ");P2("(",overhead/1024," kB)\n");//P("overhead: ");P(num2str(malloc_header*(C+D)+1));P("\n");
+    if(!malloc_test()){P("heap is healthy\n");}else{Print("HEAP CORRUPTED\n",900);}
+}
+
+void test7(){
+    Print("stringtracker test\n",990);
+    delay(1);
+    stringtracker_test();
+}
+void test8(){
+    float A;
+    Print("printing test\n",990);
+    Print(con("123","abc","456","def","789\n"),999);
+    P2("num2str test ",123,"\n");
+    P2("Stack at: ",SS,"\n");
+    P2("ESP1: ",ESP,"\n");
+    //out 1, 1;
+    //int 1;
+    //A = stack_alloc(100);
+    //P2("stack_alloc 100 = ", A,"\n");
+    //P2("ESP2: ",ESP,"\n");
+    //float str = stacktest();
+    float str = concat("","1","22","333");
+    Print(num2str(str),999);Print("\n",999);
+    Print(str,999);Print("\n",999);
+    P2("ESP3: ",ESP,"\n");
+}
+
+float stacktest(){
+    float L = strlen(stackteststr)+1;
+    float A = stack_alloc(L);
+    strcpy(A,stackteststr);
+    stack_return(A, L, 0)
+    return A;
+}
+stackteststr:db "Hello World!",db 0
+#include <cycloneOld/filesystem.txt>
+void test9(){
+    Print("Filysystem test\n",990);
+    float fsys = malloc(3500);
+    FilesystemSetDisk(fsys,3500);
+    Print("Formatting...\n",990);
+    FilesystemFormat();   //was getting FileWrite:no sector error before added folder-write-to-disk printing.
+    Print("Printing...\n",990);
+    FilesystemPrint();
+    Print("Listing...\n",990);
+    FilesystemList();
+    Print("Opening file...\n",990);
+    float F = fileOpen("test1","w+");
+    P2("F = ",F,"\n");
+    Print("Listing...\n",990);
+    FilesystemList();
+    float Numbers = generate_numbers(10,',');
+    float c_Numbers = string_c_str(Numbers);
+    Print("Numbers:\n",990);
+    P(c_Numbers);
+    P("\n");
+    Print("Writing...\n",990);
+    float size = vector_size(Numbers);
+    fileWrite(c_Numbers,size,1,F);
+    Print("Listing...\n",990);
+    FilesystemList();
+    Print("Reading...\n",990);
+    FileSeek(F,0,0);
+    size = fs_file_handle_get_size(F);
+    float Numbers2 = malloc(size);
+    FileRead(Numbers2,size,1,F);
+    Print("Printing:\n",990);
+    P(Numbers2);P("\n");
+    Print("Done\n",90);
+    //FileRead(ptr,size,count,file);
+    //float LoremIpsum = generate_lorem_ipsum();
+    //fileWrite(F, LoremIpsum, strlen(LoremIpsum));
+    //float L = fileSize(F);
+    //float Lorem2 = malloc(L);
+    //fileRead(F, Lorem2, L);
+}
+
+float generate_numbers(float count, char delimiter){
+    float S = malloc(sizeof_string);
+    string_constructor(S,"");
+    float I;
+    for(I = 0; I < count; I++){
+        float num = num2str(I);
+        string_addcs(S, num);
+        string_addc(S, delimiter);
+    }
+    return S;
+}
+
+struct verbkind{
+    float a;
+    float b;   
+}
+void test10(){
+    Print("HL-ZASM struct test\n",990);
+    verbkind V;
+    V.a = 123;
+    V.b = 234;
+    P2("1: V.a: ",V.a,"\n");
+    P2("1: V.b: ",V.b,"\n");
+    verbkind V2;
+    V2 = test10_func1(V);
+    P2("2: V.a: ",V.a,"\n");
+    P2("2: V.b: ",V.b,"\n");
+    P2("3: V2.a: ",V2.a,"\n");
+    P2("3: V2.b: ",V2.b,"\n");
+}
+
+void test10_func1(verbkind V){
+    float A = V.a;
+    float B = V.b;
+    P2("func: V.a: ",V.a,"\n");
+    P2("func: V.b: ",V.b,"\n");
+//    P2("func: verbkind.a: ",verbkind.a,"\n"); "Undefined label: verbkind.a"
+//    P2("func: verbkind.b: ",verbkind.b,"\n");
+    P2("func: A: ",A,"\n");
+    P2("func: B: ",B,"\n");
+    V.a = 992;//A;
+    V.b = 991;//V.a;
+    return V;
+}
+
+void test11(){
+    Print("Listing...\n",990);
+    FilesystemList();
+}
+
+float MinStrI = 0;
+MinStr:alloc 256;
+ConsoleStrBuff:alloc CONSOLE_BUFFER_SIZE;
+Header:alloc 9000
+#endif
+

@@ -1,0 +1,68 @@
+#ifndef va_GUARD
+#define va_GUARD
+
+//generated using:
+//skeleton.exe va base count count_unnamed first_unnamed current 
+
+//struct va
+//    0: base
+//    1: count
+//    2: count_unnamed
+//    3: first_unnamed
+//    4: current
+//
+
+float sizeof_va(){return 5};
+
+//default constructor
+void va_constructor(float this){
+    this[0] = 0;
+    this[1] = 0;
+    this[2] = 0;
+    this[3] = 0;
+    this[4] = 0;
+}
+
+//copy constructor
+void va_copy_constructor(float this, float that){
+    this[0] = that[0];
+    this[1] = that[1];
+    this[2] = that[2];
+    this[3] = that[3];
+    this[4] = that[4];
+}
+
+//default destructor
+void va_destructor(float this){
+    //add your code here
+}
+
+//equivalent to "new va"
+float va_new(){
+    float size = sizeof_va();
+    float p = malloc(size);
+    va_constructor(p);
+    return p;
+}
+
+//equivalent to "delete va"
+void va_delete(float this){
+    va_destructor(this);
+    free(this);
+}
+
+//getters
+float va_get_base(float this){return this[0];}
+float va_get_count(float this){return this[1];}
+float va_get_count_unnamed(float this){return this[2];}
+float va_get_first_unnamed(float this){return this[3];}
+float va_get_current(float this){return this[4];}
+
+//setters
+void va_set_base(float this, float N){this[0] = N;}
+void va_set_count(float this, float N){this[1] = N;}
+void va_set_count_unnamed(float this, float N){this[2] = N;}
+void va_set_first_unnamed(float this, float N){this[3] = N;}
+void va_set_current(float this, float N){this[4] = N;}
+
+#endif

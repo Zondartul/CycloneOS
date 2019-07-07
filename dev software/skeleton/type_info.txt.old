@@ -1,0 +1,58 @@
+#ifndef type_info_GUARD
+#define type_info_GUARD
+
+//generated using:
+//skeleton.exe type_info name type entries 
+
+//struct type_info
+//    0: name
+//    1: type
+//    2: entries
+//
+
+float sizeof_type_info(){return 3};
+
+//default constructor
+void type_info_constructor(float this){
+    this[0] = 0;
+    this[1] = 0;
+    this[2] = 0;
+}
+
+//copy constructor
+void type_info_copy_constructor(float this, float that){
+    this[0] = that[0];
+    this[1] = that[1];
+    this[2] = that[2];
+}
+
+//default destructor
+void type_info_destructor(float this){
+    //add your code here
+}
+
+//equivalent to "new type_info"
+float type_info_new(){
+    float size = sizeof_type_info();
+    float p = malloc(size);
+    type_info_constructor(p);
+    return p;
+}
+
+//equivalent to "delete type_info"
+void type_info_delete(float this){
+    type_info_destructor(this);
+    free(this);
+}
+
+//getters
+float type_info_get_name(float this){return this[0];}
+float type_info_get_type(float this){return this[1];}
+float type_info_get_entries(float this){return this[2];}
+
+//setters
+void type_info_set_name(float this, float N){this[0] = N;}
+void type_info_set_type(float this, float N){this[1] = N;}
+void type_info_set_entries(float this, float N){this[2] = N;}
+
+#endif

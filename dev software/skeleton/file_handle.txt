@@ -1,0 +1,77 @@
+#ifndef file_handle_GUARD
+#define file_handle_GUARD
+
+//generated using:
+//skeleton file_handle file ptr_read ptr_write -canary 
+
+//struct file_handle
+//    0: canary
+//    1: file
+//    2: ptr_read
+//    3: ptr_write
+//
+
+str_file_handle: db "file_handle",0;
+
+#ifndef CANARY_GUARD
+#define CANARY_GUARD
+void error(){int 1;}
+void check_canary(float this, float canary){
+   if(this[0] != canary){
+        error();
+   }
+}
+#endif
+
+float sizeof_file_handle(){return 4};
+
+//default constructor
+void file_handle_constructor(float this){
+    this[0] = str_file_handle;
+    this[1] = 0;
+    this[2] = 0;
+    this[3] = 0;
+}
+
+//copy constructor
+void file_handle_copy_constructor(float this, float that){
+    this[0] = that[0];
+    this[1] = that[1];
+    this[2] = that[2];
+    this[3] = that[3];
+    check_canary(this,str_file_handle);
+}
+
+//default destructor
+void file_handle_destructor(float this){check_canary(this,str_file_handle);
+    check_canary(this,str_file_handle);
+    //add your code here
+}
+
+//equivalent to "new file_handle"
+float file_handle_new(){
+    float size = sizeof_file_handle();
+    float p = malloc(size);
+    file_handle_constructor(p);
+    return p;
+}
+
+//equivalent to "delete file_handle"
+void file_handle_delete(float this){
+    file_handle_destructor(this);
+    free(this);
+}
+
+//getters
+float file_handle_get_canary(float this){check_canary(this,str_file_handle);return this[0];}
+float file_handle_get_file(float this){check_canary(this,str_file_handle);return this[1];}
+float file_handle_get_ptr_read(float this){check_canary(this,str_file_handle);return this[2];}
+float file_handle_get_ptr_write(float this){check_canary(this,str_file_handle);return this[3];}
+
+//setters
+void file_handle_set_canary(float this, float N){check_canary(this,str_file_handle);this[0] = N;}
+void file_handle_set_file(float this, float N){check_canary(this,str_file_handle);this[1] = N;}
+void file_handle_set_ptr_read(float this, float N){check_canary(this,str_file_handle);this[2] = N;}
+void file_handle_set_ptr_write(float this, float N){check_canary(this,str_file_handle);this[3] = N;}
+
+#endif

@@ -1,0 +1,407 @@
+
+//data linearization
+//
+// "tree-mode" - when every piece of data is in different place on the heap
+// "linear-mode" - when all the pieces are in a continuous block
+//   in linear mode, data is valid if it can be read with zero pointer offset.
+//   pointer offsets can be applied when reading or writing to create data
+//   that WOULD be valid after moved to another memory location.
+
+// struct_make() - constructs a tree-mode struct and returns a pointer to it
+// struct_get_linsize() - returns the size a struct would have when converted to linear-mode
+// struct_linearize(struct*, newpos*, readoffset, writeoffset) - converts into linear-mode.
+//  params:
+//   struct* - pointer to the struct (either mode)
+//   newpos* - pointer to the place in memory where a linearized version of the struct will be constructed.
+//             if newpos is 0, an arbitrary heap location is allocated and writeoffset is ignored.
+//   readoffset - offset that the pointers in the struct currently have. This offset is substracted from
+//                all pointers when reading so that valid data can be read.
+//   writeoffset - offset that the pointers in the struct will have after writing. This offset can be
+//                 used to create data that will be valid after writing to a file or another memory location.
+
+
+/*
+    struct exe
+    {
+    0   typeof_exe;
+    1   float exe_style;
+    2   float link_style;
+    3   float has_static;
+    4   float compile_timestamp;
+    5   ptr<nt_array<section>> section_list;     
+    };
+    
+    nt_array<x>:
+        x,x,x,x,0;
+        
+    struct section{
+        typeof_section;
+        float type;
+        float size;
+        ptr data;
+    }
+*/
+
+//exe ------------------------------------------------------------------
+
+float make_exe(){
+    //printf("make_exe\n");
+    
+    float exe = malloc(6);
+    float exe_style = 3;
+    float link_style = 2;
+    float has_static = 0;
+    float compile_timestamp = currentTimeStamp();
+    float section_list = make_section_list();//malloc(3);
+    
+    
+    
+    exe[0] = typeof_exe;
+    exe[1] = exe_style;
+    exe[2] = link_style;
+    exe[3] = has_static;
+    exe[4] = compile_timestamp;
+    exe[5] = section_list;
+    //printf("make_exe done\n");
+    return exe;
+}
+
+float exe_get_linsize(float exe){
+    //printf("exe_get_linsize\n");
+    assert_type(exe,typeof_exe);
+    float section_list = exe[5];
+    float section_list_size = section_list_get_linsize(section_list);
+    float exe_size = sizeof_exe+section_list_size;
+    //printf("exe_get_linsize done\n");
+    return exe_size;
+}
+
+float exe_linearize(float exe, float newpos, float readoffset, float writeoffset){
+    //printf("exe_linearize\n");
+    assert_type(exe,typeof_exe);
+    float section_list = exe[5]-readoffset;
+    float section_list_size = section_list_get_linsize(section_list);
+    float exe_size = sizeof_exe+section_list_size;
+    if(!newpos){newpos = malloc(exe_size);}
+    
+    float new_section_list = newpos+sizeof_exe;
+    section_list = section_list_linearize(section_list,new_section_list,0,-newpos);
+    
+    newpos[0] = typeof_exe;
+    newpos[1] = exe[1];
+    newpos[2] = exe[2];
+    newpos[3] = exe[3];
+    newpos[4] = exe[4];
+    //printf("newpos = %d\n",newpos);
+    //printf("section_list = %d\n",section_list);
+    //printf("writeoffset = %d\n",writeoffset);
+    newpos[5] = section_list+writeoffset;
+    //printf("newpos[5] = %d\n",newpos[5]);
+    
+    //printf("exe_linearize done\n");
+    return newpos;
+}
+
+//  ----------------------------------------------------------------------
+
+//section_list -----------------------------------------------------------
+//no sizeof since it's a nullterm array
+
+float make_section_list(){
+    //printf("make_section_list\n");
+    float section_list = malloc(3);
+    section_list[0] = make_section_symtable();
+    section_list[1] = make_section_code();
+    section_list[2] = 0;
+    //printf("make_section_list done\n");
+    return section_list;
+}
+
+float section_list_get_linsize(float sectionlist){
+    //printf("section_list_linsize(%d) ",sectionlist);
+    float numsections = strlen(sectionlist);
+    float size = numsections+1;
+    float I = 0;
+    for(I = 0; I < numsections; I++){
+        float section = sectionlist[I];
+        assert_type(section,typeof_section);
+        float section_size = section_get_linsize(section);
+        size += section_size;
+    }
+    //printf("= %d\n",size);
+    return size;   
+}
+
+float section_list_linearize(float sectionlist, float newpos, float readoffset, float writeoffset){
+    //printf("section_list_lin begin\n");
+    float numsections = strlen(sectionlist);
+    //printf("numsections = %d\n",numsections);
+    float size = section_list_get_linsize(sectionlist);
+    //printf("size = %d\n",size);
+    if(!newpos){newpos = malloc(size);}
+    //printf("newpos = %d\n",newpos);
+    float ptr = newpos+numsections+1;
+    //printf("ptr = %d\n",ptr);
+    float I = 0;
+    for(I = 0; I < numsections; I++){
+        //printf("I = %d\n",I);
+        float section = sectionlist[I]-readoffset;
+        //printf("section = %d\n",section);
+        assert_type(section,typeof_section);
+        float section_size = section_get_linsize(section);
+        //printf("section_size = %d\n",section_size);
+        section = section_linearize(section,ptr,0,writeoffset);
+        //printf("lin.section = %d\n",section);
+        newpos[I] = section+writeoffset;
+        ptr += section_size;
+    }
+    newpos[numsections] = 0;
+    //printf("section list return %d\n",newpos);
+    return newpos;
+}
+
+//---------------------------------------------------------------------------
+
+//section -------------------------------------------------------------------
+
+
+float make_section_symtable(){
+    //rintf("make_section_symtable\n");
+    float section = malloc(4);
+    float type = 3;
+    float size = symtable_get_linsize(asm_symTable);
+    float symtable_data = malloc(size);
+    float section_data = symtable_linearize(asm_symTable,symtable_data,0,-symtable_data);
+    section[0] = typeof_section;
+    section[1] = type;
+    section[2] = size;
+    section[3] = section_data;
+    //printf("make_section_symtable done\n");
+    return section;
+}
+
+float make_section_code(){
+    //printf("make_section_code\n");
+    float section = malloc(4);
+    float type = 0;
+    float size = vector_get_size(asm_code);
+    float section_data = vector_get_array(asm_code);
+    section[0] = typeof_section;
+    section[1] = type;
+    section[2] = size;
+    section[3] = section_data;
+    //printf("make_section_code done\n");
+    return section;
+}
+
+float section_get_linsize(float section){
+    //printf("section_get_linsize\n");
+    assert_type(section,typeof_section);
+    float section_size = section[2];
+    return sizeof_section+section_size;
+}
+
+float section_linearize(float section, float newpos, float readoffset, float writeoffset){
+    //printf("section_linearize\n");
+    assert_type(section, typeof_section);
+    float newsize = section_get_linsize(section);
+    if(!newpos){newpos = malloc(newsize);}
+    newpos[0] = typeof_section;
+    newpos[1] = section[1];
+    newpos[2] = section[2];
+    float ptr = newpos+sizeof_section;
+    newpos[3] = ptr+writeoffset;
+    float data_size = section[2];
+    float section_data = section[3]-readoffset;
+    memcpy(ptr,section_data,data_size);
+    return newpos;
+}
+
+//-----------------------------------------------------------------------------
+//symtable --------------------------------------------------------------------
+float symtable_get_linsize(float symtable){
+    //printf("symtable_get_linsize\n");
+    float num = vector_get_size(symtable);
+    float size = vector_get_linsize(symtable);//sizeof_vector;
+    float I = 0;
+    for(I = 0; I<num; I++){
+        float sym = vector_get(symtable,0,I);
+        assert_type(sym,typeof_symbol);
+        size += symbol_get_linsize(sym);   
+    }
+    return size;
+}
+
+float symtable_linearize(float symtable, float newpos, float readoffset, float writeoffset){
+    //printf("symtable_linearize\n");
+    float num = vector_get_size(symtable);
+    float newsize = symtable_get_linsize(symtable);//sizeof_symbol*num;
+    if(!newpos){newpos = malloc(newsize);}
+    float ptr = newpos;
+    float vsize = vector_get_linsize(symtable);
+    //printf("vsize = %d\n",vsize);
+    vector_linearize2(symtable,ptr,0,writeoffset);
+    float vpos = ptr;
+    //printf("vpos @ %d\n",vpos);
+    float vdata = vpos+sizeof_vector;
+    //printf("vdata @ %d\n",vdata);
+    ptr += vsize;
+        
+    float I = 0;
+    for(I = 0; I < num; I++){
+        float sym = vector_get(symtable,0,I);
+        //printf("symbol %d @ %d\n",I,sym);
+        sym -= readoffset;
+        assert_type(sym,typeof_symbol);
+        
+        
+        float symsize = symbol_get_linsize(sym);//different between symbols
+        symbol_linearize(sym, ptr, 0, writeoffset);
+        //printf("lined to %d\n",ptr);
+        
+        float newptr = ptr+writeoffset;
+        //printf("written as %d\n",newptr);
+        vdata[I] = newptr;   
+     //vector_set(vpos,newptr,I); //can't access vector functions cause it's at offset
+        
+        ptr += symsize;
+        //float adr = newpos+sizeof_symbol*I;
+        //memcpy(adr,sym,sizeof_symbol);
+        //free(sym);
+        //adr += writeoffset;
+        //vector_set(asm_symTable,adr,I);
+    }
+    
+    //printf("symtable_linearize done\n");
+    return newpos;
+}
+
+//-----------------------------------------------------------------------------
+//symbol-----------------------------------------------------------------------
+
+//struct symbol
+//0: typeof_symbol
+//1: string name
+//2: definition address
+//3: reference addresses (vector)
+
+float symbol_get_linsize(float sym){
+    assert_type(sym,typeof_symbol);
+    float name = sym[1];
+    float refs = sym[3];
+    
+    float size = sizeof_symbol;
+    size += strlen(name)+1;
+    if(refs){
+        //size += sizeof_vector;
+        //size += vector_get_size(refs);
+        size += vector_get_linsize(refs);
+    }
+    return size;
+}
+
+float symbol_linearize(float sym, float newpos, float readoffset, float writeoffset){
+    assert_type(sym,typeof_symbol);
+    float size = symbol_get_linsize(sym);
+    float name = sym[1];
+    float refs = sym[3]-readoffset;
+    if(!newpos){newpos = malloc(size);}
+    float ptr = newpos+sizeof_symbol;
+    float len = strlen(name);
+    memcpy(ptr,name,len);
+    float name2 = ptr;
+    ptr += len;
+    *ptr++ = 0;
+    //float refs2 = 0;
+    newpos[3] = 0;
+    if(refs){
+      //  refs2 = ptr;
+        /*
+        //depends on zvector implementation from aug 2015
+        float refs2  = ptr;
+        
+        ptr += sizeof_vector;
+        size = vector_get_size(refs);
+        float refdata = vector_get_array(refs)-readoffset;
+        memcpy(ptr,refdata,size);
+        refs2[0] = typeof_vector;   //type
+        refs2[1] = ptr+writeoffset; //array
+        refs2[2] = size;            //size
+        refs2[3] = size;            //capacity
+        refs2[4] = 1;               //element_size
+        */
+        vector_linearize2(refs,ptr,0,writeoffset);
+        newpos[3] = ptr+writeoffset;
+    }
+    newpos[0] = typeof_symbol;
+    newpos[1] = name2+writeoffset;
+    newpos[2] = sym[2];
+    //if(refs2){newpos[3] = refs2+writeoffset;}
+    //else{newpos[3] = 0;}
+    
+    return newpos;
+}
+// [vector]
+// type   vector       //magic value to id this as an object of class vector
+// ptr*   array        //pointer to internal array
+// int    size         //number of elements currently in array
+// int    capacity     //number of elements that the space is reserved for
+// int    element_size //size, in bytes, of a single element
+
+float vector_get_linsize(float v){
+    assert_type(v, typeof_vector);
+    return sizeof_vector+vector_get_size(v);
+}
+
+float vector_linearize2(float v, float newpos, float readoffset, float writeoffset){
+    assert_type(v, typeof_vector);
+    float num = vector_get_size(v);
+    float size = vector_get_linsize(v);
+    if(!newpos){newpos = malloc(size);}
+    float ptr = newpos+sizeof_vector;
+    float vdata = v[1]-readoffset;//vector_get_array(v)-readoffset;
+    newpos[0] = typeof_vector;      //type
+    newpos[1] = ptr+writeoffset;    //array
+    newpos[2] = num;                //size
+    newpos[3] = num;                //capacity
+    newpos[4] = 1;                  //element_size
+    memcpy(ptr,vdata,num);
+    //printf("linearizing vector\n");
+    //printf("v = %d\n",v);
+    //printf("vdata = %d\n",vdata);
+    //printf("num = %d\n",num);
+    //printf("size = %d\n",size);
+    //printf("ptr = %d\n", ptr);
+    //printf("diff = %d\n",ptr-newpos);
+    //printf("before:\n");
+    //printVector(v,0);
+    //printf("after:\n");
+    //printVector(newpos,writeoffset);
+    return newpos;
+}
+
+//-----------------------------------------------------------------------------
+//debug
+
+void printVector(float v,float readoffset){
+    float n = vector_get_size(v);
+    float I;
+    v[1] -= readoffset;
+    for(I = 0; I < n; I++){
+        float val = vector_get(v,0,I);
+        float ptr = v[1];
+        ptr += I;
+        printf("%d @ %d %d\n",I,ptr,val);
+    }
+    v[1] += readoffset;
+}
+
+
+
+
+
+
+
+
+
+

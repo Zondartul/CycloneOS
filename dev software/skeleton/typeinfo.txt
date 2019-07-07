@@ -1,0 +1,77 @@
+#ifndef type_info_GUARD
+#define type_info_GUARD
+
+//generated using:
+//skeleton type_info name type entries -canary 
+
+//struct type_info
+//    0: canary
+//    1: name
+//    2: type
+//    3: entries
+//
+
+str_type_info: db "type_info",0;
+
+#ifndef CANARY_GUARD
+#define CANARY_GUARD
+void error(){int 1;}
+void check_canary(float this, float canary){
+   if(this[0] != canary){
+        error();
+   }
+}
+#endif
+
+float sizeof_type_info(){return 4};
+
+//default constructor
+void type_info_constructor(float this){
+    this[0] = str_type_info;
+    this[1] = 0;
+    this[2] = 0;
+    this[3] = 0;
+}
+
+//copy constructor
+void type_info_copy_constructor(float this, float that){
+    this[0] = that[0];
+    this[1] = that[1];
+    this[2] = that[2];
+    this[3] = that[3];
+    check_canary(this,str_type_info);
+}
+
+//default destructor
+void type_info_destructor(float this){check_canary(this,str_type_info);
+    check_canary(this,str_type_info);
+    //add your code here
+}
+
+//equivalent to "new type_info"
+float type_info_new(){
+    float size = sizeof_type_info();
+    float p = malloc(size);
+    type_info_constructor(p);
+    return p;
+}
+
+//equivalent to "delete type_info"
+void type_info_delete(float this){
+    type_info_destructor(this);
+    free(this);
+}
+
+//getters
+float type_info_get_canary(float this){check_canary(this,str_type_info);return this[0];}
+float type_info_get_name(float this){check_canary(this,str_type_info);return this[1];}
+float type_info_get_type(float this){check_canary(this,str_type_info);return this[2];}
+float type_info_get_entries(float this){check_canary(this,str_type_info);return this[3];}
+
+//setters
+void type_info_set_canary(float this, float N){check_canary(this,str_type_info);this[0] = N;}
+void type_info_set_name(float this, float N){check_canary(this,str_type_info);this[1] = N;}
+void type_info_set_type(float this, float N){check_canary(this,str_type_info);this[2] = N;}
+void type_info_set_entries(float this, float N){check_canary(this,str_type_info);this[3] = N;}
+
+#endif

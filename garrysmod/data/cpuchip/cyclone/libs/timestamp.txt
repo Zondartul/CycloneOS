@@ -1,0 +1,106 @@
+//timestamps and time accessories
+#ifndef TIMESTAMP_GUARD
+#define TIMESTAMP_GUARD
+
+//#define COMPILE_TIMESTAMP __DATE_SECOND__+60*(__DATE_MINUTE__+60*(__DATE_HOUR__+24*(__DATE_DAY__+31*(__DATE_MONTH__+12*__DATE_YEAR__))))
+
+float compileTimeStamp(){
+    //float day = __DATE_DAY__;
+    //float month = __DATE_MONTH__;
+    //float year = __DATE_YEAR__;
+    //float hour = __DATE_HOUR__;
+    //float minute = __DATE_MINUTE__;
+    //float second = __DATE_SECOND__;
+    //return second+60*(minute+60*(hour+24*(day+31*(month+12*year))));
+    return __DATE_SECOND__+60*(__DATE_MINUTE__+60*(__DATE_HOUR__+24*(__DATE_DAY__+31*(__DATE_MONTH__+12*__DATE_YEAR__))));//COMPILE_TIMESTAMP;
+}
+
+//should really return current time instead
+float currentTimeStamp(){
+    return compileTimeStamp();
+}
+
+void decodeTimeStamp(float time, float *day, float *month, float *year, float *hour, float *minute, float *second){
+    *second = time%60; time -= *second; time /= 60;
+    *minute = time%60; time -= *minute; time /= 60;
+    *hour = time%24; time -= *hour; time /= 24;
+    *day = time%31; time -= *day; time /= 31;
+    *month = time%12; time-= *month; time /= 12;
+    *year = time;
+}
+
+month_strings:
+db str_nan, //0
+db str_jan, //1
+db str_feb, //2
+db str_mar, //3
+db str_apr, //4
+db str_may, //5
+db str_jun, //6
+db str_jul, //7
+db str_aug, //8
+db str_sep, //9
+db str_oct, //10
+db str_nov, //11
+db str_dec2,  //12
+db 0;
+
+str_nan: db "NaN", db 0;
+str_jan: db "Jan", db 0;
+str_feb: db "Feb", db 0;
+str_mar: db "Mar", db 0;
+str_apr: db "Apr", db 0;
+str_may: db "May", db 0;
+str_jun: db "Jun", db 0;
+str_jul: db "Jul", db 0;
+str_aug: db "Aug", db 0;
+str_sep: db "Sep", db 0;
+str_oct: db "Oct", db 0;
+str_nov: db "Nov", db 0;
+str_dec2: db "Dec", db 0;
+
+float monthToString(float month){
+    if(month < 0){month = 0;}
+    if(month > 12){month = 0;}
+    return month_strings[month];
+}
+
+timeStampStr:
+alloc 22;
+
+float timeStampToString(float time){
+    float day,month,year,hour,minute,second;
+    decodeTimeStamp(time,&day,&month,&year,&hour,&minute,&second);
+    day = clamp(day,0,99);
+    month = clamp(month,0,99);
+    year = clamp(year,0,9999);
+    hour = clamp(hour,0,99);
+    minute = clamp(minute,0,99);
+    second = clamp(second,0,99);
+    
+    float str = timeStampStr;//malloc(22);
+    float ptr = str;
+    float str2;
+    
+    str2 = num2str(day);
+    strcpy(ptr,str2); ptr += 2; *ptr++ = ' ';
+    
+    str2 = monthToString(month);
+    strcpy(ptr,str2); ptr += 3; *ptr++ = ' '; //this is kind of macabre
+    
+    str2 = num2str(year);
+    strcpy(ptr,str2); ptr += 4; *ptr++ = ' ';
+    
+    str2 = num2str(hour);
+    strcpy(ptr,str2); ptr += 2; *ptr++ = ':';
+    
+    str2 = num2str(minute);
+    strcpy(ptr,str2); ptr += 2; *ptr++ = ':';
+    
+    str2 = num2str(second);
+    strcpy(ptr,str2); ptr += 2; *ptr++ = 0;
+    
+    return str;
+}
+
+#endif

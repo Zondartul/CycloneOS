@@ -1,0 +1,66 @@
+//CycloneFS: File handle
+//------------------------------------------------
+//FileHandle
+// this object exists only in RAM to fascilitate file access
+// in case of a permission conflict, the more restrictive of two options is used.
+// 
+// 0: folder          - the folder in which the file's name, index, and metadata is found.
+// 1: name            - file name by which it can be found in the folder
+// 2: metadata        - the FileMetadata object that describes this file
+// 3: read_allowed    - this handle allows for file to be read
+// 4: write_allowed   - this handle allows for file to be written
+// 5: seek_allowed    - this handle allows for read/write position to be changed
+// 6: execute_allowed - this handle allows for file to be executed
+// 7: write_pos       - position where new data will be written to
+// 8: read_pos        - position where the data will be read from
+// 9: buffer          - location of the read/write buffer
+//10: size            - current file size
+//11: sector          - disk sector index for the start of this file
+//
+//------------------------------------------------
+
+
+float sizeof_fs_file_handle = 12;
+
+void fs_file_handle_constructor(float *self){
+    self[0] = 0; //unknown folder
+    self[1] = 0; //unknown name
+    self[2] = 0; //unknown metadata
+    self[3] = 1; //read allowed
+    self[4] = 1; //write allowed
+    self[5] = 1; //seek allowed
+    self[6] = 0; //execute forbidden
+    self[7] = 0; //write pos is at the beginning
+    self[8] = 0; //read pos is at the beginning
+    self[9] = 0; //unknown buffer
+    self[10]= 0; //zero size
+    self[11]= 0; //no sector
+}
+
+//getters
+float fs_file_handle_get_folder(float *self){return self[0];}
+float fs_file_handle_get_name(float *self){return self[1];}
+float fs_file_handle_get_metadata(float *self){return self[2];}
+float fs_file_handle_get_read_allowed(float *self){return self[3];}
+float fs_file_handle_get_write_allowed(float *self){return self[4];}
+float fs_file_handle_get_seek_allowed(float *self){return self[5];}
+float fs_file_handle_get_execute_allowed(float *self){return self[6];}
+float fs_file_handle_get_write_pos(float *self){return self[7];}
+float fs_file_handle_get_read_pos(float *self){return self[8];}
+float fs_file_handle_get_buffer(float *self){return self[9];}
+float fs_file_handle_get_size(float *self){return self[10];}
+float fs_file_handle_get_sector(float *self){return self[11];}
+//setters
+void fs_file_handle_set_folder(float *self, float n){self[0] = n;}
+void fs_file_handle_set_name(float *self, float n){self[1] = n;}
+void fs_file_handle_set_metadata(float *self, float n){self[2] = n;}
+void fs_file_handle_set_read_allowed(float *self, float n){self[3] = n;}
+void fs_file_handle_set_write_allowed(float *self, float n){self[4] = n;}
+void fs_file_handle_set_seek_allowed(float *self, float n){self[5] = n;}
+void fs_file_handle_set_execute_allowed(float *self, float n){self[6] = n;}
+void fs_file_handle_set_write_pos(float *self, float n){self[7] = n;}
+void fs_file_handle_set_read_pos(float *self, float n){self[8] = n;}
+void fs_file_handle_set_buffer(float *self, float n){self[9] = n;}
+void fs_file_handle_set_size(float *self, float n){self[10] = n;}
+void fs_file_handle_set_sector(float *self, float n){self[11] = n;}
+//-----------------------------------------------------------------------

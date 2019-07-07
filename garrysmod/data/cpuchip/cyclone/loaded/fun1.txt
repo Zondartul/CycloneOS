@@ -1,0 +1,6 @@
+//cyclone type-2 program load test
+#include <cyclone/loaded/prologue3.txt>
+
+float main(float argc, float argv){
+    
+}

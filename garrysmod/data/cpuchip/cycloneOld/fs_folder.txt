@@ -1,0 +1,101 @@
+//CycloneFS: Directory system
+//------------------------------------------------
+//Folder:
+//consists of struct FolderHeader
+//and agregate data FolderData.
+//------------------------
+//FolderHeader:
+//  0: ptr *names
+//  1: ptr *sectors
+//  2: ptr *metadata
+//------------------------
+//FolderData (unindexed):
+//  [vector<float> sectors]         //stores the sector number of the first sector of each file
+//  [vector<FileMetadata> metadata] //stores the metadata of each file
+//  [vector<string> names]          //stores the names of each file
+//  [all vector data]
+//------------------------------------------------
+float sizeof_fs_folder = 3;
+void fs_folder_constructor(float *self){
+    self[0] = 0;
+    self[1] = 0;
+    self[2] = 0;
+}
+//getters
+float fs_folder_get_names(float *self){return self[0];}
+float fs_folder_get_sectors(float *self){return self[1];}
+float fs_folder_get_metadata(float *self){return self[2];}
+//setters
+void fs_folder_set_names(float *self, float n){self[0] = n;}
+void fs_folder_set_sectors(float *self, float n){self[1] = n;}
+void fs_folder_set_metadata(float *self, float n){self[2] = n;}
+//member funcs
+
+//takes a file name (vstring) and returns the index of that file if present
+//-1 means not found
+float fs_folder_get_file_index(float Folder, float name){ 
+    float names = fs_folder_get_names(Folder);
+    float size = vector_size(names);
+    float I;
+    float S = malloc(sizeof_string);
+    float c_S;
+    //float c_name = string_c_str(name);
+    P("fs_fgfi: find ");P(name);P("\n");
+    for(I = 0; I < size; I++){
+        vector_get(names, S, I);
+        c_S = string_c_str(S);
+        P("fs_fgfi: ");P(c_S);P("?");
+        if(strcmp(name, c_S)==0){
+            P("Y\n");
+            free(S);
+            return I;    
+        }
+        P("N\n");
+    }
+    free(S);
+    return -1;
+}
+
+void fs_folder_write_to_disk(float Folder, float File){ //writes the folder back to disk
+    P("fwtd 1\n");
+    float size;
+    float p;
+    FileSeek(File, 0, 0);
+    P("fwtd 2\n");
+    size = sizeof_vector;
+    p = fs_folder_get_sectors(Folder);
+    FileWrite(File,size,1,p);               //write sector vector header
+    P("fwtd 3\n");
+    p = fs_folder_get_metadata(Folder);
+    FileWrite(File,size,1,p);               //write metadata vector header
+    P("fwtd 4\n");
+    p = fs_folder_get_names(Folder);
+    FileWrite(File,size,1,p);               //write names vector header
+    P("fwtd 5\n");
+    p = fs_folder_get_sectors(Folder);
+    size = vector_disk_size(p);
+    FileWrite(File,size,1,p);               //write sector vector data
+    P("fwtd 6\n");
+    p = fs_folder_get_metadata(Folder);
+    size = vector_disk_size(p);
+    FileWrite(File,size,1,p);               //write metadata vector data
+    
+    p = fs_folder_get_names(Folder);
+    size = vector_disk_size(p);
+    FileWrite(File,size,1,p);               //write names vector data
+    P("fwtd 7\n");
+    float vsize = vector_size(p);
+    float I = 0;
+    float S = malloc(sizeof_vector);
+    float c_S = 0;
+    for(I = 0; I < vsize; I++){
+        vector_get(p,S,I);
+        size = vector_disk_size(S);
+        c_S = string_c_str(S);
+        FileWrite(File,size,1,p);           //write individual names
+    }
+    P("fwtd 8\n");
+}
+
+// End of class Folder
+//------------------------------------------------

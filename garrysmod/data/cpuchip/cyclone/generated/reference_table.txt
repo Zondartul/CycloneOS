@@ -1,0 +1,15 @@
+#ifndef CYCLONE_BUILDER
+reference_table:
+float CEOF= 0; db str2_CEOF;
+float prevIP= 0; db str2_prevIP;
+float prevCS= 0; db str2_prevCS;
+float byte= 0; db str2_byte;
+reference_table_end:
+
+reference_name_table:
+str2_CEOF: db "CEOF",0;
+str2_prevIP: db "prevIP",0;
+str2_prevCS: db "prevCS",0;
+str2_byte: db "byte",0;
+reference_name_table_end:
+#endif

@@ -1,0 +1,105 @@
+//CycloneOS defines and enums
+//number classification:
+//7 aaa aaa - dummy addresses (usually for linking)
+//6 xxx yyy - type and property names
+//5 xxx yyy - enums / special constants
+//  xxx - object type
+//  yyy - enum number
+//0 - 4 MB - normall addresses
+//prefixes
+
+//------------------- TYPES --------------------------------------
+//vector, prefix V
+#define T_VECTOR                    6001000
+//string, prefix S
+#define T_STRING                    6002000
+//executable, prefix EXE
+#define T_EXE                       6003000
+//section, prefix SEC
+#define T_SECTION                   6004000
+//symbol, prefix SYM
+#define T_SYMBOL                    6005000
+//proginfo, prefix PI
+#define T_PROGINFO                  6006000
+//file (executable), prefix FE
+#define T_FILE_EXE                  6007000
+//typeinfo, prefix TI
+#define T_TYPEINFO                  6008000
+//typeinfo_member, prefix TI_M
+#define T_TYPEINFO_MEMBER           6009000
+//vtable, prefix VT
+#define T_VTABLE                    6010000
+//------------------- PROPERTIES ---------------------------------
+//size of program in bytes
+#define P_FE_PROGRAMSIZE            6007001
+//base pointer for program block
+#define P_FE_CODEBASE               6007002
+//base pointer for whole file
+#define P_FE_FILEBASE               6007003
+//type of CycloneOS executable format
+#define P_FE_EXE_STYLE              6007004
+//type of linking operation requested
+#define P_FE_LINK_STYLE             6007005
+//program code (excluding prologue) starts here
+#define P_FE_CODESTART              6007006
+//if reference table is used, it's start and end
+#define P_FE_REFTABLE_START         6007007
+#define P_FE_REFTABLE_END           6007008
+//------------------- ENUMS (EXE) --------------------------------
+//Flat exe has entry point at 0 and no linking
+#define EXE_STYLE_FLAT              5003001
+//AlcorPC exe has programsize at 0 and entry point at 1
+#define EXE_STYLE_ALCOR             5003002
+//All-function import/export table executables link to a specific version of the kernel
+//and have an entry point immediately after the table 
+#define EXE_STYLE_ALLFUNC           5003003
+//symbol table executable programs have a symbol table for dynamic linking
+//their entry points are defined by the symbol table
+#define EXE_STYLE_SYMBOL            5003004
+
+//position-dependent code must be run from base address 0, be it physically, through paging, or through segmentation.
+#define IS_POSITION_DEPENDENT       5003005
+//position-independent code can be relocated to arbitrary addresses and run from there.
+#define IS_POSITION_INDEPENDENT     5003006
+
+//no linking is necessary
+#define LINK_STYLE_NONE             5003007
+//needs to be static-linked
+#define LINK_STATIC_REQUESTED       5003008
+//needs to be dynamic-linked
+#define LINK_DYNAMIC_REQUESTED      5003009
+//needs to have a dyn-table built from reftable
+#define LINK_REFTABLE_REQUESTED     5003010
+
+//has no static-links applied yet
+#define HAS_NO_STATIC_LINKS         5003010
+//has static-links not in symbol table
+#define HAS_STATIC_LINKS            5003011
+//-------------------- ENUMS (VTABLE) ----------------------------
+#define VT_CONSTRUCTOR              5010001
+#define VT_DESTRUCTOR               5010002
+#define VT_SERIALIZE                5010003
+#define VT_DESERIALIZE              5010004
+#define VT_NEW                      5010005
+#define VT_HERE                     5010006
+#define VT_GET                      5010007
+#define VT_SET                      5010008
+#define VT_PUSH                     5010009
+#define VT_POP                      5010010
+#define VT_INSERT                   5010011
+#define VT_REMOVE                   5010012
+#define VT_CLEAR                    5010013
+#define VT_OPEN                     5010014
+#define VT_CLOSE                    5010015
+#define VT_SEEK                     5010016
+#define VT_CALL                     5010017
+#define VT_RESIZE                   5010018
+
+
+
+
+
+
+
+
+

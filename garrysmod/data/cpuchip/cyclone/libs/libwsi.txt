@@ -1,0 +1,276 @@
+#ifndef LIBWSI_GUARD
+#define LIBWSI_GUARD
+//Waiting Serial Interface
+// a full-duplex point-to-point serial interface
+// ___________________________________________________________________________________
+// ELECTRICAL LEVEL:
+// wsi_out -> wsi_in
+// wsi_in  <- wsi_out
+//
+// the wire-in and wire-out are always paired
+// in a single logical WSI interface and
+// share a WSIstate object.
+//
+// ___________________________________________________________________________________
+// LOGICAL LEVEL:
+// a WSI interface consists of two WSI channels:
+//  A -> B channel
+// wsi_cmd_out  -> wsi_cmd_in
+// wsi_data_out -> wsi_data_in
+// wsi_clk_out  -> wsi_clk_in
+// wsi_ack_in   <- wsi_ack_out
+//  A <- B channel
+// wsi_cmd_in   <- wsi_cmd_out
+// wsi_data_in  <- wsi_data_out
+// wsi_clk_in   <- wsi_clk_in
+// wsi_ack_out  -> wsi_ack_in
+//
+// ___________________________________________________________________________________
+// TIMING:
+// A can only send to B when B indicates readiness to receive.
+//                   ____________________________                  ___________________
+// B [rdy]     : ___/                            \________________/                   \__
+// A->B        :    [packet1][packet2]   [packet3]                 [packet4]  [packet5]  
+//                                   ______________________________________ 
+// A [rdy]     :____________________/                                      \_____________
+// B->A        :                       [packet1][packet2][packet3][packet4]              
+//
+// T           :-------------------------------------------------------------------------->
+//
+// ___________________________________________________________________________________
+// PACKET LEVEL:
+// packet:
+// cmd    clk
+// |      |
+// 00 0 0 0 00000000
+//    | |       |
+//  rdy ack   data
+//
+// cmd: protocol action to perform          - 2 digits
+// rdy: ready to receive                    - 1 digit
+// ack: flips when the packet has been read - 1 digit
+// data: data to be sent                    - 8 digits (26 bits)
+//
+// cmd: 0 - no packet
+//      1 - data_single 
+//              the packet contains a single
+//              self-sufficient data cell (value < 2^26)
+//      2 - data_multibyte (unimplemented)
+//              a data cell is being sent
+//              over multiple packets (value > 2^26)
+//
+//
+// 
+// ___________________________________________________________________________________
+// SESSION LEVEL:
+// WSI send and receive channels are opened separately:
+// when opening a receive channel:
+// 1) receiver records current incoming [clk]
+// 2) receiver sets [rdy] to 1
+// when receiving:
+// 2) receiver waits for [clk] to flip, or until time-out
+// 2) receiver reads data
+// 3) receiver flips [ack]
+// when flushing:
+// 1) receiver reads data and flips [ack], not waiting for clk.
+// when closing a receive channel:
+// 1) receiver sets [rdy] to 0
+//
+// when opening a send channel:
+// 1) sender records incoming [ack]
+// 2) sender waits for [rdy] to be 1, or until time-out
+// when sending:
+// 1) sender sets [cmd] and [data]
+// 2) sender flips [clk] to indicate sending of data
+// 3) sender waits for the receiver to flip [ack], or until time-out
+// when closing a send channel:
+// -nothing- 
+//
+// ___________________________________________________________________________________
+// API LEVEL:
+//
+// wsi_open_receive(wsistate, wire_out, wire_in)
+// wsi_receive(wsistate)
+// wsi_flush(wsistate)
+// wsi_close_receive(wsistate)
+// wsi_open_send(wsistate, wire_out, wire_in)
+// wsi_send(wsistate, data)
+// wsi_close_send(wsistate)
+//
+
+void wsi_init(float WSIstate, float wsi_wire_out, float wsi_wire_in){
+    float wsi_clk_out_prev = 0;
+    float wsi_clk_in_prev = 0; 
+    float wsi_ack_out_prev = 0;
+    float wsi_ack_in_prev = 0;
+    WSIstate[0] = wsi_wire_out;
+    WSIstate[1] = wsi_wire_in;
+    WSIstate[2] = wsi_clk_out_prev;
+    WSIstate[3] = wsi_clk_in_prev;
+    WSIstate[4] = wsi_ack_out_prev;
+    WSIstate[5] = wsi_ack_in_prev;
+    write_port(wsi_wire_out,0);
+}
+
+float wsi(float argc, float argv){
+    //P2("argc: ",argc,"\n");
+    
+    //float wire_data_in = 5;
+    //float wire_clk_in = 6;
+    //float wire_ack_out = 7;
+    
+    //float wire_data_out = 5;
+    //float wire_clk_out = 6;
+    //float wire_ack_in = 7;
+    
+    //WSIstate:
+    //0 - wsi_wire_out
+    //1 - wsi_wire_in
+    //2 - wsi_clk_out_prev
+    //3 - wsi_clk_in_prev
+    //4 - wsi_ack_out_prev
+    //5 - wsi_ack_in_prev
+    //6 - timeout_receive
+    //7 - timeout_send
+    
+    float wsi_wire_out = 7;
+    float wsi_wire_in = 7;
+
+    float mode_send = 0;
+    float WSIstate[6];
+    
+
+    
+    float wsi_wire_out = WSIstate[0];
+    float wsi_wire_in = WSIstate[1];
+    float wsi_clk_out_prev = WSIstate[2];
+    float wsi_clk_in_prev = WSIstate[3]; 
+    float wsi_ack_out_prev = WSIstate[4];
+    float wsi_ack_in_prev = WSIstate[5];
+    
+    if(argc > 1){
+        if(strcmp(argv[1],"s") == 0){
+            mode_send = 1;
+            P("send mode\n");
+            //P2("OUT data: ",wire_data_out,"\n");
+            //P2("OUT clk: ",wire_clk_out,"\n");
+            //P2("IN ack: ",wire_ack_in,"\n");
+        }
+        if(strcmp(argv[1],"r") == 0){
+            mode_send = 0;
+            P("receive mode\n");
+            //P2("IN data: ",wire_data_in,"\n");
+            //P2("IN clk: ",wire_clk_in,"\n");
+            //P2("OUT ack: ",wire_ack_out,"\n");
+        }
+        if(strcmp(argv[1],"l") == 0){
+            mode_send = 2;
+            P("lorem ipsum mode\n");
+            
+        }
+    }else{
+        P("Usage:\n\"wsi (s|r) [wire_out_number wire_in_number]\"\n");
+        P("s to send, r to receive\n");
+        return;
+    }
+    
+    P2("WSI out: ",wire_wsi_out,"\n");
+    P2("WSI in: ",wire_wsi_in,"\n");
+    
+    if(argc > 3){
+        wsi_wire_out = str2num(argv[2]);
+        wsi_wire_in = str2num(argv[3]);
+    }
+    
+    
+    WSIstate1[0] = wire_data_in;
+    WSIstate1[1] = wire_clk_in;
+    WSIstate1[2] = wire_ack_out;
+    WSIstate1[3] = 0;                       //ack_state
+    WSIstate1[4] = read_port(wire_clk_in);  //clk_state
+    
+    WSIstate2[0] = wire_data_out;
+    WSIstate2[1] = wire_clk_out;
+    WSIstate2[2] = wire_ack_in;
+    WSIstate2[3] = read_port(wire_ack_in);
+    WSIstate2[4] = read_port(wire_clk_out);
+    
+    float K;
+    if(mode_send == 0){
+        while(1){
+                float D = WSI_get_data(WSIstate1);
+                if(D == 158){ //ctrl
+                    return;
+                }
+                P("[");Pc(D);P("]");
+        }
+    }
+    if(mode_send == 1){
+        while(1){
+            if(hasKey()){
+                K = readKey();
+                WSI_send_data(WSIstate2, K);
+                
+                P("[");Pc(K);P("]");
+                    if(K == 158){ //ctrl
+                        return;
+                    }
+            }else{
+                delay(0);//thread_yield();
+            }
+        } 
+    }
+}
+
+float WSI_has_data(float state){
+    float clk_in = state[1];
+    float clk_prev = state[4];
+    float C = read_port(clk_in);
+    if(C == clk_prev){return 0;}
+    else{
+        state[4] = C;
+        return 1;
+    }
+}
+
+float WSI_get_data(float state){
+    float clk_in = state[1];
+    float clk_prev = state[4];
+    while(read_port(clk_in) == clk_prev){delay(0);}
+    float C = read_port(clk_in);
+    state[4] = C;
+    float data_in = state[0];
+    float D = read_port(data_in);
+    float ack_out = state[2];
+    float ack_prev = state[3];
+    float A = 1-ack_prev;
+    write_port(ack_out,A);
+    state[3] = A;
+    return D;
+}
+
+void WSI_send_data(float state, float D){
+    float data_out = state[0];
+    write_port(data_out,D);
+    float clk_out = state[1];
+    float clk_prev = state[4];
+    float C = 1-clk_prev;
+    write_port(clk_out,C);
+    state[4] = C;
+    float ack_in = state[2];
+    float ack_prev = state[3];
+    while(read_port(ack_in) == ack_prev){
+        delay(0);//thread_yield();
+    }
+}
+
+float read_port(float port){
+    in eax, port;
+    return eax;
+}
+
+void write_port(float port, float D){
+    out port, D;
+}
+
+#endif

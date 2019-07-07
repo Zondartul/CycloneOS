@@ -1,0 +1,661 @@
+#include <cyclone/loaded/prologue3.txt>
+#ifndef PROGNOTEPAD_GUARD
+#define PROGNOTEPAD_GUARD
+PROGNOTEPAD_CODE:
+#include <cyclone/libs/class_stringtracker.txt>
+void main(float argc, float argv){
+    if(argc > 1){
+        notepad(argv[1]);
+    }else{
+        notepad(0);
+    }
+}
+
+void notepad(float str){
+    //cls();
+    notepad_beginning:
+    //screen_clear();
+    mcs_screen_clear();
+    //PrintStringXY(0,17,"Loading...                    ",555111);
+    printf("%x%y%mLoading...\f",0,555111);
+    
+    notepad_init();
+    notepad_filename = malloc(*sizeof_vector);
+    notepad_S = malloc(*sizeof_vector);
+    float F;
+    float nullbyte = 0;
+    if(str){
+        string_constructor(notepad_filename,str);
+        //P("notepad 0\n");
+        F = fopen(str,"r");
+        
+        if(!F){F = fopen(str,"w"); if(F){fwrite(&nullbyte,1,F);}}
+        //if(!F){Perr("Can\'t open file: "); Perr(str);Perr("\n"); delay(3);return;}
+        if(!F){printf("%mCan\'t open file: %s\n",500,str); delay(3); return;}
+        //if(!F){printf("Can\'t open file [%s]\n",str); delay(3); return;}
+        //P("notepad 1\n");
+        fseek(F,0,0);
+        //P("notepad 2\n");
+        float size = fsize(F)//fs_file_handle_get_size(F);
+        float str2 = malloc(size);
+        //P("notepad 3\n");
+        fread(str2,size,F);//FileRead(str2,size,1,F);
+        //P("notepad 4\n");
+        string_constructor(notepad_S,str2);
+        //P("notepad 5\n");
+    }else{
+        string_constructor(notepad_filename,"untitled.txt");
+        string_constructor(notepad_S,"");
+    }
+    //PrintCharXY(0,0,'<',999);
+    
+    
+    //PrintStringXY(1,0,string_c_str(notepad_filename),999);
+    printf("%x%y%m%s",1,0,999,string_c_str(notepad_filename));
+    //PrintCharXY(string_length(notepad_filename)+1,0,'>',999);
+    printf("%x%y%m%c",string_length(notepad_filename)+1,0,999,'>');   
+
+    notepad_T = malloc(*sizeof_stringtracker);
+    notepad_T2 = malloc(*sizeof_stringtracker);
+    notepad_T3 = malloc(*sizeof_stringtracker);
+    if((!notepad_S) || (!notepad_T) || (!notepad_T2) || (!notepad_T3)){
+        //PrintStringXY(0,0,"ERROR, can\'t malloc",900);
+        printf("%x%y%mError, can\'t malloc",0,0,900);
+        return;
+    }
+    stringtracker_constructor(notepad_T,0);
+    stringtracker_constructor(notepad_T2,0);
+    stringtracker_constructor(notepad_T3,0);
+    stringtracker_set_y(notepad_T,1);
+    stringtracker_set_y(notepad_T2,1);
+    stringtracker_set_y(notepad_T3,1);
+    notepad_T[5] = -1; //no maximum x
+    notepad_T[7] = -1; //no maximum y
+    //i wanted to do setbox but zCPU gets script errors...
+    notepad_T2[7] = -1;
+    notepad_T2[5] = -1;
+    notepad_T3[5] = -1;
+    notepad_T3[7] = -1;
+    //screen_set_cursor_pos_xy(0,1);
+    mcs_screen_set_cursor_pos_xy(0,1);
+    //screen_set_shift_box(0,29,1,16);
+    mcs_screen_set_shift_box(0,*mcs_last_x,1,*mcs_last_y-1);
+    notepad_shifted_x = 0;
+    notepad_shifted_y = 0;
+    notepad_print_y = 1;
+    notepad_print_start_y = 1;
+    //screen_cursor_enable();
+    mcs_screen_cursor_enable();
+    float render_skip = 0;
+    float render_skip_max = 6;
+    float I = 0;
+    float C = 0;
+    snap_string();
+    notepad_edit:
+    //PrintStringXY(0,17,"F1-F4: help save load exit    ",555111);
+    printf("%x%y%mF1-F4: help save load exit\f",0,*mcs_last_y,555111);
+    snap_print();
+    while(1){
+        //poll keyboard
+        //C = readKey();
+        C = readKeyTimed();
+        if(C == 17){stringtracker_go_up(notepad_T);snap_cursor();snap_I();snap_print();}//up
+        if(C == 18){stringtracker_go_down(notepad_T);snap_cursor();snap_I();snap_print();}//down
+        if(C == 19){stringtracker_go_left(notepad_T);snap_cursor();snap_I();snap_print();}//left
+        if(C == 20){stringtracker_go_right(notepad_T);snap_cursor();snap_I();snap_print();}//right
+        if(C == 149){stringtracker_go_beginning_of_string(notepad_T);snap_cursor();snap_I();snap_print();}//}//home
+        if(C == 150){stringtracker_go_end_of_string(notepad_T);snap_cursor();snap_I();snap_print();}//}//end
+        if(C == 151){//pgup
+            for(I = 0; I < 8; I++){
+                stringtracker_go_prevline(notepad_T);
+            }
+            snap_cursor();snap_I();snap_print();
+        }
+        if(C == 152){//pgdown
+            for(I = 0; I < 8; I++){
+                stringtracker_go_nextline(notepad_T);
+            }
+            snap_cursor();snap_I();snap_print();
+        }
+        if(C == 127){ //backspace
+            if(notepad_string_I != 0){
+                stringtracker_go_left(notepad_T);
+                float x = stringtracker_get_x(notepad_T);
+                x = x - notepad_shifted_x;
+                if((x < 1) && notepad_shifted_x){notepad_scroll_left();}
+                vector_remove(notepad_S,notepad_string_I-1);
+                snap_string();
+                snap_I();
+                snap_print();
+                stringtracker_go_left(notepad_T2);
+                //notepad_print();
+                float y = stringtracker_get_y(notepad_T);
+                y = y - notepad_shifted_y;
+                if(y < 1){notepad_scroll_down();}
+                snap_cursor();
+                render_skip = 0;
+            }
+        }
+        if(C == 163){goto notepad_helpfunc;} //F1
+        if(C == 164){goto notepad_save;} //F2
+        if(C == 165){goto notepad_load;} //F3
+        if(C == 166){goto notepad_exit;} //F4
+        if(C == 10){ //enter
+            vector_insert(notepad_S,'\n',notepad_string_I);
+            snap_string();
+            stringtracker_go_right(notepad_T);
+            y = stringtracker_get_y(notepad_T);
+            y = y - notepad_shifted_y;
+            if(y > 16){
+                notepad_scroll_up();
+            }
+            snap_cursor();
+            snap_I();
+            snap_print();
+            render_skip = 0;
+        }
+        if(isPrint(C)){ //any other character
+            vector_insert(notepad_S,C,notepad_string_I);
+            snap_string();
+            x = stringtracker_get_x(notepad_T);
+            x = x - notepad_shifted_x;
+            //if(x > 28){
+            if(x > (*mcs_last_x-1)){
+                notepad_scroll_right();
+            }
+            snap_print();
+            stringtracker_go_right(notepad_T);
+            snap_cursor();
+            snap_I();
+            render_skip = 0;
+        }
+        //render text
+        if(render_skip){
+            render_skip--;
+        }else{
+            render_skip = render_skip_max;
+            if(!print_done){print_done = notepad_print();}
+            if(!print_backwards_done){print_backwards_done = notepad_print_backwards();}
+            //float str = string_c_str(notepad_S);
+            //notepad_print(notepad_print_start_x,notepad_print_start_y,notepad_print_start_I,&notepad_print_x, &notepad_print_y, &notepad_print_I, str, 999);
+//            enter 0;
+//            float strE = num2str(ESP);
+//            strE = concat("ESP = ",strE,"   ");
+//            PrintStringXY(0,16,strE,999);
+//            float strx = num2str(stringtracker_get_x(notepad_T));
+//            float stry = num2str(stringtracker_get_y(notepad_T));
+//            float strI = num2str(stringtracker_get_I(notepad_T));
+//            float strC = c2str(stringtracker_get_c(notepad_T));
+//            float strfinal = concat("x = ",strx," y = ",stry," I = ",strI," C = <",strC,">  ");
+//            PrintStringXY(0,17,strfinal,555111);
+//            leave;
+        }
+    }
+    notepad_helpfunc:
+    //PrintStringXY(0,17,"F1-F4: edit save load exit    ",555111);
+    printf("%x%y%mF1-F4: edit save load exit\f",0,*mcs_last_y,555111);
+    //for(I = 2; I < 16; I++){
+    for(I = 2; I < (*mcs_last_y-1); I++){
+        //PrintStringXY(0, I, "                              ",5000);
+        printf("%x%y%m\f",0,I,5000);
+    }
+    //PrintStringXY(0,3,      " Help:                        ",5999);
+    printf("%x%y%m Help:\f",0,3,5999);
+    //PrintStringXY(0,4,      " F1 - help                    ",5999);
+    printf("%x%y%m F1 - help\f",0,4,5999);
+    //PrintStringXY(0,5,      " F2 - save                    ",5999);
+    printf("%x%y%m F2 - save\f",0,5,5999);
+    //PrintStringXY(0,6,      " F3 - load                    ",5999);
+    printf("%x%y%m F3 - load\f",0,6,5999);
+    //PrintStringXY(0,7,      " F4 - exit                    ",5999);
+    printf("%x%y%m F4 - exit\f",0,7,5999);
+    //PrintStringXY(0,8,      " arrow keys - move cursor     ",5999);
+    printf("%x%y%m arrow keys - move cursor\f",0,8,5999);
+    //PrintStringXY(0,9,      " page up, page down - same    ",5999);
+    printf("%x%y%m page up, page down - same\f",0,9,5999);
+    //PrintStringXY(0,10,     " home - beginning of file     ",5999);
+    printf("%x%y%m home - beginning of file\f",0,10,5999);
+    //PrintStringXY(0,11,     " end - end of file            ",5999);
+    printf("%x%y%m end - end of file\f",0,11,5999);
+    while(1){
+        C = readKeyTimed();
+        if(C == 163){goto notepad_edit;} //F1
+        if(C == 164){goto notepad_save;} //F2
+        if(C == 165){goto notepad_load;} //F3
+        if(C == 166){goto notepad_exit;} //F4
+    }
+    notepad_save:
+    //PrintStringXY(0,17,"F1-F4: help edit load exit    ",555111);
+    printf("%x%y%m F1-F4: help edit load exit\f",0,*mcs_last_y,555111);
+    //for(I = 2; I < 16; I++){
+    for(I = 2; I < (*mcs_last_y-1); I++);
+        //PrintStringXY(0, I, "                              ",5000);
+        printf("%x%y%m\f",0,I,5000);
+    }
+    //PrintStringXY(0,3,      "Save as:                      ",5999);
+    printf("%x%y%m Save as:\f",0,3,5999);
+    
+    float len;
+    len = string_length(notepad_filename);
+    
+    //PrintCharXY(0,4,'<',5999);    
+    //PrintStringXY(1,4,string_c_str(notepad_filename),5999);
+    //PrintStringXY(1+len,4,"> ",5999);
+    printf("%x%y%m<%s>\f",0,4,5999,string_c_str(notepad_filename));
+    
+    while(1){
+        C = readKeyTimed();
+        if(C == 163){goto notepad_helpfunc;} //F1
+        if(C == 164){goto notepad_edit;} //F2
+        if(C == 165){goto notepad_load;} //F3
+        if(C == 166){goto notepad_exit;} //F4
+        if(isPrint(C)){
+            string_addc(notepad_filename, C);
+            len = string_length(notepad_filename);
+            //PrintCharXY(0,4,'<',5999);
+            //PrintStringXY(1,4,string_c_str(notepad_filename),5999);
+            //PrintStringXY(1+len,4,"> ",5999);
+            printf("%x%y%m<%s>\f",0,4,5999,string_c_str(notepad_filename));
+        }
+        if(C == 127){ //backspace
+            len = string_length(notepad_filename);
+            if(len){
+                vector_remove(notepad_filename,len-1);
+                len = string_length(notepad_filename);
+                //PrintCharXY(0,4,'<',5999);
+                //PrintStringXY(1,4,string_c_str(notepad_filename),5999);
+                //PrintStringXY(1+len,4,"> ",5999);
+                printf("%x%y%m<%s>\f",0,4,5999,string_c_str(notepad_filename));
+            }
+        }
+        if(C == 10){ //enter
+            //PrintStringXY(0,17,"Saving...                     ",555111);
+            printf("%x%y%mSaving...\f",0,*mcs_last_y,555111);
+            str = string_c_str(notepad_filename);
+            F = fopen(str, "w");
+            size = vector_size(notepad_S);
+            float c_S = string_c_str(notepad_S);
+            //FileWrite(c_S, size, 1, F);
+            fwrite(c_S, size, F);
+            goto notepad_edit;
+        }
+    }
+    notepad_load:
+    //PrintStringXY(0,17,"F1-F4: help save edit exit    ",555111);
+    printf("%x%y%mF1-F4: help save edit exit\f",0,*mcs_last_y,555111);
+    //for(I = 2; I < 16; I++){
+    for(I = 2; I < (*mcs_last_y-1); I++){
+        //PrintStringXY(0, I, "                              ",5000);
+        printf("%x%y%m\f",0,I,5000);
+    }
+    
+    //PrintStringXY(0,3,      "Load:                         ",5999);
+    printf("%x%y%mLoad:\f",0,3,5999);
+    float loadfile = malloc(*sizeof_vector);
+    string_constructor(loadfile, "");
+    len = 0;
+    //PrintCharXY(0,4,'<',5999);
+    //PrintStringXY(1,4,string_c_str(loadfile),5999);
+    //PrintStringXY(1+len,4,"> ",5999);
+    printf("%x%y%m<%s>\f",0,4,5999,string_c_str(loadfile));
+    
+    while(1){
+        C = readKeyTimed();
+        if(C == 163){goto notepad_helpfunc;} //F1
+        if(C == 164){goto notepad_edit;} //F2
+        if(C == 165){goto notepad_load;} //F3
+        if(C == 166){goto notepad_exit;} //F4
+        if(isPrint(C)){
+            string_addc(loadfile, C);
+            len = string_length(loadfile);
+            //PrintCharXY(0,4,'<',5999);
+            //PrintStringXY(1,4,string_c_str(loadfile),5999);
+            //PrintStringXY(1+len,4,"> ",5999);
+            printf("%x%y%m<%s>\f",0,4,5999,string_c_str(loadfile));
+        }
+        if(C == 127){ //backspace
+            len = string_length(loadfile);
+            if(len){
+                vector_remove(loadfile,len-1);
+                len = string_length(loadfile);
+                //PrintCharXY(0,4,'<',5999);
+                //PrintStringXY(1,4,string_c_str(loadfile),5999);
+                //PrintStringXY(1+len,4,"> ",5999);
+                printf("%x%y%m<%s>\f",0,4,5999,string_c_str(loadfile));
+            }
+        }
+        if(C == 10){ //enter
+            str = string_c_str(loadfile);
+            goto notepad_beginning;
+        }
+    }
+    notepad_exit:
+    //PrintStringXY(0,17,"Exiting...                    ",555111);
+    printf("%x%y%mExiting...\f",0,*mcs_last_y,555111);
+    notepad_cleanup();
+    //screen_cursor_disable();
+    mcs_screen_cursor_disable();
+    //screen_force_refresh();
+    mcs_screen_force_refresh();
+    //screen_clear();
+    mcs_screen_clear();
+    return;
+}
+
+void notepad_init(){
+    notepad_T3=0;       //backwards printing tracker
+    notepad_T2=0;       //printing tracker
+    notepad_T=0;        //cursor tracker
+    notepad_S=0;        //class_string
+    notepad_filename=0;
+    notepad_string_I=0; //which index are we editing?
+    notepad_shifted_y=0;
+    notepad_shifted_x=0;
+    notepad_print_x=0;
+    notepad_print_y=0;
+    notepad_print_I=0;
+    notepad_print_start_x=0;
+    notepad_print_start_y=0;
+    notepad_print_start_I=0;
+    print_state = 0;
+    print_done = 0;
+    print_backwards_done = 0;
+    print_state_backwards = 0;
+    notepad_print_backwards_x = 0;
+    notepad_print_backwards_y = 0;
+}
+void notepad_cleanup(){
+    string_destructor(notepad_S);
+    free(notepad_S);
+    string_destructor(notepad_filename);
+    free(notepad_filename);
+    stringtracker_destructor(notepad_T);
+    free(notepad_T);
+    stringtracker_destructor(notepad_T2);
+    free(notepad_T2);
+    stringtracker_destructor(notepad_T3);
+    free(notepad_T3);
+}
+void notepad_scroll_up(){
+    //screen_shift_vertical(1);
+    mcs_screen_shift_vertical(1);
+    notepad_shifted_y++;
+}
+void notepad_scroll_down(){
+    //screen_shift_vertical(-1);
+    mcs_screen_shift_vertical(-1);
+    notepad_shifted_y--;
+}
+void notepad_scroll_right(){
+    //screen_shift_horizontal(-1);
+    mcs_screen_shift_horizontal(-1);
+    notepad_shifted_x++;
+}
+void notepad_scroll_left(){
+    //screen_shift_horizontal(1);
+    mcs_screen_shift_horizontal(1);
+    notepad_shifted_x--;
+}
+void snap_I(){
+    notepad_string_I = stringtracker_get_I(notepad_T);
+}
+void snap_string(){
+    stringtracker_set_str(notepad_T,string_c_str(notepad_S));
+    stringtracker_set_str(notepad_T2,string_c_str(notepad_S));
+    stringtracker_set_str(notepad_T3,string_c_str(notepad_S));
+}
+void snap_print(){
+    float I = notepad_T[1];//notepad_string_I; //stringtracker_get_I(notepad_T);
+    float x = stringtracker_get_x(notepad_T);
+    float y = stringtracker_get_y(notepad_T);
+    stringtracker_set_I(notepad_T2, I);
+    stringtracker_set_x(notepad_T2, x);
+    stringtracker_set_y(notepad_T2, y);
+    stringtracker_set_I(notepad_T3, I);
+    stringtracker_set_x(notepad_T3, x);
+    stringtracker_set_y(notepad_T3, y);
+    print_state = 0;
+    print_state_backwards = 0;
+    print_done = 0;
+    print_backwards_done = 0;
+    //notepad_print_I = notepad_string_I;
+    //notepad_print_x = stringtracker_get_x(notepad_T);
+    //notepad_print_x = notepad_print_x - notepad_shifted_x;
+    //notepad_print_y = stringtracker_get_y(notepad_T);
+    //notepad_print_y = notepad_print_y - notepad_shifted_y;
+}
+void snap_cursor(){
+    while(1){
+        float x = stringtracker_get_x(notepad_T);
+        x = x - notepad_shifted_x;
+        if(x < 0){notepad_scroll_left();}else{
+            if(x > 29){notepad_scroll_right();}else{
+                float y = stringtracker_get_y(notepad_T);
+                y = y - notepad_shifted_y;
+                if(y < 1){notepad_scroll_down();}else{
+                    if(y > 16){notepad_scroll_up();}else{
+                        goto snap_cursor_end;
+                    }
+                }
+            }
+        }
+        
+    }
+    snap_cursor_end:
+    screen_set_cursor_pos_xy(x,y);
+}
+
+
+//uses externally stored vars for current pos
+//draws 1 character per call
+//tells you if it is done yet.
+float notepad_print(){
+    float x = 0;
+    float y = 0;
+    float I = 0;
+    float C = 0;
+    float x_shift = notepad_shifted_x;
+    float y_shift = notepad_shifted_y;
+    float cond = 0;
+    
+    // print states:
+    // 0 - printing a character in a line
+    // 1 - filling the line with dots
+    // 2 - filling past the end of string
+    if(print_state == 0){
+        x = stringtracker_get_x(notepad_T2);
+        x = x - x_shift;
+        y = stringtracker_get_y(notepad_T2);
+        y = y - y_shift;
+        I = stringtracker_get_I(notepad_T2);
+        C = stringtracker_get_C(notepad_T2);
+        if(y > 16){goto notepad_print_reset;}
+        cond = stringtracker_go_right_same_line(notepad_T2);
+        if(cond == *stringtracker_ok){
+            if((x > -1) && (x < 30)){
+                if((y > 0) && (y < 17)){
+                    PrintCharXY(x,y,C,999);
+                    return 0;
+                }
+            }
+        }
+        if((cond == *stringtracker_end_of_line) || (cond == *stringtracker_box_x_max)){
+            //if((x > -1) && (x < 30)){
+            if((x > -1) && (x < *mcs_width)){
+                //if((y > 0) && (y < 17)){
+                if((y > 0) && (y < *mcs_last_y)){
+                    //PrintCharXY(x,y,C,999);
+                    mcs_putchar(C,999,x,y);
+                }
+            }
+            if(x < 0){x = 0;}
+            notepad_print_x = x;
+            notepad_print_y = y;
+            print_state = 1;
+            return 0;
+        }
+        if(cond == *stringtracker_end_of_string){
+            if(x < 0){x = 0;}
+            notepad_print_x = x;
+            notepad_print_y = y;
+            print_state = 2;
+            return 0;
+        }
+    }
+    if(print_state == 1){
+        //if((notepad_print_x > 29) || (notepad_print_y < 1)){
+        if((notepad_print_x > *mcs_last_x) || (notepad_print_y < 1)){
+            cond = stringtracker_go_right(notepad_T2);
+            if(cond == *stringtracker_ok){
+                print_state = 0;
+                return 0;
+            }
+            if(cond == *stringtracker_end_of_string){
+                print_state = 2;
+                return 0;
+            }
+        }
+        //PrintCharXY(notepad_print_x,notepad_print_y,'.',111);
+        mcs_putchar('.',111,notepad_print_x,notepad_print_y);
+        notepad_print_x++;
+        return 0;
+    }
+    if(print_state == 2){
+        //if(notepad_print_x > 29){
+        if(notepad_print_x > *mcs_last_x){
+            notepad_print_x = 0;
+            notepad_print_y++;
+            if(notepad_print_y > 16){
+                goto notepad_print_reset;
+            }
+        }
+        //PrintCharXY(notepad_print_x,notepad_print_y,'.',111);
+        mcs_putchar('.',111,notepad_print_x,notepad_print_y);
+        notepad_print_x++;
+        return 0;
+    }
+    return 0;
+    notepad_print_reset:
+    stringtracker_set_I(notepad_T2,0);
+    stringtracker_set_x(notepad_T2,0);
+    stringtracker_set_y(notepad_T2,1);
+    print_state = 0;
+    return 1;   
+}
+float notepad_print_backwards(){
+    float x = 0;
+    float y = 0;
+    float I = 0;
+    float C = 0;
+    float x_shift = notepad_shifted_x;
+    float y_shift = notepad_shifted_y;
+    float cond = 0;
+    //print states:
+    //0 - print previous character on a line
+    //1 - print from the edge of screen til the end of the line
+    if(print_state_backwards == 0){
+        x = stringtracker_get_x(notepad_T3);
+        x = x - x_shift;
+        y = stringtracker_get_y(notepad_T3);
+        y = y - y_shift;
+        C = stringtracker_get_c(notepad_T3);
+        
+        if(y < 1){
+            print_state_backwards = 0; 
+            return 1;
+        }
+        cond = stringtracker_go_left_same_line(notepad_T3);
+        if(cond == *stringtracker_ok){
+            //if((x > -1) && (x < 30)){
+            if((x > -1) && (x < *mcs_width)){
+                //if((y > 0) && (y < 17)){
+                if((y > 0) && (y < *mcs_last_y)){
+                    //PrintCharXY(x,y,C,999);
+                    mcs_putchar(C,999,x,y);
+                    return 0;
+                }
+            }
+        }
+        if(cond == *stringtracker_beginning_of_string){
+            //if((x > -1) && (x < 30)){
+            if((x > -1) && (x < *mcs_width)){
+                //if((y > 0) && (y < 17)){
+                if((y > 0) && (y < *mcs_last_y)){
+                    //PrintCharXY(x,y,C,999);
+                    mcs_putchar(C,999,x,y);
+                }
+            }
+            print_state_backwards = 0; 
+            return 1;
+        }
+        if((cond == *stringtracker_beginning_of_line) || (cond == *stringtracker_box_x_min)){
+            //if((x > -1) && (x < 30)){
+            if((x > -1) && (x < *mcs_width)){
+                //if((y > 0) && (y < 17)){
+                if((y > 0) && (y < *last_y)){
+                    //PrintCharXY(x,y,C,999);
+                    mcs_putchar(C,999,x,y);
+                }
+            }
+            if(y > 1){
+                stringtracker_go_left(notepad_T3);
+                notepad_print_backwards_x = 29;
+                notepad_print_backwards_y = y-1;
+                print_state_backwards = 1;
+                return 0;
+            }
+        }
+        return 0;
+    }
+    if(print_state_backwards == 1){
+        x = stringtracker_get_x(notepad_T3);
+        x = x - x_shift;
+        if(x > 29){
+            stringtracker_go_left(notepad_T3);
+            return 0;    
+        }
+        if(notepad_print_backwards_x == x){
+            print_state_backwards = 0;
+            return 0;
+        }
+        if(notepad_print_backwards_x < 0){
+            if(notepad_print_backwards_y > 1){
+                notepad_print_backwards_x = 29;
+                print_state_backwards = 0;
+                return 0;
+            }else{
+                print_state_backwards = 0;
+                return 1;
+            }
+        }
+        //PrintCharXY(notepad_print_backwards_x,notepad_print_backwards_y,'.',111);
+        printf("%x%y%m%c",notepad_print_backwards_x,notepad_print_backwards_y,111,'.');
+        notepad_print_backwards_x--;
+        return 0;
+    }
+    return 0;
+}
+
+PROGNOTEPAD_VARS:
+float notepad_T3=0;       //backwards printing tracker
+float notepad_T2=0;       //printing tracker
+float notepad_T=0;        //cursor tracker
+float notepad_S=0;        //class_string
+float notepad_filename=0;
+float notepad_string_I=0; //which index are we editing?
+float notepad_shifted_y=0;
+float notepad_shifted_x=0;
+float notepad_print_x=0;
+float notepad_print_y=0;
+float notepad_print_I=0;
+float notepad_print_start_x=0;
+float notepad_print_start_y=0;
+float notepad_print_start_I=0;
+float print_state = 0;
+float print_done = 0;
+float print_backwards_done = 0;
+float print_state_backwards = 0;
+float notepad_print_backwards_x = 0;
+float notepad_print_backwards_y = 0;
+PROGNOTEPAD_END:
+#endif

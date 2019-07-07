@@ -1,0 +1,90 @@
+//test23
+//this is an extension of test22 with a larger memory model
+//and different hardware.
+//Use 128kb ram/rom memory model for the zCPU.
+#define _65kb 65536
+#define _128kb 131072
+#define size_EB 32
+#define size_keyboard 300
+#define size_console 3000
+#define size_RAM 131072
+#define size_HDD 131072
+#define size_port 131072
+main();
+
+#include <cycloneOld/libstring.txt>
+#include <cycloneOld/libnumber.txt>
+#include <cycloneOld/zmalloc.txt>
+//#include <zvector.txt>
+#include <cycloneOld/zstring.txt>
+#include <cycloneOld/zlist.txt>
+#define STRINGTRACKER_TEST
+#include <cycloneOld/class_stringtracker.txt>
+#include <cycloneOld/libconsolescreen.txt>
+#include <cycloneOld/libkeyboard.txt>
+#include <cycloneOld/prognotepad.txt>
+#include <cycloneOld/shell.txt>
+#include <cycloneOld/stackalloc.txt>
+
+float main()
+{
+    init_hardware();
+    setKeyboard(AdrKb);
+    screen_set(AdrScreen);
+    //MaxMem = 65536;
+    //print_init();
+    //malloc_set_disk(Heap, MaxMem-Heap); - use this for default Laptop4 setup
+    malloc_set_disk(AdrRAM, _128kb);
+    malloc_init();
+    malloc_print = P;
+    malloc_num2str = num2str;
+    malloc_debug = 0;
+    shell();
+}
+OSname: db "test 23"; db 0;
+float AdrEB;
+float AdrRAM;
+float AdrKb;
+//float AdrScreen;
+float AdrHDD;
+float AdrPort;
+
+void init_hardware(){
+    AdrEB = _128kb;
+    AdrRAM = AdrEB+size_EB;
+    AdrKb = AdrRAM+size_RAM;
+    AdrScreen = AdrKb+size_keyboard;
+    AdrHDD = AdrScreen+size_console;
+    AdrPort = AdrHDD+size_HDD;
+
+    AdrEB[0] = 0;           //ram
+    AdrEB[1] = size_RAM-1;
+    AdrEB[2] = AdrEB[1]+1;    //kb
+    AdrEB[3] = AdrEB[2]+size_keyboard-1;
+    AdrEB[4] = AdrEB[3]+1;    //console
+    AdrEB[5] = AdrEB[4]+size_console-1;
+    AdrEB[6] = AdrEB[5]+1;    //hdd
+    AdrEB[7] = AdrEB[6]+size_HDD-1;
+    AdrEB[8] = AdrEB[7]+1;    //port
+    AdrEB[9] = AdrEB[8]+size_port-1;
+}
+
+//this will caclulate the available memory
+//and then probably break the CPU...
+//outputs:
+//port 0 - memory detected in bytes
+//port 1 - memory detected in kilobytes
+void memtest(){
+    float I = End;
+    while(1){
+        *I = 1;
+        if(*I != 1){int 1;}
+        *I = 0;
+        if(*I != 0){int 1;}
+        out 0, I;
+        out 1, I/1024;
+        I = (I+1)*1.0005;
+        fint I;
+    }
+}
+End:

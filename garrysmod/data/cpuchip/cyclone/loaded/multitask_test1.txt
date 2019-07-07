@@ -1,0 +1,27 @@
+#include <cyclone/loaded/prologue.txt>
+//multitask test: prints words and numbers every so often
+
+//<progname> [word] [delay] [count] [color]
+//prints WORD with COLOR every DELAY seconds until COUNT words are printed.
+void main2(float argc, float argv){
+    
+    float word = "boop";
+    float period = 0.5;
+    float count = 10;
+    float R = randint2(1,9);
+    float G = randint2(1,9);
+    float B = randint2(1,9);
+    float col = R*100+G*10+B;
+    if(argc > 1){word = argv[1];}
+    if(argc > 2){period = str2num(argv[2]);}
+    if(argc > 3){count = str2num(argv[3]);}
+    if(argc > 4){col = str2num(argv[4]);}
+    
+    float I = 0;
+    for(I = 0; I < count; I++){
+        Print(word,col);
+        Print(num2str(I),col);
+        Print(" ",col);
+        delay(period);
+    }
+}

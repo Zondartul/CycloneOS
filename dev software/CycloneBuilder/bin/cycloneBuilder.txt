@@ -1,0 +1,2 @@
+cpu_root: C:\Program Files (x86)\Steam\SteamApps\common\GarrysMod\garrysmod\data\cpuchip
+main: cyclone\test23.txt

@@ -1,0 +1,481 @@
+
+#define UNLINKED_SYMBOL 700001
+
+//attempts to read str from input.
+//if succeeds, advances input by length read.
+//if fails, calls the error function.
+
+float expectedError(float str){
+    pointOutErr();
+    Perr(str);Perr(" expected\n");
+    shell_panic();
+}
+
+float str_expected;
+void parse_expect(float *input, float str){
+    str_expected = str;
+    if(!parse_accept(input,str)){
+        float str2 = concat("\"",str,"\"");
+        expectedError(str2);
+    }
+}
+
+float parse_acceptNum(float *input, float *num){
+    float inp = *input;
+    float I = 0;
+    float n = -999;
+    n = str2num2(*input, &I);
+    if(I){
+        *num = n;
+        *input = *input+I;
+        //P2("accepted num ",n,"\n");
+        return 1;
+    }
+    //P("not accepted num\n");
+    *input = inp;
+    return 0;
+}
+
+float parse_expectNum(float *input, float *num){
+    if(!parse_acceptNum(input, num)){expectedError("number");}
+}
+
+float parse_acceptSegment(float *input, float *seg){
+    float inp = *input;
+
+    float I;
+    for(I = 0; I < 16; I++){
+        float seg_str = segTable+I;
+        seg_str = *seg_str;
+        if(parse_accept(input,seg_str)){
+            if(parse_accept(input,":")){
+                float S = I+1;
+                //P2("accepted seg ",S,"\n");
+                *seg = I+1; return 1;
+            }else{
+                //P("no : after segment\n");
+            }
+        }
+    }
+    //P("not accepted segment\n");
+    *input = inp;
+    return 0;
+}
+
+
+float parse_acceptReg(float *input, float *reg){
+    float inp = *input;
+
+    float I;
+    for(I = 0; I < 16; I++){
+        float reg_str = regTable+I;
+        reg_str = *reg_str;
+        if(parse_accept(input,reg_str)){
+            *reg = I+1;
+            float R = *reg;
+            //P2("accepted reg ",R,"\n");
+            return 1;
+        }
+    }
+    //P("not accepted reg\n");
+    *input = inp;
+    return 0;
+}
+
+//hmm, maybe maybe a zCPU emulator in zCPU to step through assembly?
+
+float parse_acceptOperand(float *input, float *rm, float *seg, float *op, float errFunc, float offs){
+    float inp = *input;
+    
+    //asm           RM      meaning
+    //-------------------------------
+    //-5             0      const
+    //eax            1-16   reg
+    //#eax, es:#eax 17-24   mem cell reg   (+seg)
+    //#123, es:#123 25      mem cell const (+seg)
+    //es:eax        26      reg + seg
+    //es:123        50      const + seg
+    //port0..1024   1000..  port x
+    
+    float memcell = 0;
+    float constnum = 0;
+    float regnum = 0;
+    //[es:][#](eax/-123)
+    *rm = 0;
+    *seg = -4;
+    *op = 0;
+    parse_acceptSegment(input, seg);
+    if(parse_accept(input,"#")){memcell = 1;}
+    if(parse_acceptReg(input,op)){
+        regnum = 1;
+    }else{
+        if(parse_acceptNum(input,op)){constnum = 1;}
+        else{
+            if(parse_acceptIdent(input,asm_ident)){
+                *op = UNLINKED_SYMBOL;
+                constnum = 1;
+                addSymbolRef(asm_ident,offs);
+            }
+        }
+    }
+    
+    if(!regnum && !constnum){
+        //P("not num or reg\n");
+        //pointOutErr();
+        *input = inp;
+        return 0;
+    }
+    if(regnum && constnum){
+        Perr("logic error");
+        shell_panic();
+    }
+    //do the RM thing here
+    if(constnum){
+        if(memcell){
+            *rm = 25;
+        }else{
+            if(*seg != -4){
+                *rm = 50;
+            }else{
+                *rm = 0;
+            }
+        }
+    }
+    if(regnum){
+        if(memcell){
+            *rm = *op+16;
+            *op = 0;
+        }else{
+            if(*seg != -4){
+                *rm = *op+25;
+                *op = 0;
+            }else{
+                *rm = *op;
+                *op = 0;
+            }
+        }
+    }
+    //P("accepted OP: ");
+    //if(memcell){P("mem cell ");}
+    //if(constnum){P("const ");}
+    //if(regnum){P("reg ");}
+    //if(*seg){P("+ seg ");}
+    //P("\n");
+    return 1;
+}
+
+
+void parse_expectOperand(float *input, float *rm, float *seg, float *op, float *errfunc, float offs){
+    str_expected = "<operand>";
+    if(!parse_acceptOperand(input,rm,seg,op,errfunc,offs)){errfunc();}
+}
+
+
+float parse_acceptIdent(float *input, float *id){
+    float inp = *input;
+    float inp2 = *input;
+    float ptr = id;
+    if(!isIdent(*inp2)){goto pai_fail;}
+    if(isNum(*inp2)){goto pai_fail;}
+    while(isIdent(*inp2)){*ptr++ = *inp2++;}
+    *input = inp2;
+    *ptr = 0;
+    //P("accepted ident [");P(id);P("]\n");
+    return 1;
+    pai_fail:
+    //P("not accepted ident\n");
+    //pointOutErr();
+    *input = inp;
+    return 0;
+}
+
+float parse_acceptSpace(float *input){
+    float inp = *input;
+    if(*inp == ' '){*input = inp+1; return 1;}
+    if(*inp == '\t'){*input = inp+1; return 1;}
+    return 0;
+}
+
+float parse_acceptComment(float *input){
+    float inp = *input;
+    if(parse_accept(input,"//")){
+        //P("parsed comment\n");
+        //consume all input till the end of the line
+        while(*inp){inp++;}
+        *input = inp;
+        return 1;
+    }
+    //P("not accepted comment\n");
+    //pointOutErr();
+    *input = inp;
+    return 0;
+}
+
+//should be called after instructions
+float parse_acceptLabel(float *input){
+    float inp = *input;
+    if(parse_acceptIdent(input,asm_ident)){
+        if(parse_accept(input,":")){
+            //P("parsed Label\n");
+            addSymbolDef(asm_ident);
+            return 1;
+        }else{
+            pointOutErr();
+            P("expected ':'\n");
+            asm_abort = 1;
+            return 0;
+        }
+    }
+    //P("not accepted Label\n");
+    //pointOutErr();
+    *input = inp;
+    return 0;
+}
+
+float parse_acceptString(float *input, float *str){
+    float inp = *input;
+    float I = *input;
+    float count = 0;
+    float V = 0;
+    if(*I++ == '\"'){
+        V = malloc(sizeof_vector);
+        vector_constructor(V,1);
+        float escape = 0;
+        
+        astr_loop:
+        float C = *I++;
+        if(C == '\\'){
+            escape = 1;
+            goto astr_loop;
+        }    
+        if(escape){
+            if(C == 'n'){vector_push(V,'\n'); goto astr_loop;}
+            if(C == '0'){vector_push(V,'\0'); goto astr_loop;}
+            if(C == 't'){vector_push(V,'\t'); goto astr_loop;}
+            if(C == '\"'){vector_push(V,'\"'); goto astr_loop;}
+            if(C == '\''){vector_push(V,'\''); goto astr_loop;}
+            if(C == '\\'){vector_push(V,'\\'); goto astr_loop;}
+        }
+        if(C == '\"'){goto astr_endloop;}
+        if(C == 0){goto astr_fail;}
+        vector_push(V,C);
+        goto astr_loop;
+        astr_endloop:
+        *input = I;
+        vector_push(V,0);
+        float arr = vector_get_array(V);
+        //P("string accepted [");P(arr);P("]\n");
+        float str2 = unescapeStr(arr);
+        vector_clear(V);
+        float J = 0;
+        float len = strlen(str2);
+        for(J = 0; J < len; J++){
+            C = *str2++;
+            vector_push(V,C);
+        }
+        vector_push(V,0);
+        
+        *str = V;
+        //*str = unescapeStr(V);
+        return 1;
+    }
+    astr_fail:
+    //P("no string\n");
+    if(V){vector_clear(V); free(V);}
+    *input = inp;
+    return 0;
+}
+
+//0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
+//d b   " h e l l o ! "  ,  0  \0 
+//
+
+float parse_acceptDb(float *input){
+    float inp = *input;
+    
+    float V = malloc(sizeof_vector);
+    vector_constructor(V,1);
+    
+    if(parse_accept(input,"db ")){
+        //P("str = [");
+        //P(str2);P("]\n");
+        float len1 = strlen(str2);
+        //P2("len = ",len1,"\n");
+        float nterms = 0; //for debug
+        float inp2 = 0; //also debug
+        float expected = 1;
+        while(1){
+            //inp2 = *input - str2;
+            //P2("inp1 @ ",*input-str2,"\n");
+            float num;
+            float vstr;
+            if(parse_acceptNum(input,&num)){
+                //P2("term ",nterms," is num ");
+                //P2("(",num,")\n");
+                vector_push(V,num);
+                //emit_code(num);
+                expected = 0;
+            }else{
+                if(parse_acceptString(input,&vstr)){
+                    //P2("term ",nterms," is str\n");
+                    float strdata = vector_get_array(vstr);
+                    float C = *strdata++;
+                    while(C){
+                        vector_push(V,C);
+                        //emit_code(C);
+                        C = *strdata++;
+                    }
+                    vector_clear(vstr);
+                    free(vstr);
+                    expected = 0;
+                }else{
+                    if(parse_acceptIdent(input,asm_ident)){
+                        float offs = vector_get_size(V);
+                        vector_push(V,0);
+                        addSymbolRef(asm_ident,offs);
+                    }else{
+                        if(expected){
+                            pointOutErr();
+                            Perr("value expected\n");
+                            shell_panic();
+                        }else{
+                            goto pa_db_exit;
+                        }
+                    }
+                }
+            }
+            nterms++;
+            //P2("inp2 @ ",*input-str2,"\n");
+            if(parse_accept(input,",")){
+                //P("accepted [,]\n");
+                expected = 1;
+            }
+            while(parse_acceptSpace(input));
+            //if(parse_accept(input," ")){
+            //}
+            
+        }
+    }
+    pa_db_exit:
+    float size = vector_get_size(V);
+    if(size == 0){
+        *input = inp;
+        return 0;
+    }else{
+        //P("db parsed\n");
+        float I = 0;
+        for(I = 0; I < size; I++){
+            float numdbs;
+            vector_get(V,&numdbs,I);
+            emit_code(numdbs);
+            //P2("",numdbs,"\n");
+        }
+        return 1;
+    }
+}
+
+float parse_acceptAlloc(float *input){
+    float inp = *input;
+    if(parse_accept(input,"alloc ")){
+        float num;
+        if(parse_acceptNum(input,&num)){
+            //P2("parsed alloc ",num,"\n");
+            emit_alloc(num);
+            return 1;
+        }
+    }
+    *input = inp;
+    return 0;
+}
+
+float parse_acceptInstruction(float *input){
+    float inp = *input;
+    float cmd;
+    float rm1, seg1, op1;
+    float rm2, seg2, op2;
+    cmd = 0;
+    rm1 = seg1 = op1 = 0;
+    rm2 = seg2 = op2 = 0;
+    if(parse_acceptCmd(input,&cmd)){
+        //parse_expect(input," ");
+        while(parse_acceptSpace(&str)){};
+        parse_acceptOperand(input,&rm1,&seg1,&op1,errDefault,4);
+        while(parse_acceptSpace(&str)){}
+        if(parse_accept(input,",")){
+            while(parse_acceptSpace(&str)){}
+            parse_expectOperand(input,&rm2,&seg2,&op2,errDefault,5);
+        }
+        //parse_accept(input," ");
+        //parse_acceptOperand(input,&rm1,&seg1,&op1,errDefault,4);
+        //parse_accept(input,",",errDefault);
+        //parse_accept(input," ");
+        //parse_acceptOperand(input,&rm2,&seg2,&op2,errDefault,5);
+        float rm = rm1 + 10000*rm2;
+        //fixed size instructions
+        emit_code(2000+cmd);
+        emit_code(rm);
+        emit_code(seg1);
+        emit_code(seg2);
+        emit_code(op1);
+        emit_code(op2);
+        //P("parsed instruction\n");
+        return 1;
+    }
+    *input = inp;
+    return 0;
+}
+
+
+float parse_acceptCmd(float *input, float *cmd){
+    float inp = *input;
+
+    float I;
+    for(I = 0; I < 166; I++){
+            float idx = 2*I;
+        float cmd_str = cmdTable+idx+1;
+        cmd_str = *cmd_str;
+        if(parse_accept(input,cmd_str)){
+            *cmd = cmdTable[idx];
+            float C = *cmd;
+            //P2("accepted cmd ",C,"\n");
+            return 1;
+        }
+    }
+    //P("not accepted cmd\n");
+    *input = inp;
+    return 0;
+}
+
+float numToOp(float num){
+    float I;
+    for(I = 0; I < 166; I++){
+        float idx = 2*I;
+        float cmd_str = cmdTable+idx+1;
+        cmd_str = *cmd_str;
+        float cmd = cmdTable[idx];
+        if(cmd == num){
+            return cmd_str;
+        }
+    }
+    return 0;
+}
+
+
+//attempts to read str from input.
+//if succeeds, advances input by length read and returns 1.
+//if fails, input is not modified and returns 0.
+float parse_accept(float *input, float str){
+    float inp = *input;
+    float len = strlen(str);
+    
+    //if(strncmp(inp,str) == 0){
+    if(caseless_strncmp(inp,str,len) == 0){
+        inp = inp+len;
+        *input = inp;
+        //P("accepted [");P(str);P("]\n");
+        return 1;
+    }
+    //P("not accepted [");P(str);P("]\n");
+    return 0;
+}
+

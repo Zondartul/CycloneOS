@@ -1,0 +1,6976 @@
+hello world!
+fullname: C:\Program Files (x86)\Steam\SteamApps\common\GarrysMod\garrysmod\data\cpuchip\cyclone\progs\assembler.txt
+dir_cpuchip [C:\Program Files (x86)\Steam\SteamApps\common\GarrysMod\garrysmod\data\cpuchip\]
+file_main [cyclone\progs\assembler.txt]
+dir_output [C:\Program Files (x86)\Steam\SteamApps\common\GarrysMod\garrysmod\data\cpuchip\cyclone\progs\generated\]
+reading file cyclone\progs\assembler.txt
+
+line 1: [//assembler]
+
+line 2: [#pragma set OutputFinalListing true]
+
+line 3: [#pragma set OutputBinaryListing true]
+
+line 4: [#pragma set OutputToFile true]
+
+line 5: [#include <cyclone/loaded/prologue2.txt>]
+found include <cyclone/loaded/prologue2.txt>
+reading file cyclone/loaded/prologue2.txt
+
+line 1: [//prologue2]
+
+line 2: [//for kernel modules]
+
+line 3: [//those are supposed to be position-independent and also not rely on paging]
+
+line 4: [org 7000000; //7MB mark for dummy functions]
+
+line 5: [#include <cyclone/defines.txt>]
+found include <cyclone/defines.txt>
+reading file cyclone/defines.txt
+
+line 1: [//CycloneOS defines and enums]
+
+line 2: [//number classification:]
+
+line 3: [//7 aaa aaa - dummy addresses (usually for linking)]
+
+line 4: [//6 xxx yyy - type and property names]
+
+line 5: [//5 xxx yyy - enums / special constants]
+
+line 6: [//  xxx - object type]
+
+line 7: [//  yyy - enum number]
+
+line 8: [//0 - 4 MB - normall addresses]
+
+line 9: []
+
+line 10: [//------------------- TYPES --------------------------------------]
+
+line 11: [#define TYPE_VECTOR                 6001000]
+#defined "TYPE_VECTOR"
+
+line 12: [#define TYPE_STRING                 6002000]
+#defined "TYPE_STRING"
+
+line 13: [#define TYPE_EXE                    6003000]
+#defined "TYPE_EXE"
+
+line 14: [#define TYPE_SECTION                6004000]
+#defined "TYPE_SECTION"
+
+line 15: [#define TYPE_SYMBOL                 6005000]
+#defined "TYPE_SYMBOL"
+
+line 16: [#define TYPE_PROGINFO               6006000]
+#defined "TYPE_PROGINFO"
+
+line 17: [#define TYPE_FILE_EXE               6007000]
+#defined "TYPE_FILE_EXE"
+
+line 18: [//------------------- PROPERTIES ---------------------------------]
+
+line 19: [//size of program in bytes]
+
+line 20: [#define PROP_FILE_EXE_PROGRAMSIZE      6007001]
+#defined "PROP_FILE_EXE_PROGRAMSIZE"
+
+line 21: [//base pointer for program block]
+
+line 22: [#define PROP_FILE_EXE_CODEBASE         6007002]
+#defined "PROP_FILE_EXE_CODEBASE"
+
+line 23: [//base pointer for whole file]
+
+line 24: [#define PROP_FILE_EXE_FILEBASE         6007003]
+#defined "PROP_FILE_EXE_FILEBASE"
+
+line 25: [//type of CycloneOS executable format]
+
+line 26: [#define PROP_FILE_EXE_EXE_STYLE        6007004]
+#defined "PROP_FILE_EXE_EXE_STYLE"
+
+line 27: [//type of linking operation requested]
+
+line 28: [#define PROP_FILE_EXE_LINK_STYLE       6007005]
+#defined "PROP_FILE_EXE_LINK_STYLE"
+
+line 29: [//program code (excluding prologue) starts here]
+
+line 30: [#define PROP_FILE_EXE_CODESTART        6007006]
+#defined "PROP_FILE_EXE_CODESTART"
+
+line 31: [//if reference table is used, it's start and end]
+
+line 32: [#define PROP_FILE_EXE_REFTABLE_START   6007007]
+#defined "PROP_FILE_EXE_REFTABLE_START"
+
+line 33: [#define PROP_FILE_EXE_REFTABLE_END     6007008]
+#defined "PROP_FILE_EXE_REFTABLE_END"
+
+line 34: [//------------------- ENUMS (EXE) --------------------------------]
+
+line 35: [//Flat exe has entry point at 0 and no linking]
+
+line 36: [#define EXE_STYLE_FLAT              5003001]
+#defined "EXE_STYLE_FLAT"
+
+line 37: [//AlcorPC exe has programsize at 0 and entry point at 1]
+
+line 38: [#define EXE_STYLE_ALCOR             5003002]
+#defined "EXE_STYLE_ALCOR"
+
+line 39: [//All-function import/export table executables link to a specific version of the kernel]
+
+line 40: [//and have an entry point immediately after the table ]
+
+line 41: [#define EXE_STYLE_ALLFUNC           5003003]
+#defined "EXE_STYLE_ALLFUNC"
+
+line 42: [//symbol table executable programs have a symbol table for dynamic linking]
+
+line 43: [//their entry points are defined by the symbol table]
+
+line 44: [#define EXE_STYLE_SYMBOL            5003004]
+#defined "EXE_STYLE_SYMBOL"
+
+line 45: []
+
+line 46: [//position-dependent code must be run from base address 0, be it physically, through paging, or through segmentation.]
+
+line 47: [#define IS_POSITION_DEPENDENT       5003005]
+#defined "IS_POSITION_DEPENDENT"
+
+line 48: [//position-independent code can be relocated to arbitrary addresses and run from there.]
+
+line 49: [#define IS_POSITION_INDEPENDENT     5003006]
+#defined "IS_POSITION_INDEPENDENT"
+
+line 50: []
+
+line 51: [//no linking is necessary]
+
+line 52: [#define LINK_STYLE_NONE             5003007]
+#defined "LINK_STYLE_NONE"
+
+line 53: [//needs to be static-linked]
+
+line 54: [#define LINK_STATIC_REQUESTED       5003008]
+#defined "LINK_STATIC_REQUESTED"
+
+line 55: [//needs to be dynamic-linked]
+
+line 56: [#define LINK_DYNAMIC_REQUESTED      5003009]
+#defined "LINK_DYNAMIC_REQUESTED"
+
+line 57: [//needs to have a dyn-table built from reftable]
+
+line 58: [#define LINK_REFTABLE_REQUESTED     5003010]
+#defined "LINK_REFTABLE_REQUESTED"
+
+line 59: []
+
+line 60: [//has no static-links applied yet]
+
+line 61: [#define HAS_NO_STATIC_LINKS         5003010]
+#defined "HAS_NO_STATIC_LINKS"
+
+line 62: [//has static-links not in symbol table]
+
+line 63: [#define HAS_STATIC_LINKS            5003011]
+#defined "HAS_STATIC_LINKS"
+
+line 64: []
+
+line 65: []
+
+line 6: [prologue_start:]
+found label prologue_start
+
+line 7: [db epilogue_end-prologue_start; //don't forget to include "epilogue.txt"]
+found reference to epilogue_end
+no currentFunc
+ref epilogue_end is REF_EXT
+found reference to prologue_start
+no currentFunc
+ref prologue_start is REF_EXT
+
+line 8: [db PROP_FILE_EXE_FILEBASE, prologue_start;]
+
+line 9: [db PROP_FILE_EXE_CODESTART, reference_name_table_end;]
+found reference to reference_name_table_end
+no currentFunc
+ref reference_name_table_end is REF_EXT
+
+line 10: [db PROP_FILE_EXE_EXE_STYLE, EXE_STYLE_SYMBOL;]
+
+line 11: [db PROP_FILE_EXE_LINK_STYLE, LINK_REFTABLE_REQUESTED;]
+
+line 12: [db PROP_FILE_EXE_REFTABLE_START, db reference_table;]
+found reference to reference_table
+no currentFunc
+ref reference_table is REF_EXT
+
+line 13: [db PROP_FILE_EXE_REFTABLE_END, db reference_table_end;]
+found reference to reference_table_end
+no currentFunc
+ref reference_table_end is REF_EXT
+
+line 14: [db 0,0;]
+
+line 15: [//db "programsize",0, db programsize;]
+
+line 16: [//db "programstart",0, db prologue_start;]
+
+line 17: [//db "exe_style",0, db EXE_STYLE_]
+
+line 18: [//db "codestart",0, db prologue_end;]
+
+line 19: [//db "reftable_start",0, db reference_table; //also generate and include "reference_table.txt"]
+
+line 20: [//db "reftable_end",0, db reference_table_end;]
+
+line 21: [prologue_end:]
+found label prologue_end
+
+line 22: []
+
+line 6: [#include <cyclone/progs/generated/reference_table.txt>]
+found include <cyclone/progs/generated/reference_table.txt>
+reading file cyclone/progs/generated/reference_table.txt
+
+line 1: [#ifndef CYCLONE_BUILDER]
+#ifndef "CYCLONE_BUILDER" (defined)
+
+line 2: [reference_table:]
+
+line 3: [float malloc= 0; str2_malloc;]
+
+line 4: [float currentTimeStamp= 0; str2_currentTimeStamp;]
+
+line 5: [float typeof_exe= 0; str2_typeof_exe;]
+
+line 6: [float assert_type= 0; str2_assert_type;]
+
+line 7: [float sizeof_exe= 0; str2_sizeof_exe;]
+
+line 8: [float strlen= 0; str2_strlen;]
+
+line 9: [float typeof_section= 0; str2_typeof_section;]
+
+line 10: [float vector_get_size= 0; str2_vector_get_size;]
+
+line 11: [float vector_get_array= 0; str2_vector_get_array;]
+
+line 12: [float sizeof_section= 0; str2_sizeof_section;]
+
+line 13: [float memcpy= 0; str2_memcpy;]
+
+line 14: [float vector_get= 0; str2_vector_get;]
+
+line 15: [float typeof_symbol= 0; str2_typeof_symbol;]
+
+line 16: [float sizeof_vector= 0; str2_sizeof_vector;]
+
+line 17: [float sizeof_symbol= 0; str2_sizeof_symbol;]
+
+line 18: [float typeof_vector= 0; str2_typeof_vector;]
+
+line 19: [float printf= 0; str2_printf;]
+
+line 20: [float Perr= 0; str2_Perr;]
+
+line 21: [float shell_panic= 0; str2_shell_panic;]
+
+line 22: [float concat= 0; str2_concat;]
+
+line 23: [float isNum= 0; str2_isNum;]
+
+line 24: [float t= 0; str2_t;]
+
+line 25: [float P= 0; str2_P;]
+
+line 26: [float vector_constructor= 0; str2_vector_constructor;]
+
+line 27: [float vector_push= 0; str2_vector_push;]
+
+line 28: [float n= 0; str2_n;]
+
+line 29: [float unescapeStr= 0; str2_unescapeStr;]
+
+line 30: [float vector_clear= 0; str2_vector_clear;]
+
+line 31: [float free= 0; str2_free;]
+
+line 32: [float seg1= 0; str2_seg1;]
+
+line 33: [float op1= 0; str2_op1;]
+
+line 34: [float seg2= 0; str2_seg2;]
+
+line 35: [float op2= 0; str2_op2;]
+
+line 36: [float str_alloc= 0; str2_str_alloc;]
+
+line 37: [float strcmp= 0; str2_strcmp;]
+
+line 38: [float isAlpha= 0; str2_isAlpha;]
+
+line 39: [float toLower= 0; str2_toLower;]
+
+line 40: [float fopen= 0; str2_fopen;]
+
+line 41: [float fgetstring= 0; str2_fgetstring;]
+
+line 42: [float P2= 0; str2_P2;]
+
+line 43: [float Arr= 0; str2_Arr;]
+
+line 44: [float Print= 0; str2_Print;]
+
+line 45: [float str2num= 0; str2_str2num;]
+
+line 46: [float findSymbolByName= 0; str2_findSymbolByName;]
+
+line 47: [float getSymbolName= 0; str2_getSymbolName;]
+
+line 48: [float fwrite= 0; str2_fwrite;]
+
+line 49: [reference_table_end:]
+
+line 50: []
+
+line 51: [reference_name_table:]
+
+line 52: [str2_malloc: db "malloc",0;]
+
+line 53: [str2_currentTimeStamp: db "currentTimeStamp",0;]
+
+line 54: [str2_typeof_exe: db "typeof_exe",0;]
+
+line 55: [str2_assert_type: db "assert_type",0;]
+
+line 56: [str2_sizeof_exe: db "sizeof_exe",0;]
+
+line 57: [str2_strlen: db "strlen",0;]
+
+line 58: [str2_typeof_section: db "typeof_section",0;]
+
+line 59: [str2_vector_get_size: db "vector_get_size",0;]
+
+line 60: [str2_vector_get_array: db "vector_get_array",0;]
+
+line 61: [str2_sizeof_section: db "sizeof_section",0;]
+
+line 62: [str2_memcpy: db "memcpy",0;]
+
+line 63: [str2_vector_get: db "vector_get",0;]
+
+line 64: [str2_typeof_symbol: db "typeof_symbol",0;]
+
+line 65: [str2_sizeof_vector: db "sizeof_vector",0;]
+
+line 66: [str2_sizeof_symbol: db "sizeof_symbol",0;]
+
+line 67: [str2_typeof_vector: db "typeof_vector",0;]
+
+line 68: [str2_printf: db "printf",0;]
+
+line 69: [str2_Perr: db "Perr",0;]
+
+line 70: [str2_shell_panic: db "shell_panic",0;]
+
+line 71: [str2_concat: db "concat",0;]
+
+line 72: [str2_isNum: db "isNum",0;]
+
+line 73: [str2_t: db "t",0;]
+
+line 74: [str2_P: db "P",0;]
+
+line 75: [str2_vector_constructor: db "vector_constructor",0;]
+
+line 76: [str2_vector_push: db "vector_push",0;]
+
+line 77: [str2_n: db "n",0;]
+
+line 78: [str2_unescapeStr: db "unescapeStr",0;]
+
+line 79: [str2_vector_clear: db "vector_clear",0;]
+
+line 80: [str2_free: db "free",0;]
+
+line 81: [str2_seg1: db "seg1",0;]
+
+line 82: [str2_op1: db "op1",0;]
+
+line 83: [str2_seg2: db "seg2",0;]
+
+line 84: [str2_op2: db "op2",0;]
+
+line 85: [str2_str_alloc: db "str_alloc",0;]
+
+line 86: [str2_strcmp: db "strcmp",0;]
+
+line 87: [str2_isAlpha: db "isAlpha",0;]
+
+line 88: [str2_toLower: db "toLower",0;]
+
+line 89: [str2_fopen: db "fopen",0;]
+
+line 90: [str2_fgetstring: db "fgetstring",0;]
+
+line 91: [str2_P2: db "P2",0;]
+
+line 92: [str2_Arr: db "Arr",0;]
+
+line 93: [str2_Print: db "Print",0;]
+
+line 94: [str2_str2num: db "str2num",0;]
+
+line 95: [str2_findSymbolByName: db "findSymbolByName",0;]
+
+line 96: [str2_getSymbolName: db "getSymbolName",0;]
+
+line 97: [str2_fwrite: db "fwrite",0;]
+
+line 98: [reference_name_table_end:]
+
+line 99: [#endif]
+
+line 100: []
+
+line 7: [asm_str1:]
+found label asm_str1
+
+line 8: [alloc 80;]
+
+line 9: [asm_ident:]
+found label asm_ident
+
+line 10: [alloc 80;]
+
+line 11: [float str;]
+found global var str
+
+line 12: [float str2;]
+found global var str2
+
+line 13: [float fpin;]
+found global var fpin
+
+line 14: [float fpout;]
+found global var fpout
+
+line 15: [float asm_abort;]
+found global var asm_abort
+
+line 16: [float asm_code;]
+found global var asm_code
+
+line 17: [float cur_address;]
+found global var cur_address
+
+line 18: [#include <cyclone/progs/asm/asm_data.txt>]
+found include <cyclone/progs/asm/asm_data.txt>
+reading file cyclone/progs/asm/asm_data.txt
+
+line 1: []
+
+line 2: [//data linearization]
+
+line 3: [//]
+
+line 4: [// "tree-mode" - when every piece of data is in different place on the heap]
+
+line 5: [// "linear-mode" - when all the pieces are in a continuous block]
+
+line 6: [//   in linear mode, data is valid if it can be read with zero pointer offset.]
+
+line 7: [//   pointer offsets can be applied when reading or writing to create data]
+
+line 8: [//   that WOULD be valid after moved to another memory location.]
+
+line 9: []
+
+line 10: [// struct_make() - constructs a tree-mode struct and returns a pointer to it]
+
+line 11: [// struct_get_linsize() - returns the size a struct would have when converted to linear-mode]
+
+line 12: [// struct_linearize(struct*, newpos*, readoffset, writeoffset) - converts into linear-mode.]
+
+line 13: [//  params:]
+
+line 14: [//   struct* - pointer to the struct (either mode)]
+
+line 15: [//   newpos* - pointer to the place in memory where a linearized version of the struct will be constructed.]
+
+line 16: [//             if newpos is 0, an arbitrary heap location is allocated and writeoffset is ignored.]
+
+line 17: [//   readoffset - offset that the pointers in the struct currently have. This offset is substracted from]
+
+line 18: [//                all pointers when reading so that valid data can be read.]
+
+line 19: [//   writeoffset - offset that the pointers in the struct will have after writing. This offset can be]
+
+line 20: [//                 used to create data that will be valid after writing to a file or another memory location.]
+
+line 21: []
+
+line 22: []
+
+line 23: [/*]
+
+line 24: [    struct exe]
+
+line 25: [    {]
+
+line 26: [    0   typeof_exe;]
+
+line 27: [    1   float exe_style;]
+
+line 28: [    2   float link_style;]
+
+line 29: [    3   float has_static;]
+
+line 30: [    4   float compile_timestamp;]
+
+line 31: [    5   ptr<nt_array<section>> section_list;     ]
+
+line 32: [    };]
+
+line 33: [    ]
+
+line 34: [    nt_array<x>:]
+
+line 35: [        x,x,x,x,0;]
+
+line 36: [        ]
+
+line 37: [    struct section{]
+
+line 38: [        typeof_section;]
+
+line 39: [        float type;]
+
+line 40: [        float size;]
+
+line 41: [        ptr data;]
+
+line 42: [    }]
+
+line 43: [*/]
+
+line 44: []
+
+line 45: [//exe ------------------------------------------------------------------]
+
+line 46: []
+
+line 47: [float make_exe(){]
+found func make_exe
+
+
+
+sig1 = float make_exe()
+sig2 = ()
+
+line 48: [    //printf("make_exe\n");]
+
+line 49: [    ]
+
+line 50: [    float exe = malloc(6);]
+found local var exe (BL = 1)
+found reference to malloc
+currentFunc = make_exe
+ref malloc is REF_EXT
+
+line 51: [    float exe_style = 3;]
+found local var exe_style (BL = 1)
+
+line 52: [    float link_style = 2;]
+found local var link_style (BL = 1)
+
+line 53: [    float has_static = 0;]
+found local var has_static (BL = 1)
+
+line 54: [    float compile_timestamp = currentTimeStamp();]
+found local var compile_timestamp (BL = 1)
+found reference to currentTimeStamp
+currentFunc = make_exe
+ref currentTimeStamp is REF_EXT
+
+line 55: [    float section_list = make_section_list();//malloc(3);]
+found local var section_list (BL = 1)
+found reference to make_section_list
+currentFunc = make_exe
+ref make_section_list is REF_EXT
+
+line 56: [    ]
+
+line 57: [    ]
+
+line 58: [    ]
+
+line 59: [    exe[0] = typeof_exe;]
+found reference to exe
+currentFunc = make_exe
+ref exe is REF_STACK
+found reference to typeof_exe
+currentFunc = make_exe
+ref typeof_exe is REF_EXT
+
+line 60: [    exe[1] = exe_style;]
+found reference to exe_style
+currentFunc = make_exe
+ref exe_style is REF_STACK
+
+line 61: [    exe[2] = link_style;]
+found reference to link_style
+currentFunc = make_exe
+ref link_style is REF_STACK
+
+line 62: [    exe[3] = has_static;]
+found reference to has_static
+currentFunc = make_exe
+ref has_static is REF_STACK
+
+line 63: [    exe[4] = compile_timestamp;]
+found reference to compile_timestamp
+currentFunc = make_exe
+ref compile_timestamp is REF_STACK
+
+line 64: [    exe[5] = section_list;]
+found reference to section_list
+currentFunc = make_exe
+ref section_list is REF_STACK
+
+line 65: [    //printf("make_exe done\n");]
+
+line 66: [    return exe;]
+
+line 67: [}]
+
+line 68: []
+
+line 69: [float exe_get_linsize(float exe){]
+found func exe_get_linsize
+
+
+
+sig1 = float exe_get_linsize(float exe)
+sig2 = (float exe)
+found param exe
+
+line 70: [    //printf("exe_get_linsize\n");]
+
+line 71: [    assert_type(exe,typeof_exe);]
+found reference to assert_type
+currentFunc = exe_get_linsize
+ref assert_type is REF_EXT
+found reference to exe
+currentFunc = exe_get_linsize
+ref exe is REF_STACK
+
+line 72: [    float section_list = exe[5];]
+found local var section_list (BL = 1)
+
+line 73: [    float section_list_size = section_list_get_linsize(section_list);]
+found local var section_list_size (BL = 1)
+found reference to section_list_get_linsize
+currentFunc = exe_get_linsize
+ref section_list_get_linsize is REF_EXT
+found reference to section_list
+currentFunc = exe_get_linsize
+ref section_list is REF_STACK
+
+line 74: [    float exe_size = sizeof_exe+section_list_size;]
+found local var exe_size (BL = 1)
+found reference to sizeof_exe
+currentFunc = exe_get_linsize
+ref sizeof_exe is REF_EXT
+found reference to section_list_size
+currentFunc = exe_get_linsize
+ref section_list_size is REF_STACK
+
+line 75: [    //printf("exe_get_linsize done\n");]
+
+line 76: [    return exe_size;]
+found reference to exe_size
+currentFunc = exe_get_linsize
+ref exe_size is REF_STACK
+
+line 77: [}]
+
+line 78: []
+
+line 79: [float exe_linearize(float exe, float newpos, float readoffset, float writeoffset){]
+found func exe_linearize
+
+
+
+sig1 = float exe_linearize(float exe, float newpos, float readoffset, float writeoffset)
+sig2 = (float exe, float newpos, float readoffset, float writeoffset)
+found param exe
+found param newpos
+found param readoffset
+found param writeoffset
+
+line 80: [    //printf("exe_linearize\n");]
+
+line 81: [    assert_type(exe,typeof_exe);]
+found reference to exe
+currentFunc = exe_linearize
+ref exe is REF_STACK
+
+line 82: [    float section_list = exe[5]-readoffset;]
+found local var section_list (BL = 1)
+found reference to readoffset
+currentFunc = exe_linearize
+ref readoffset is REF_STACK
+
+line 83: [    float section_list_size = section_list_get_linsize(section_list);]
+found local var section_list_size (BL = 1)
+found reference to section_list
+currentFunc = exe_linearize
+ref section_list is REF_STACK
+
+line 84: [    float exe_size = sizeof_exe+section_list_size;]
+found local var exe_size (BL = 1)
+found reference to section_list_size
+currentFunc = exe_linearize
+ref section_list_size is REF_STACK
+
+line 85: [    if(!newpos){newpos = malloc(exe_size);}]
+found reference to newpos
+currentFunc = exe_linearize
+ref newpos is REF_STACK
+found reference to exe_size
+currentFunc = exe_linearize
+ref exe_size is REF_STACK
+
+line 86: [    ]
+
+line 87: [    float new_section_list = newpos+sizeof_exe;]
+found local var new_section_list (BL = 1)
+
+line 88: [    section_list = section_list_linearize(section_list,new_section_list,0,-newpos);]
+found reference to section_list_linearize
+currentFunc = exe_linearize
+ref section_list_linearize is REF_EXT
+found reference to new_section_list
+currentFunc = exe_linearize
+ref new_section_list is REF_STACK
+
+line 89: [    ]
+
+line 90: [    newpos[0] = typeof_exe;]
+
+line 91: [    newpos[1] = exe[1];]
+
+line 92: [    newpos[2] = exe[2];]
+
+line 93: [    newpos[3] = exe[3];]
+
+line 94: [    newpos[4] = exe[4];]
+
+line 95: [    //printf("newpos = %d\n",newpos);]
+
+line 96: [    //printf("section_list = %d\n",section_list);]
+
+line 97: [    //printf("writeoffset = %d\n",writeoffset);]
+
+line 98: [    newpos[5] = section_list+writeoffset;]
+found reference to writeoffset
+currentFunc = exe_linearize
+ref writeoffset is REF_STACK
+
+line 99: [    //printf("newpos[5] = %d\n",newpos[5]);]
+
+line 100: [    ]
+
+line 101: [    //printf("exe_linearize done\n");]
+
+line 102: [    return newpos;]
+
+line 103: [}]
+
+line 104: []
+
+line 105: [//  ----------------------------------------------------------------------]
+
+line 106: []
+
+line 107: [//section_list -----------------------------------------------------------]
+
+line 108: [//no sizeof since it's a nullterm array]
+
+line 109: []
+
+line 110: [float make_section_list(){]
+found func make_section_list
+
+
+
+sig1 = float make_section_list()
+sig2 = ()
+
+line 111: [    //printf("make_section_list\n");]
+
+line 112: [    float section_list = malloc(3);]
+found local var section_list (BL = 1)
+
+line 113: [    section_list[0] = make_section_symtable();]
+found reference to section_list
+currentFunc = make_section_list
+ref section_list is REF_STACK
+found reference to make_section_symtable
+currentFunc = make_section_list
+ref make_section_symtable is REF_EXT
+
+line 114: [    section_list[1] = make_section_code();]
+found reference to make_section_code
+currentFunc = make_section_list
+ref make_section_code is REF_EXT
+
+line 115: [    section_list[2] = 0;]
+
+line 116: [    //printf("make_section_list done\n");]
+
+line 117: [    return section_list;]
+
+line 118: [}]
+
+line 119: []
+
+line 120: [float section_list_get_linsize(float sectionlist){]
+found func section_list_get_linsize
+
+
+
+sig1 = float section_list_get_linsize(float sectionlist)
+sig2 = (float sectionlist)
+found param sectionlist
+
+line 121: [    //printf("section_list_linsize(%d) ",sectionlist);]
+
+line 122: [    float numsections = strlen(sectionlist);]
+found local var numsections (BL = 1)
+found reference to strlen
+currentFunc = section_list_get_linsize
+ref strlen is REF_EXT
+found reference to sectionlist
+currentFunc = section_list_get_linsize
+ref sectionlist is REF_STACK
+
+line 123: [    float size = numsections+1;]
+found local var size (BL = 1)
+found reference to numsections
+currentFunc = section_list_get_linsize
+ref numsections is REF_STACK
+
+line 124: [    float I = 0;]
+found local var I (BL = 1)
+
+line 125: [    for(I = 0; I < numsections; I++){]
+found reference to I
+currentFunc = section_list_get_linsize
+ref I is REF_STACK
+
+line 126: [        float section = sectionlist[I];]
+found local var section (BL = 2)
+
+line 127: [        assert_type(section,typeof_section);]
+found reference to section
+currentFunc = section_list_get_linsize
+ref section is REF_STACK
+found reference to typeof_section
+currentFunc = section_list_get_linsize
+ref typeof_section is REF_EXT
+
+line 128: [        float section_size = section_get_linsize(section);]
+found local var section_size (BL = 2)
+found reference to section_get_linsize
+currentFunc = section_list_get_linsize
+ref section_get_linsize is REF_EXT
+
+line 129: [        size += section_size;]
+found reference to size
+currentFunc = section_list_get_linsize
+ref size is REF_STACK
+found reference to section_size
+currentFunc = section_list_get_linsize
+ref section_size is REF_STACK
+
+line 130: [    }]
+
+line 131: [    //printf("= %d\n",size);]
+
+line 132: [    return size;   ]
+
+line 133: [}]
+
+line 134: []
+
+line 135: [float section_list_linearize(float sectionlist, float newpos, float readoffset, float writeoffset){]
+found func section_list_linearize
+
+
+
+sig1 = float section_list_linearize(float sectionlist, float newpos, float readoffset, float writeoffset)
+sig2 = (float sectionlist, float newpos, float readoffset, float writeoffset)
+found param sectionlist
+found param newpos
+found param readoffset
+found param writeoffset
+
+line 136: [    //printf("section_list_lin begin\n");]
+
+line 137: [    float numsections = strlen(sectionlist);]
+found local var numsections (BL = 1)
+found reference to sectionlist
+currentFunc = section_list_linearize
+ref sectionlist is REF_STACK
+
+line 138: [    //printf("numsections = %d\n",numsections);]
+
+line 139: [    float size = section_list_get_linsize(sectionlist);]
+found local var size (BL = 1)
+
+line 140: [    //printf("size = %d\n",size);]
+
+line 141: [    if(!newpos){newpos = malloc(size);}]
+found reference to newpos
+currentFunc = section_list_linearize
+ref newpos is REF_STACK
+found reference to size
+currentFunc = section_list_linearize
+ref size is REF_STACK
+
+line 142: [    //printf("newpos = %d\n",newpos);]
+
+line 143: [    float ptr = newpos+numsections+1;]
+found local var ptr (BL = 1)
+found reference to numsections
+currentFunc = section_list_linearize
+ref numsections is REF_STACK
+
+line 144: [    //printf("ptr = %d\n",ptr);]
+
+line 145: [    float I = 0;]
+found local var I (BL = 1)
+
+line 146: [    for(I = 0; I < numsections; I++){]
+found reference to I
+currentFunc = section_list_linearize
+ref I is REF_STACK
+
+line 147: [        //printf("I = %d\n",I);]
+
+line 148: [        float section = sectionlist[I]-readoffset;]
+found local var section (BL = 2)
+found reference to readoffset
+currentFunc = section_list_linearize
+ref readoffset is REF_STACK
+
+line 149: [        //printf("section = %d\n",section);]
+
+line 150: [        assert_type(section,typeof_section);]
+found reference to section
+currentFunc = section_list_linearize
+ref section is REF_STACK
+
+line 151: [        float section_size = section_get_linsize(section);]
+found local var section_size (BL = 2)
+
+line 152: [        //printf("section_size = %d\n",section_size);]
+
+line 153: [        section = section_linearize(section,ptr,0,writeoffset);]
+found reference to section_linearize
+currentFunc = section_list_linearize
+ref section_linearize is REF_EXT
+found reference to ptr
+currentFunc = section_list_linearize
+ref ptr is REF_STACK
+found reference to writeoffset
+currentFunc = section_list_linearize
+ref writeoffset is REF_STACK
+
+line 154: [        //printf("lin.section = %d\n",section);]
+
+line 155: [        newpos[I] = section+writeoffset;]
+
+line 156: [        ptr += section_size;]
+found reference to section_size
+currentFunc = section_list_linearize
+ref section_size is REF_STACK
+
+line 157: [    }]
+
+line 158: [    newpos[numsections] = 0;]
+
+line 159: [    //printf("section list return %d\n",newpos);]
+
+line 160: [    return newpos;]
+
+line 161: [}]
+
+line 162: []
+
+line 163: [//---------------------------------------------------------------------------]
+
+line 164: []
+
+line 165: [//section -------------------------------------------------------------------]
+
+line 166: []
+
+line 167: []
+
+line 168: [float make_section_symtable(){]
+found func make_section_symtable
+
+
+
+sig1 = float make_section_symtable()
+sig2 = ()
+
+line 169: [    //rintf("make_section_symtable\n");]
+
+line 170: [    float section = malloc(4);]
+found local var section (BL = 1)
+
+line 171: [    float type = 3;]
+found local var type (BL = 1)
+
+line 172: [    float size = symtable_get_linsize(asm_symTable);]
+found local var size (BL = 1)
+found reference to symtable_get_linsize
+currentFunc = make_section_symtable
+ref symtable_get_linsize is REF_EXT
+found reference to asm_symTable
+currentFunc = make_section_symtable
+ref asm_symTable is REF_EXT
+
+line 173: [    float symtable_data = malloc(size);]
+found local var symtable_data (BL = 1)
+found reference to size
+currentFunc = make_section_symtable
+ref size is REF_STACK
+
+line 174: [    float section_data = symtable_linearize(asm_symTable,symtable_data,0,-symtable_data);]
+found local var section_data (BL = 1)
+found reference to symtable_linearize
+currentFunc = make_section_symtable
+ref symtable_linearize is REF_EXT
+found reference to symtable_data
+currentFunc = make_section_symtable
+ref symtable_data is REF_STACK
+
+line 175: [    section[0] = typeof_section;]
+found reference to section
+currentFunc = make_section_symtable
+ref section is REF_STACK
+
+line 176: [    section[1] = type;]
+found reference to type
+currentFunc = make_section_symtable
+ref type is REF_STACK
+
+line 177: [    section[2] = size;]
+
+line 178: [    section[3] = section_data;]
+found reference to section_data
+currentFunc = make_section_symtable
+ref section_data is REF_STACK
+
+line 179: [    //printf("make_section_symtable done\n");]
+
+line 180: [    return section;]
+
+line 181: [}]
+
+line 182: []
+
+line 183: [float make_section_code(){]
+found func make_section_code
+
+
+
+sig1 = float make_section_code()
+sig2 = ()
+
+line 184: [    //printf("make_section_code\n");]
+
+line 185: [    float section = malloc(4);]
+found local var section (BL = 1)
+
+line 186: [    float type = 0;]
+found local var type (BL = 1)
+
+line 187: [    float size = vector_get_size(asm_code);]
+found local var size (BL = 1)
+found reference to vector_get_size
+currentFunc = make_section_code
+ref vector_get_size is REF_EXT
+found reference to asm_code
+currentFunc = make_section_code
+ref asm_code is REF_EXT
+
+line 188: [    float section_data = vector_get_array(asm_code);]
+found local var section_data (BL = 1)
+found reference to vector_get_array
+currentFunc = make_section_code
+ref vector_get_array is REF_EXT
+
+line 189: [    section[0] = typeof_section;]
+found reference to section
+currentFunc = make_section_code
+ref section is REF_STACK
+
+line 190: [    section[1] = type;]
+found reference to type
+currentFunc = make_section_code
+ref type is REF_STACK
+
+line 191: [    section[2] = size;]
+found reference to size
+currentFunc = make_section_code
+ref size is REF_STACK
+
+line 192: [    section[3] = section_data;]
+found reference to section_data
+currentFunc = make_section_code
+ref section_data is REF_STACK
+
+line 193: [    //printf("make_section_code done\n");]
+
+line 194: [    return section;]
+
+line 195: [}]
+
+line 196: []
+
+line 197: [float section_get_linsize(float section){]
+found func section_get_linsize
+
+
+
+sig1 = float section_get_linsize(float section)
+sig2 = (float section)
+found param section
+
+line 198: [    //printf("section_get_linsize\n");]
+
+line 199: [    assert_type(section,typeof_section);]
+found reference to section
+currentFunc = section_get_linsize
+ref section is REF_STACK
+
+line 200: [    float section_size = section[2];]
+found local var section_size (BL = 1)
+
+line 201: [    return sizeof_section+section_size;]
+found reference to sizeof_section
+currentFunc = section_get_linsize
+ref sizeof_section is REF_EXT
+found reference to section_size
+currentFunc = section_get_linsize
+ref section_size is REF_STACK
+
+line 202: [}]
+
+line 203: []
+
+line 204: [float section_linearize(float section, float newpos, float readoffset, float writeoffset){]
+found func section_linearize
+
+
+
+sig1 = float section_linearize(float section, float newpos, float readoffset, float writeoffset)
+sig2 = (float section, float newpos, float readoffset, float writeoffset)
+found param section
+found param newpos
+found param readoffset
+found param writeoffset
+
+line 205: [    //printf("section_linearize\n");]
+
+line 206: [    assert_type(section, typeof_section);]
+found reference to section
+currentFunc = section_linearize
+ref section is REF_STACK
+
+line 207: [    float newsize = section_get_linsize(section);]
+found local var newsize (BL = 1)
+
+line 208: [    if(!newpos){newpos = malloc(newsize);}]
+found reference to newpos
+currentFunc = section_linearize
+ref newpos is REF_STACK
+found reference to newsize
+currentFunc = section_linearize
+ref newsize is REF_STACK
+
+line 209: [    newpos[0] = typeof_section;]
+
+line 210: [    newpos[1] = section[1];]
+
+line 211: [    newpos[2] = section[2];]
+
+line 212: [    float ptr = newpos+sizeof_section;]
+found local var ptr (BL = 1)
+
+line 213: [    newpos[3] = ptr+writeoffset;]
+found reference to ptr
+currentFunc = section_linearize
+ref ptr is REF_STACK
+found reference to writeoffset
+currentFunc = section_linearize
+ref writeoffset is REF_STACK
+
+line 214: [    float data_size = section[2];]
+found local var data_size (BL = 1)
+
+line 215: [    float section_data = section[3]-readoffset;]
+found local var section_data (BL = 1)
+found reference to readoffset
+currentFunc = section_linearize
+ref readoffset is REF_STACK
+
+line 216: [    memcpy(ptr,section_data,data_size);]
+found reference to memcpy
+currentFunc = section_linearize
+ref memcpy is REF_EXT
+found reference to section_data
+currentFunc = section_linearize
+ref section_data is REF_STACK
+found reference to data_size
+currentFunc = section_linearize
+ref data_size is REF_STACK
+
+line 217: [    return newpos;]
+
+line 218: [}]
+
+line 219: []
+
+line 220: [//-----------------------------------------------------------------------------]
+
+line 221: [//symtable --------------------------------------------------------------------]
+
+line 222: [float symtable_get_linsize(float symtable){]
+found func symtable_get_linsize
+
+
+
+sig1 = float symtable_get_linsize(float symtable)
+sig2 = (float symtable)
+found param symtable
+
+line 223: [    //printf("symtable_get_linsize\n");]
+
+line 224: [    float num = vector_get_size(symtable);]
+found local var num (BL = 1)
+found reference to symtable
+currentFunc = symtable_get_linsize
+ref symtable is REF_STACK
+
+line 225: [    float size = vector_get_linsize(symtable);//sizeof_vector;]
+found local var size (BL = 1)
+found reference to vector_get_linsize
+currentFunc = symtable_get_linsize
+ref vector_get_linsize is REF_EXT
+
+line 226: [    float I = 0;]
+found local var I (BL = 1)
+
+line 227: [    for(I = 0; I<num; I++){]
+found reference to I
+currentFunc = symtable_get_linsize
+ref I is REF_STACK
+found reference to num
+currentFunc = symtable_get_linsize
+ref num is REF_STACK
+
+line 228: [        float sym = vector_get(symtable,0,I);]
+found local var sym (BL = 2)
+found reference to vector_get
+currentFunc = symtable_get_linsize
+ref vector_get is REF_EXT
+
+line 229: [        assert_type(sym,typeof_symbol);]
+found reference to sym
+currentFunc = symtable_get_linsize
+ref sym is REF_STACK
+found reference to typeof_symbol
+currentFunc = symtable_get_linsize
+ref typeof_symbol is REF_EXT
+
+line 230: [        size += symbol_get_linsize(sym);   ]
+found reference to size
+currentFunc = symtable_get_linsize
+ref size is REF_STACK
+found reference to symbol_get_linsize
+currentFunc = symtable_get_linsize
+ref symbol_get_linsize is REF_EXT
+
+line 231: [    }]
+
+line 232: [    return size;]
+
+line 233: [}]
+
+line 234: []
+
+line 235: [float symtable_linearize(float symtable, float newpos, float readoffset, float writeoffset){]
+found func symtable_linearize
+
+
+
+sig1 = float symtable_linearize(float symtable, float newpos, float readoffset, float writeoffset)
+sig2 = (float symtable, float newpos, float readoffset, float writeoffset)
+found param symtable
+found param newpos
+found param readoffset
+found param writeoffset
+
+line 236: [    //printf("symtable_linearize\n");]
+
+line 237: [    float num = vector_get_size(symtable);]
+found local var num (BL = 1)
+found reference to symtable
+currentFunc = symtable_linearize
+ref symtable is REF_STACK
+
+line 238: [    float newsize = symtable_get_linsize(symtable);//sizeof_symbol*num;]
+found local var newsize (BL = 1)
+
+line 239: [    if(!newpos){newpos = malloc(newsize);}]
+found reference to newpos
+currentFunc = symtable_linearize
+ref newpos is REF_STACK
+found reference to newsize
+currentFunc = symtable_linearize
+ref newsize is REF_STACK
+
+line 240: [    float ptr = newpos;]
+found local var ptr (BL = 1)
+
+line 241: [    float vsize = vector_get_linsize(symtable);]
+found local var vsize (BL = 1)
+
+line 242: [    //printf("vsize = %d\n",vsize);]
+
+line 243: [    vector_linearize2(symtable,ptr,0,writeoffset);]
+found reference to vector_linearize2
+currentFunc = symtable_linearize
+ref vector_linearize2 is REF_EXT
+found reference to ptr
+currentFunc = symtable_linearize
+ref ptr is REF_STACK
+found reference to writeoffset
+currentFunc = symtable_linearize
+ref writeoffset is REF_STACK
+
+line 244: [    float vpos = ptr;]
+found local var vpos (BL = 1)
+
+line 245: [    //printf("vpos @ %d\n",vpos);]
+
+line 246: [    float vdata = vpos+sizeof_vector;]
+found local var vdata (BL = 1)
+found reference to vpos
+currentFunc = symtable_linearize
+ref vpos is REF_STACK
+found reference to sizeof_vector
+currentFunc = symtable_linearize
+ref sizeof_vector is REF_EXT
+
+line 247: [    //printf("vdata @ %d\n",vdata);]
+
+line 248: [    ptr += vsize;]
+found reference to vsize
+currentFunc = symtable_linearize
+ref vsize is REF_STACK
+
+line 249: [        ]
+
+line 250: [    float I = 0;]
+found local var I (BL = 1)
+
+line 251: [    for(I = 0; I < num; I++){]
+found reference to I
+currentFunc = symtable_linearize
+ref I is REF_STACK
+found reference to num
+currentFunc = symtable_linearize
+ref num is REF_STACK
+
+line 252: [        float sym = vector_get(symtable,0,I);]
+found local var sym (BL = 2)
+
+line 253: [        //printf("symbol %d @ %d\n",I,sym);]
+
+line 254: [        sym -= readoffset;]
+found reference to sym
+currentFunc = symtable_linearize
+ref sym is REF_STACK
+found reference to readoffset
+currentFunc = symtable_linearize
+ref readoffset is REF_STACK
+
+line 255: [        assert_type(sym,typeof_symbol);]
+
+line 256: [        ]
+
+line 257: [        ]
+
+line 258: [        float symsize = symbol_get_linsize(sym);//different between symbols]
+found local var symsize (BL = 2)
+
+line 259: [        symbol_linearize(sym, ptr, 0, writeoffset);]
+found reference to symbol_linearize
+currentFunc = symtable_linearize
+ref symbol_linearize is REF_EXT
+
+line 260: [        //printf("lined to %d\n",ptr);]
+
+line 261: [        ]
+
+line 262: [        float newptr = ptr+writeoffset;]
+found local var newptr (BL = 2)
+
+line 263: [        //printf("written as %d\n",newptr);]
+
+line 264: [        vdata[I] = newptr;   ]
+found reference to vdata
+currentFunc = symtable_linearize
+ref vdata is REF_STACK
+found reference to newptr
+currentFunc = symtable_linearize
+ref newptr is REF_STACK
+
+line 265: [     //vector_set(vpos,newptr,I); //can't access vector functions cause it's at offset]
+
+line 266: [        ]
+
+line 267: [        ptr += symsize;]
+found reference to symsize
+currentFunc = symtable_linearize
+ref symsize is REF_STACK
+
+line 268: [        //float adr = newpos+sizeof_symbol*I;]
+
+line 269: [        //memcpy(adr,sym,sizeof_symbol);]
+
+line 270: [        //free(sym);]
+
+line 271: [        //adr += writeoffset;]
+
+line 272: [        //vector_set(asm_symTable,adr,I);]
+
+line 273: [    }]
+
+line 274: [    ]
+
+line 275: [    //printf("symtable_linearize done\n");]
+
+line 276: [    return newpos;]
+
+line 277: [}]
+
+line 278: []
+
+line 279: [//-----------------------------------------------------------------------------]
+
+line 280: [//symbol-----------------------------------------------------------------------]
+
+line 281: []
+
+line 282: [//struct symbol]
+
+line 283: [//0: typeof_symbol]
+
+line 284: [//1: string name]
+
+line 285: [//2: definition address]
+
+line 286: [//3: reference addresses (vector)]
+
+line 287: []
+
+line 288: [float symbol_get_linsize(float sym){]
+found func symbol_get_linsize
+
+
+
+sig1 = float symbol_get_linsize(float sym)
+sig2 = (float sym)
+found param sym
+
+line 289: [    assert_type(sym,typeof_symbol);]
+found reference to sym
+currentFunc = symbol_get_linsize
+ref sym is REF_STACK
+
+line 290: [    float name = sym[1];]
+found local var name (BL = 1)
+
+line 291: [    float refs = sym[3];]
+found local var refs (BL = 1)
+
+line 292: [    ]
+
+line 293: [    float size = sizeof_symbol;]
+found local var size (BL = 1)
+found reference to sizeof_symbol
+currentFunc = symbol_get_linsize
+ref sizeof_symbol is REF_EXT
+
+line 294: [    size += strlen(name)+1;]
+found reference to size
+currentFunc = symbol_get_linsize
+ref size is REF_STACK
+found reference to name
+currentFunc = symbol_get_linsize
+ref name is REF_STACK
+
+line 295: [    if(refs){]
+found reference to refs
+currentFunc = symbol_get_linsize
+ref refs is REF_STACK
+
+line 296: [        //size += sizeof_vector;]
+
+line 297: [        //size += vector_get_size(refs);]
+
+line 298: [        size += vector_get_linsize(refs);]
+
+line 299: [    }]
+
+line 300: [    return size;]
+
+line 301: [}]
+
+line 302: []
+
+line 303: [float symbol_linearize(float sym, float newpos, float readoffset, float writeoffset){]
+found func symbol_linearize
+
+
+
+sig1 = float symbol_linearize(float sym, float newpos, float readoffset, float writeoffset)
+sig2 = (float sym, float newpos, float readoffset, float writeoffset)
+found param sym
+found param newpos
+found param readoffset
+found param writeoffset
+
+line 304: [    assert_type(sym,typeof_symbol);]
+found reference to sym
+currentFunc = symbol_linearize
+ref sym is REF_STACK
+
+line 305: [    float size = symbol_get_linsize(sym);]
+found local var size (BL = 1)
+
+line 306: [    float name = sym[1];]
+found local var name (BL = 1)
+
+line 307: [    float refs = sym[3]-readoffset;]
+found local var refs (BL = 1)
+found reference to readoffset
+currentFunc = symbol_linearize
+ref readoffset is REF_STACK
+
+line 308: [    if(!newpos){newpos = malloc(size);}]
+found reference to newpos
+currentFunc = symbol_linearize
+ref newpos is REF_STACK
+found reference to size
+currentFunc = symbol_linearize
+ref size is REF_STACK
+
+line 309: [    float ptr = newpos+sizeof_symbol;]
+found local var ptr (BL = 1)
+
+line 310: [    float len = strlen(name);]
+found local var len (BL = 1)
+found reference to name
+currentFunc = symbol_linearize
+ref name is REF_STACK
+
+line 311: [    memcpy(ptr,name,len);]
+found reference to ptr
+currentFunc = symbol_linearize
+ref ptr is REF_STACK
+found reference to len
+currentFunc = symbol_linearize
+ref len is REF_STACK
+
+line 312: [    float name2 = ptr;]
+found local var name2 (BL = 1)
+
+line 313: [    ptr += len;]
+
+line 314: [    *ptr++ = 0;]
+
+line 315: [    //float refs2 = 0;]
+
+line 316: [    newpos[3] = 0;]
+
+line 317: [    if(refs){]
+found reference to refs
+currentFunc = symbol_linearize
+ref refs is REF_STACK
+
+line 318: [      //  refs2 = ptr;]
+
+line 319: [        /*]
+
+line 320: [        //depends on zvector implementation from aug 2015]
+
+line 321: [        float refs2  = ptr;]
+
+line 322: [        ]
+
+line 323: [        ptr += sizeof_vector;]
+
+line 324: [        size = vector_get_size(refs);]
+
+line 325: [        float refdata = vector_get_array(refs)-readoffset;]
+
+line 326: [        memcpy(ptr,refdata,size);]
+
+line 327: [        refs2[0] = typeof_vector;   //type]
+
+line 328: [        refs2[1] = ptr+writeoffset; //array]
+
+line 329: [        refs2[2] = size;            //size]
+
+line 330: [        refs2[3] = size;            //capacity]
+
+line 331: [        refs2[4] = 1;               //element_size]
+
+line 332: [        */]
+
+line 333: [        vector_linearize2(refs,ptr,0,writeoffset);]
+found reference to writeoffset
+currentFunc = symbol_linearize
+ref writeoffset is REF_STACK
+
+line 334: [        newpos[3] = ptr+writeoffset;]
+
+line 335: [    }]
+
+line 336: [    newpos[0] = typeof_symbol;]
+
+line 337: [    newpos[1] = name2+writeoffset;]
+found reference to name2
+currentFunc = symbol_linearize
+ref name2 is REF_STACK
+
+line 338: [    newpos[2] = sym[2];]
+
+line 339: [    //if(refs2){newpos[3] = refs2+writeoffset;}]
+
+line 340: [    //else{newpos[3] = 0;}]
+
+line 341: [    ]
+
+line 342: [    return newpos;]
+
+line 343: [}]
+
+line 344: [// [vector]]
+
+line 345: [// type   vector       //magic value to id this as an object of class vector]
+
+line 346: [// ptr*   array        //pointer to internal array]
+
+line 347: [// int    size         //number of elements currently in array]
+
+line 348: [// int    capacity     //number of elements that the space is reserved for]
+
+line 349: [// int    element_size //size, in bytes, of a single element]
+
+line 350: []
+
+line 351: [float vector_get_linsize(float v){]
+found func vector_get_linsize
+
+
+
+sig1 = float vector_get_linsize(float v)
+sig2 = (float v)
+found param v
+
+line 352: [    assert_type(v, typeof_vector);]
+found reference to v
+currentFunc = vector_get_linsize
+ref v is REF_STACK
+found reference to typeof_vector
+currentFunc = vector_get_linsize
+ref typeof_vector is REF_EXT
+
+line 353: [    return sizeof_vector+vector_get_size(v);]
+
+line 354: [}]
+
+line 355: []
+
+line 356: [float vector_linearize2(float v, float newpos, float readoffset, float writeoffset){]
+found func vector_linearize2
+
+
+
+sig1 = float vector_linearize2(float v, float newpos, float readoffset, float writeoffset)
+sig2 = (float v, float newpos, float readoffset, float writeoffset)
+found param v
+found param newpos
+found param readoffset
+found param writeoffset
+
+line 357: [    assert_type(v, typeof_vector);]
+found reference to v
+currentFunc = vector_linearize2
+ref v is REF_STACK
+
+line 358: [    float num = vector_get_size(v);]
+found local var num (BL = 1)
+
+line 359: [    float size = vector_get_linsize(v);]
+found local var size (BL = 1)
+
+line 360: [    if(!newpos){newpos = malloc(size);}]
+found reference to newpos
+currentFunc = vector_linearize2
+ref newpos is REF_STACK
+found reference to size
+currentFunc = vector_linearize2
+ref size is REF_STACK
+
+line 361: [    float ptr = newpos+sizeof_vector;]
+found local var ptr (BL = 1)
+
+line 362: [    float vdata = v[1]-readoffset;//vector_get_array(v)-readoffset;]
+found local var vdata (BL = 1)
+found reference to readoffset
+currentFunc = vector_linearize2
+ref readoffset is REF_STACK
+
+line 363: [    newpos[0] = typeof_vector;      //type]
+
+line 364: [    newpos[1] = ptr+writeoffset;    //array]
+found reference to ptr
+currentFunc = vector_linearize2
+ref ptr is REF_STACK
+found reference to writeoffset
+currentFunc = vector_linearize2
+ref writeoffset is REF_STACK
+
+line 365: [    newpos[2] = num;                //size]
+found reference to num
+currentFunc = vector_linearize2
+ref num is REF_STACK
+
+line 366: [    newpos[3] = num;                //capacity]
+
+line 367: [    newpos[4] = 1;                  //element_size]
+
+line 368: [    memcpy(ptr,vdata,num);]
+found reference to vdata
+currentFunc = vector_linearize2
+ref vdata is REF_STACK
+
+line 369: [    //printf("linearizing vector\n");]
+
+line 370: [    //printf("v = %d\n",v);]
+
+line 371: [    //printf("vdata = %d\n",vdata);]
+
+line 372: [    //printf("num = %d\n",num);]
+
+line 373: [    //printf("size = %d\n",size);]
+
+line 374: [    //printf("ptr = %d\n", ptr);]
+
+line 375: [    //printf("diff = %d\n",ptr-newpos);]
+
+line 376: [    //printf("before:\n");]
+
+line 377: [    //printVector(v,0);]
+
+line 378: [    //printf("after:\n");]
+
+line 379: [    //printVector(newpos,writeoffset);]
+
+line 380: [    return newpos;]
+
+line 381: [}]
+
+line 382: []
+
+line 383: [//-----------------------------------------------------------------------------]
+
+line 384: [//debug]
+
+line 385: []
+
+line 386: [void printVector(float v,float readoffset){]
+found func printVector
+
+
+
+sig1 = void printVector(float v,float readoffset)
+sig2 = (float v,float readoffset)
+found param v
+found param readoffset
+
+line 387: [    float n = vector_get_size(v);]
+found local var n (BL = 1)
+found reference to v
+currentFunc = printVector
+ref v is REF_STACK
+
+line 388: [    float I;]
+found local var I (BL = 1)
+
+line 389: [    v[1] -= readoffset;]
+found reference to readoffset
+currentFunc = printVector
+ref readoffset is REF_STACK
+
+line 390: [    for(I = 0; I < n; I++){]
+found reference to I
+currentFunc = printVector
+ref I is REF_STACK
+found reference to n
+currentFunc = printVector
+ref n is REF_STACK
+
+line 391: [        float val = vector_get(v,0,I);]
+found local var val (BL = 2)
+
+line 392: [        float ptr = v[1];]
+found local var ptr (BL = 2)
+
+line 393: [        ptr += I;]
+found reference to ptr
+currentFunc = printVector
+ref ptr is REF_STACK
+
+line 394: [        printf("%d @ %d %d\n",I,ptr,val);]
+found reference to printf
+currentFunc = printVector
+ref printf is REF_EXT
+found reference to val
+currentFunc = printVector
+ref val is REF_STACK
+
+line 395: [    }]
+
+line 396: [    v[1] += readoffset;]
+
+line 397: [}]
+
+line 398: []
+
+line 399: []
+
+line 400: []
+
+line 401: []
+
+line 402: []
+
+line 403: []
+
+line 404: []
+
+line 405: []
+
+line 406: []
+
+line 407: []
+
+line 408: []
+
+line 19: [#include <cyclone/progs/asm/asm_parse.txt>]
+found include <cyclone/progs/asm/asm_parse.txt>
+reading file cyclone/progs/asm/asm_parse.txt
+
+line 1: []
+
+line 2: [#define UNLINKED_SYMBOL 700001]
+#defined "UNLINKED_SYMBOL"
+
+line 3: []
+
+line 4: [//attempts to read str from input.]
+
+line 5: [//if succeeds, advances input by length read.]
+
+line 6: [//if fails, calls the error function.]
+
+line 7: []
+
+line 8: [float expectedError(float str){]
+found func expectedError
+
+
+
+sig1 = float expectedError(float str)
+sig2 = (float str)
+found param str
+
+line 9: [    pointOutErr();]
+found reference to pointOutErr
+currentFunc = expectedError
+ref pointOutErr is REF_EXT
+
+line 10: [    Perr(str);Perr(" expected\n");]
+found reference to Perr
+currentFunc = expectedError
+ref Perr is REF_EXT
+found reference to str
+currentFunc = expectedError
+ref str is REF_STACK
+
+line 11: [    shell_panic();]
+found reference to shell_panic
+currentFunc = expectedError
+ref shell_panic is REF_EXT
+
+line 12: [}]
+
+line 13: []
+
+line 14: [float str_expected;]
+found global var str_expected
+
+line 15: [void parse_expect(float *input, float str){]
+found func parse_expect
+
+
+
+sig1 = void parse_expect(float *input, float str)
+sig2 = (float *input, float str)
+found param input
+found param str
+
+line 16: [    str_expected = str;]
+found reference to str_expected
+currentFunc = parse_expect
+ref str_expected is REF_EXT
+found reference to str
+currentFunc = parse_expect
+ref str is REF_STACK
+
+line 17: [    if(!parse_accept(input,str)){]
+found reference to parse_accept
+currentFunc = parse_expect
+ref parse_accept is REF_EXT
+found reference to input
+currentFunc = parse_expect
+ref input is REF_STACK
+
+line 18: [        float str2 = concat("\"",str,"\"");]
+found local var str2 (BL = 2)
+found reference to concat
+currentFunc = parse_expect
+ref concat is REF_EXT
+
+line 19: [        expectedError(str2);]
+found reference to expectedError
+currentFunc = parse_expect
+ref expectedError is REF_EXT
+found reference to str2
+currentFunc = parse_expect
+ref str2 is REF_STACK
+
+line 20: [    }]
+
+line 21: [}]
+
+line 22: []
+
+line 23: [float parse_acceptNum(float *input, float *num){]
+found func parse_acceptNum
+
+
+
+sig1 = float parse_acceptNum(float *input, float *num)
+sig2 = (float *input, float *num)
+found param input
+found param num
+
+line 24: [    float inp = *input;]
+found local var inp (BL = 1)
+found reference to input
+currentFunc = parse_acceptNum
+ref input is REF_STACK
+
+line 25: [    float I = 0;]
+found local var I (BL = 1)
+
+line 26: [    float n = -999;]
+found local var n (BL = 1)
+
+line 27: [    n = str2num2(*input, &I);]
+found reference to n
+currentFunc = parse_acceptNum
+ref n is REF_STACK
+found reference to str2num2
+currentFunc = parse_acceptNum
+ref str2num2 is REF_EXT
+found reference to I
+currentFunc = parse_acceptNum
+ref I is REF_STACK
+
+line 28: [    if(I){]
+
+line 29: [        *num = n;]
+found reference to num
+currentFunc = parse_acceptNum
+ref num is REF_STACK
+
+line 30: [        *input = *input+I;]
+
+line 31: [        //P2("accepted num ",n,"\n");]
+
+line 32: [        return 1;]
+
+line 33: [    }]
+
+line 34: [    //P("not accepted num\n");]
+
+line 35: [    *input = inp;]
+found reference to inp
+currentFunc = parse_acceptNum
+ref inp is REF_STACK
+
+line 36: [    return 0;]
+
+line 37: [}]
+
+line 38: []
+
+line 39: [float parse_expectNum(float *input, float *num){]
+found func parse_expectNum
+
+
+
+sig1 = float parse_expectNum(float *input, float *num)
+sig2 = (float *input, float *num)
+found param input
+found param num
+
+line 40: [    if(!parse_acceptNum(input, num)){expectedError("number");}]
+found reference to parse_acceptNum
+currentFunc = parse_expectNum
+ref parse_acceptNum is REF_EXT
+found reference to input
+currentFunc = parse_expectNum
+ref input is REF_STACK
+found reference to num
+currentFunc = parse_expectNum
+ref num is REF_STACK
+
+line 41: [}]
+
+line 42: []
+
+line 43: [float parse_acceptSegment(float *input, float *seg){]
+found func parse_acceptSegment
+
+
+
+sig1 = float parse_acceptSegment(float *input, float *seg)
+sig2 = (float *input, float *seg)
+found param input
+found param seg
+
+line 44: [    float inp = *input;]
+found local var inp (BL = 1)
+found reference to input
+currentFunc = parse_acceptSegment
+ref input is REF_STACK
+
+line 45: []
+
+line 46: [    float I;]
+found local var I (BL = 1)
+
+line 47: [    for(I = 0; I < 16; I++){]
+found reference to I
+currentFunc = parse_acceptSegment
+ref I is REF_STACK
+
+line 48: [        float seg_str = segTable+I;]
+found local var seg_str (BL = 2)
+found reference to segTable
+currentFunc = parse_acceptSegment
+ref segTable is REF_EXT
+
+line 49: [        seg_str = *seg_str;]
+found reference to seg_str
+currentFunc = parse_acceptSegment
+ref seg_str is REF_STACK
+
+line 50: [        if(parse_accept(input,seg_str)){]
+
+line 51: [            if(parse_accept(input,":")){]
+
+line 52: [                float S = I+1;]
+found local var S (BL = 4)
+
+line 53: [                //P2("accepted seg ",S,"\n");]
+
+line 54: [                *seg = I+1; return 1;]
+found reference to seg
+currentFunc = parse_acceptSegment
+ref seg is REF_STACK
+
+line 55: [            }else{]
+
+line 56: [                //P("no : after segment\n");]
+
+line 57: [            }]
+
+line 58: [        }]
+
+line 59: [    }]
+
+line 60: [    //P("not accepted segment\n");]
+
+line 61: [    *input = inp;]
+found reference to inp
+currentFunc = parse_acceptSegment
+ref inp is REF_STACK
+
+line 62: [    return 0;]
+
+line 63: [}]
+
+line 64: []
+
+line 65: []
+
+line 66: [float parse_acceptReg(float *input, float *reg){]
+found func parse_acceptReg
+
+
+
+sig1 = float parse_acceptReg(float *input, float *reg)
+sig2 = (float *input, float *reg)
+found param input
+found param reg
+
+line 67: [    float inp = *input;]
+found local var inp (BL = 1)
+found reference to input
+currentFunc = parse_acceptReg
+ref input is REF_STACK
+
+line 68: []
+
+line 69: [    float I;]
+found local var I (BL = 1)
+
+line 70: [    for(I = 0; I < 16; I++){]
+found reference to I
+currentFunc = parse_acceptReg
+ref I is REF_STACK
+
+line 71: [        float reg_str = regTable+I;]
+found local var reg_str (BL = 2)
+found reference to regTable
+currentFunc = parse_acceptReg
+ref regTable is REF_EXT
+
+line 72: [        reg_str = *reg_str;]
+found reference to reg_str
+currentFunc = parse_acceptReg
+ref reg_str is REF_STACK
+
+line 73: [        if(parse_accept(input,reg_str)){]
+
+line 74: [            *reg = I+1;]
+found reference to reg
+currentFunc = parse_acceptReg
+ref reg is REF_STACK
+
+line 75: [            float R = *reg;]
+found local var R (BL = 3)
+
+line 76: [            //P2("accepted reg ",R,"\n");]
+
+line 77: [            return 1;]
+
+line 78: [        }]
+
+line 79: [    }]
+
+line 80: [    //P("not accepted reg\n");]
+
+line 81: [    *input = inp;]
+found reference to inp
+currentFunc = parse_acceptReg
+ref inp is REF_STACK
+
+line 82: [    return 0;]
+
+line 83: [}]
+
+line 84: []
+
+line 85: [//hmm, maybe maybe a zCPU emulator in zCPU to step through assembly?]
+
+line 86: []
+
+line 87: [float parse_acceptOperand(float *input, float *rm, float *seg, float *op, float errFunc, float offs){]
+found func parse_acceptOperand
+
+
+
+sig1 = float parse_acceptOperand(float *input, float *rm, float *seg, float *op, float errFunc, float offs)
+sig2 = (float *input, float *rm, float *seg, float *op, float errFunc, float offs)
+found param input
+found param rm
+found param seg
+found param op
+found param errFunc
+found param offs
+
+line 88: [    float inp = *input;]
+found local var inp (BL = 1)
+found reference to input
+currentFunc = parse_acceptOperand
+ref input is REF_STACK
+
+line 89: [    ]
+
+line 90: [    //asm           RM      meaning]
+
+line 91: [    //-------------------------------]
+
+line 92: [    //-5             0      const]
+
+line 93: [    //eax            1-16   reg]
+
+line 94: [    //#eax, es:#eax 17-24   mem cell reg   (+seg)]
+
+line 95: [    //#123, es:#123 25      mem cell const (+seg)]
+
+line 96: [    //es:eax        26      reg + seg]
+
+line 97: [    //es:123        50      const + seg]
+
+line 98: [    //port0..1024   1000..  port x]
+
+line 99: [    ]
+
+line 100: [    float memcell = 0;]
+found local var memcell (BL = 1)
+
+line 101: [    float constnum = 0;]
+found local var constnum (BL = 1)
+
+line 102: [    float regnum = 0;]
+found local var regnum (BL = 1)
+
+line 103: [    //[es:][#](eax/-123)]
+
+line 104: [    *rm = 0;]
+found reference to rm
+currentFunc = parse_acceptOperand
+ref rm is REF_STACK
+
+line 105: [    *seg = -4;]
+found reference to seg
+currentFunc = parse_acceptOperand
+ref seg is REF_STACK
+
+line 106: [    *op = 0;]
+found reference to op
+currentFunc = parse_acceptOperand
+ref op is REF_STACK
+
+line 107: [    parse_acceptSegment(input, seg);]
+found reference to parse_acceptSegment
+currentFunc = parse_acceptOperand
+ref parse_acceptSegment is REF_EXT
+
+line 108: [    if(parse_accept(input,"#")){memcell = 1;}]
+found reference to memcell
+currentFunc = parse_acceptOperand
+ref memcell is REF_STACK
+
+line 109: [    if(parse_acceptReg(input,op)){]
+found reference to parse_acceptReg
+currentFunc = parse_acceptOperand
+ref parse_acceptReg is REF_EXT
+
+line 110: [        regnum = 1;]
+found reference to regnum
+currentFunc = parse_acceptOperand
+ref regnum is REF_STACK
+
+line 111: [    }else{]
+
+line 112: [        if(parse_acceptNum(input,op)){constnum = 1;}]
+found reference to constnum
+currentFunc = parse_acceptOperand
+ref constnum is REF_STACK
+
+line 113: [        else{]
+
+line 114: [            if(parse_acceptIdent(input,asm_ident)){]
+found reference to parse_acceptIdent
+currentFunc = parse_acceptOperand
+ref parse_acceptIdent is REF_EXT
+found reference to asm_ident
+currentFunc = parse_acceptOperand
+ref asm_ident is REF_EXT
+
+line 115: [                *op = UNLINKED_SYMBOL;]
+
+line 116: [                constnum = 1;]
+
+line 117: [                addSymbolRef(asm_ident,offs);]
+found reference to addSymbolRef
+currentFunc = parse_acceptOperand
+ref addSymbolRef is REF_EXT
+found reference to offs
+currentFunc = parse_acceptOperand
+ref offs is REF_STACK
+
+line 118: [            }]
+
+line 119: [        }]
+
+line 120: [    }]
+
+line 121: [    ]
+
+line 122: [    if(!regnum && !constnum){]
+
+line 123: [        //P("not num or reg\n");]
+
+line 124: [        //pointOutErr();]
+
+line 125: [        *input = inp;]
+found reference to inp
+currentFunc = parse_acceptOperand
+ref inp is REF_STACK
+
+line 126: [        return 0;]
+
+line 127: [    }]
+
+line 128: [    if(regnum && constnum){]
+
+line 129: [        Perr("logic error");]
+
+line 130: [        shell_panic();]
+
+line 131: [    }]
+
+line 132: [    //do the RM thing here]
+
+line 133: [    if(constnum){]
+
+line 134: [        if(memcell){]
+
+line 135: [            *rm = 25;]
+
+line 136: [        }else{]
+
+line 137: [            if(*seg != -4){]
+
+line 138: [                *rm = 50;]
+
+line 139: [            }else{]
+
+line 140: [                *rm = 0;]
+
+line 141: [            }]
+
+line 142: [        }]
+
+line 143: [    }]
+
+line 144: [    if(regnum){]
+
+line 145: [        if(memcell){]
+
+line 146: [            *rm = *op+16;]
+
+line 147: [            *op = 0;]
+
+line 148: [        }else{]
+
+line 149: [            if(*seg != -4){]
+
+line 150: [                *rm = *op+25;]
+
+line 151: [                *op = 0;]
+
+line 152: [            }else{]
+
+line 153: [                *rm = *op;]
+
+line 154: [                *op = 0;]
+
+line 155: [            }]
+
+line 156: [        }]
+
+line 157: [    }]
+
+line 158: [    //P("accepted OP: ");]
+
+line 159: [    //if(memcell){P("mem cell ");}]
+
+line 160: [    //if(constnum){P("const ");}]
+
+line 161: [    //if(regnum){P("reg ");}]
+
+line 162: [    //if(*seg){P("+ seg ");}]
+
+line 163: [    //P("\n");]
+
+line 164: [    return 1;]
+
+line 165: [}]
+
+line 166: []
+
+line 167: []
+
+line 168: [void parse_expectOperand(float *input, float *rm, float *seg, float *op, float *errfunc, float offs){]
+found func parse_expectOperand
+
+
+
+sig1 = void parse_expectOperand(float *input, float *rm, float *seg, float *op, float *errfunc, float offs)
+sig2 = (float *input, float *rm, float *seg, float *op, float *errfunc, float offs)
+found param input
+found param rm
+found param seg
+found param op
+found param errfunc
+found param offs
+
+line 169: [    str_expected = "<operand>";]
+
+line 170: [    if(!parse_acceptOperand(input,rm,seg,op,errfunc,offs)){errfunc();}]
+found reference to parse_acceptOperand
+currentFunc = parse_expectOperand
+ref parse_acceptOperand is REF_EXT
+found reference to input
+currentFunc = parse_expectOperand
+ref input is REF_STACK
+found reference to rm
+currentFunc = parse_expectOperand
+ref rm is REF_STACK
+found reference to seg
+currentFunc = parse_expectOperand
+ref seg is REF_STACK
+found reference to op
+currentFunc = parse_expectOperand
+ref op is REF_STACK
+found reference to errfunc
+currentFunc = parse_expectOperand
+ref errfunc is REF_STACK
+found reference to offs
+currentFunc = parse_expectOperand
+ref offs is REF_STACK
+
+line 171: [}]
+
+line 172: []
+
+line 173: []
+
+line 174: [float parse_acceptIdent(float *input, float *id){]
+found func parse_acceptIdent
+
+
+
+sig1 = float parse_acceptIdent(float *input, float *id)
+sig2 = (float *input, float *id)
+found param input
+found param id
+
+line 175: [    float inp = *input;]
+found local var inp (BL = 1)
+found reference to input
+currentFunc = parse_acceptIdent
+ref input is REF_STACK
+
+line 176: [    float inp2 = *input;]
+found local var inp2 (BL = 1)
+
+line 177: [    float ptr = id;]
+found local var ptr (BL = 1)
+found reference to id
+currentFunc = parse_acceptIdent
+ref id is REF_STACK
+
+line 178: [    if(!isIdent(*inp2)){goto pai_fail;}]
+found reference to isIdent
+currentFunc = parse_acceptIdent
+ref isIdent is REF_EXT
+found reference to inp2
+currentFunc = parse_acceptIdent
+ref inp2 is REF_STACK
+found reference to pai_fail
+currentFunc = parse_acceptIdent
+ref pai_fail is REF_EXT
+
+line 179: [    if(isNum(*inp2)){goto pai_fail;}]
+found reference to isNum
+currentFunc = parse_acceptIdent
+ref isNum is REF_EXT
+
+line 180: [    while(isIdent(*inp2)){*ptr++ = *inp2++;}]
+found reference to ptr
+currentFunc = parse_acceptIdent
+ref ptr is REF_STACK
+
+line 181: [    *input = inp2;]
+
+line 182: [    *ptr = 0;]
+
+line 183: [    //P("accepted ident [");P(id);P("]\n");]
+
+line 184: [    return 1;]
+
+line 185: [    pai_fail:]
+found label pai_fail
+
+line 186: [    //P("not accepted ident\n");]
+
+line 187: [    //pointOutErr();]
+
+line 188: [    *input = inp;]
+found reference to inp
+currentFunc = parse_acceptIdent
+ref inp is REF_STACK
+
+line 189: [    return 0;]
+
+line 190: [}]
+
+line 191: []
+
+line 192: [float parse_acceptSpace(float *input){]
+found func parse_acceptSpace
+
+
+
+sig1 = float parse_acceptSpace(float *input)
+sig2 = (float *input)
+found param input
+
+line 193: [    float inp = *input;]
+found local var inp (BL = 1)
+found reference to input
+currentFunc = parse_acceptSpace
+ref input is REF_STACK
+
+line 194: [    if(*inp == ' '){*input = inp+1; return 1;}]
+found reference to inp
+currentFunc = parse_acceptSpace
+ref inp is REF_STACK
+
+line 195: [    if(*inp == '\t'){*input = inp+1; return 1;}]
+found reference to t
+currentFunc = parse_acceptSpace
+ref t is REF_EXT
+
+line 196: [    return 0;]
+
+line 197: [}]
+
+line 198: []
+
+line 199: [float parse_acceptComment(float *input){]
+found func parse_acceptComment
+
+
+
+sig1 = float parse_acceptComment(float *input)
+sig2 = (float *input)
+found param input
+
+line 200: [    float inp = *input;]
+found local var inp (BL = 1)
+found reference to input
+currentFunc = parse_acceptComment
+ref input is REF_STACK
+
+line 201: [    if(parse_accept(input,"//")){]
+
+line 202: [        //P("parsed comment\n");]
+
+line 203: [        //consume all input till the end of the line]
+
+line 204: [        while(*inp){inp++;}]
+found reference to inp
+currentFunc = parse_acceptComment
+ref inp is REF_STACK
+
+line 205: [        *input = inp;]
+
+line 206: [        return 1;]
+
+line 207: [    }]
+
+line 208: [    //P("not accepted comment\n");]
+
+line 209: [    //pointOutErr();]
+
+line 210: [    *input = inp;]
+
+line 211: [    return 0;]
+
+line 212: [}]
+
+line 213: []
+
+line 214: [//should be called after instructions]
+
+line 215: [float parse_acceptLabel(float *input){]
+found func parse_acceptLabel
+
+
+
+sig1 = float parse_acceptLabel(float *input)
+sig2 = (float *input)
+found param input
+
+line 216: [    float inp = *input;]
+found local var inp (BL = 1)
+found reference to input
+currentFunc = parse_acceptLabel
+ref input is REF_STACK
+
+line 217: [    if(parse_acceptIdent(input,asm_ident)){]
+
+line 218: [        if(parse_accept(input,":")){]
+
+line 219: [            //P("parsed Label\n");]
+
+line 220: [            addSymbolDef(asm_ident);]
+found reference to addSymbolDef
+currentFunc = parse_acceptLabel
+ref addSymbolDef is REF_EXT
+
+line 221: [            return 1;]
+
+line 222: [        }else{]
+
+line 223: [            pointOutErr();]
+
+line 224: [            P("expected ':'\n");]
+found reference to P
+currentFunc = parse_acceptLabel
+ref P is REF_EXT
+
+line 225: [            asm_abort = 1;]
+found reference to asm_abort
+currentFunc = parse_acceptLabel
+ref asm_abort is REF_EXT
+
+line 226: [            return 0;]
+
+line 227: [        }]
+
+line 228: [    }]
+
+line 229: [    //P("not accepted Label\n");]
+
+line 230: [    //pointOutErr();]
+
+line 231: [    *input = inp;]
+found reference to inp
+currentFunc = parse_acceptLabel
+ref inp is REF_STACK
+
+line 232: [    return 0;]
+
+line 233: [}]
+
+line 234: []
+
+line 235: [float parse_acceptString(float *input, float *str){]
+found func parse_acceptString
+
+
+
+sig1 = float parse_acceptString(float *input, float *str)
+sig2 = (float *input, float *str)
+found param input
+found param str
+
+line 236: [    float inp = *input;]
+found local var inp (BL = 1)
+found reference to input
+currentFunc = parse_acceptString
+ref input is REF_STACK
+
+line 237: [    float I = *input;]
+found local var I (BL = 1)
+
+line 238: [    float count = 0;]
+found local var count (BL = 1)
+
+line 239: [    float V = 0;]
+found local var V (BL = 1)
+
+line 240: [    if(*I++ == '\"'){]
+found reference to I
+currentFunc = parse_acceptString
+ref I is REF_STACK
+
+line 241: [        V = malloc(sizeof_vector);]
+found reference to V
+currentFunc = parse_acceptString
+ref V is REF_STACK
+
+line 242: [        vector_constructor(V,1);]
+found reference to vector_constructor
+currentFunc = parse_acceptString
+ref vector_constructor is REF_EXT
+
+line 243: [        float escape = 0;]
+found local var escape (BL = 2)
+
+line 244: [        ]
+
+line 245: [        astr_loop:]
+found label astr_loop
+
+line 246: [        float C = *I++;]
+found local var C (BL = 2)
+
+line 247: [        if(C == '\\'){]
+found reference to C
+currentFunc = parse_acceptString
+ref C is REF_STACK
+
+line 248: [            escape = 1;]
+found reference to escape
+currentFunc = parse_acceptString
+ref escape is REF_STACK
+
+line 249: [            goto astr_loop;]
+found reference to astr_loop
+currentFunc = parse_acceptString
+ref astr_loop is REF_EXT
+
+line 250: [        }    ]
+
+line 251: [        if(escape){]
+
+line 252: [            if(C == 'n'){vector_push(V,'\n'); goto astr_loop;}]
+found reference to vector_push
+currentFunc = parse_acceptString
+ref vector_push is REF_EXT
+found reference to n
+currentFunc = parse_acceptString
+ref n is REF_EXT
+
+line 253: [            if(C == '0'){vector_push(V,'\0'); goto astr_loop;}]
+
+line 254: [            if(C == 't'){vector_push(V,'\t'); goto astr_loop;}]
+
+line 255: [            if(C == '\"'){vector_push(V,'\"'); goto astr_loop;}]
+
+line 256: [            if(C == '\''){vector_push(V,'\''); goto astr_loop;}]
+
+line 257: [            if(C == '\\'){vector_push(V,'\\'); goto astr_loop;}]
+
+line 258: [        }]
+
+line 259: [        if(C == '\"'){goto astr_endloop;}]
+found reference to astr_endloop
+currentFunc = parse_acceptString
+ref astr_endloop is REF_EXT
+
+line 260: [        if(C == 0){goto astr_fail;}]
+found reference to astr_fail
+currentFunc = parse_acceptString
+ref astr_fail is REF_EXT
+
+line 261: [        vector_push(V,C);]
+
+line 262: [        goto astr_loop;]
+
+line 263: [        astr_endloop:]
+found label astr_endloop
+
+line 264: [        *input = I;]
+
+line 265: [        vector_push(V,0);]
+
+line 266: [        float arr = vector_get_array(V);]
+found local var arr (BL = 2)
+
+line 267: [        //P("string accepted [");P(arr);P("]\n");]
+
+line 268: [        float str2 = unescapeStr(arr);]
+found local var str2 (BL = 2)
+found reference to unescapeStr
+currentFunc = parse_acceptString
+ref unescapeStr is REF_EXT
+found reference to arr
+currentFunc = parse_acceptString
+ref arr is REF_STACK
+
+line 269: [        vector_clear(V);]
+found reference to vector_clear
+currentFunc = parse_acceptString
+ref vector_clear is REF_EXT
+
+line 270: [        float J = 0;]
+found local var J (BL = 2)
+
+line 271: [        float len = strlen(str2);]
+found local var len (BL = 2)
+found reference to str2
+currentFunc = parse_acceptString
+ref str2 is REF_STACK
+
+line 272: [        for(J = 0; J < len; J++){]
+found reference to J
+currentFunc = parse_acceptString
+ref J is REF_STACK
+found reference to len
+currentFunc = parse_acceptString
+ref len is REF_STACK
+
+line 273: [            C = *str2++;]
+
+line 274: [            vector_push(V,C);]
+
+line 275: [        }]
+
+line 276: [        vector_push(V,0);]
+
+line 277: [        ]
+
+line 278: [        *str = V;]
+found reference to str
+currentFunc = parse_acceptString
+ref str is REF_STACK
+
+line 279: [        //*str = unescapeStr(V);]
+
+line 280: [        return 1;]
+
+line 281: [    }]
+
+line 282: [    astr_fail:]
+found label astr_fail
+
+line 283: [    //P("no string\n");]
+
+line 284: [    if(V){vector_clear(V); free(V);}]
+found reference to free
+currentFunc = parse_acceptString
+ref free is REF_EXT
+
+line 285: [    *input = inp;]
+found reference to inp
+currentFunc = parse_acceptString
+ref inp is REF_STACK
+
+line 286: [    return 0;]
+
+line 287: [}]
+
+line 288: []
+
+line 289: [//0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16]
+
+line 290: [//d b   " h e l l o ! "  ,  0  \0 ]
+
+line 291: [//]
+
+line 292: []
+
+line 293: [float parse_acceptDb(float *input){]
+found func parse_acceptDb
+
+
+
+sig1 = float parse_acceptDb(float *input)
+sig2 = (float *input)
+found param input
+
+line 294: [    float inp = *input;]
+found local var inp (BL = 1)
+found reference to input
+currentFunc = parse_acceptDb
+ref input is REF_STACK
+
+line 295: [    ]
+
+line 296: [    float V = malloc(sizeof_vector);]
+found local var V (BL = 1)
+
+line 297: [    vector_constructor(V,1);]
+found reference to V
+currentFunc = parse_acceptDb
+ref V is REF_STACK
+
+line 298: [    ]
+
+line 299: [    if(parse_accept(input,"db ")){]
+
+line 300: [        //P("str = [");]
+
+line 301: [        //P(str2);P("]\n");]
+
+line 302: [        float len1 = strlen(str2);]
+found local var len1 (BL = 2)
+found reference to str2
+currentFunc = parse_acceptDb
+ref str2 is REF_EXT
+
+line 303: [        //P2("len = ",len1,"\n");]
+
+line 304: [        float nterms = 0; //for debug]
+found local var nterms (BL = 2)
+
+line 305: [        float inp2 = 0; //also debug]
+found local var inp2 (BL = 2)
+
+line 306: [        float expected = 1;]
+found local var expected (BL = 2)
+
+line 307: [        while(1){]
+
+line 308: [            //inp2 = *input - str2;]
+
+line 309: [            //P2("inp1 @ ",*input-str2,"\n");]
+
+line 310: [            float num;]
+found local var num (BL = 3)
+
+line 311: [            float vstr;]
+found local var vstr (BL = 3)
+
+line 312: [            if(parse_acceptNum(input,&num)){]
+found reference to num
+currentFunc = parse_acceptDb
+ref num is REF_STACK
+
+line 313: [                //P2("term ",nterms," is num ");]
+
+line 314: [                //P2("(",num,")\n");]
+
+line 315: [                vector_push(V,num);]
+
+line 316: [                //emit_code(num);]
+
+line 317: [                expected = 0;]
+found reference to expected
+currentFunc = parse_acceptDb
+ref expected is REF_STACK
+
+line 318: [            }else{]
+
+line 319: [                if(parse_acceptString(input,&vstr)){]
+found reference to parse_acceptString
+currentFunc = parse_acceptDb
+ref parse_acceptString is REF_EXT
+found reference to vstr
+currentFunc = parse_acceptDb
+ref vstr is REF_STACK
+
+line 320: [                    //P2("term ",nterms," is str\n");]
+
+line 321: [                    float strdata = vector_get_array(vstr);]
+found local var strdata (BL = 5)
+
+line 322: [                    float C = *strdata++;]
+found local var C (BL = 5)
+found reference to strdata
+currentFunc = parse_acceptDb
+ref strdata is REF_STACK
+
+line 323: [                    while(C){]
+found reference to C
+currentFunc = parse_acceptDb
+ref C is REF_STACK
+
+line 324: [                        vector_push(V,C);]
+
+line 325: [                        //emit_code(C);]
+
+line 326: [                        C = *strdata++;]
+
+line 327: [                    }]
+
+line 328: [                    vector_clear(vstr);]
+
+line 329: [                    free(vstr);]
+
+line 330: [                    expected = 0;]
+
+line 331: [                }else{]
+
+line 332: [                    if(parse_acceptIdent(input,asm_ident)){]
+
+line 333: [                        float offs = vector_get_size(V);]
+found local var offs (BL = 6)
+
+line 334: [                        vector_push(V,0);]
+
+line 335: [                        addSymbolRef(asm_ident,offs);]
+found reference to offs
+currentFunc = parse_acceptDb
+ref offs is REF_STACK
+
+line 336: [                    }else{]
+
+line 337: [                        if(expected){]
+
+line 338: [                            pointOutErr();]
+
+line 339: [                            Perr("value expected\n");]
+
+line 340: [                            shell_panic();]
+
+line 341: [                        }else{]
+
+line 342: [                            goto pa_db_exit;]
+found reference to pa_db_exit
+currentFunc = parse_acceptDb
+ref pa_db_exit is REF_EXT
+
+line 343: [                        }]
+
+line 344: [                    }]
+
+line 345: [                }]
+
+line 346: [            }]
+
+line 347: [            nterms++;]
+found reference to nterms
+currentFunc = parse_acceptDb
+ref nterms is REF_STACK
+
+line 348: [            //P2("inp2 @ ",*input-str2,"\n");]
+
+line 349: [            if(parse_accept(input,",")){]
+
+line 350: [                //P("accepted [,]\n");]
+
+line 351: [                expected = 1;]
+
+line 352: [            }]
+
+line 353: [            while(parse_acceptSpace(input));]
+found reference to parse_acceptSpace
+currentFunc = parse_acceptDb
+ref parse_acceptSpace is REF_EXT
+
+line 354: [            //if(parse_accept(input," ")){]
+
+line 355: [            //}]
+
+line 356: [            ]
+
+line 357: [        }]
+
+line 358: [    }]
+
+line 359: [    pa_db_exit:]
+found label pa_db_exit
+
+line 360: [    float size = vector_get_size(V);]
+found local var size (BL = 1)
+
+line 361: [    if(size == 0){]
+found reference to size
+currentFunc = parse_acceptDb
+ref size is REF_STACK
+
+line 362: [        *input = inp;]
+found reference to inp
+currentFunc = parse_acceptDb
+ref inp is REF_STACK
+
+line 363: [        return 0;]
+
+line 364: [    }else{]
+
+line 365: [        //P("db parsed\n");]
+
+line 366: [        float I = 0;]
+found local var I (BL = 2)
+
+line 367: [        for(I = 0; I < size; I++){]
+found reference to I
+currentFunc = parse_acceptDb
+ref I is REF_STACK
+
+line 368: [            float numdbs;]
+found local var numdbs (BL = 3)
+
+line 369: [            vector_get(V,&numdbs,I);]
+found reference to numdbs
+currentFunc = parse_acceptDb
+ref numdbs is REF_STACK
+
+line 370: [            emit_code(numdbs);]
+found reference to emit_code
+currentFunc = parse_acceptDb
+ref emit_code is REF_EXT
+
+line 371: [            //P2("",numdbs,"\n");]
+
+line 372: [        }]
+
+line 373: [        return 1;]
+
+line 374: [    }]
+
+line 375: [}]
+
+line 376: []
+
+line 377: [float parse_acceptAlloc(float *input){]
+found func parse_acceptAlloc
+
+
+
+sig1 = float parse_acceptAlloc(float *input)
+sig2 = (float *input)
+found param input
+
+line 378: [    float inp = *input;]
+found local var inp (BL = 1)
+found reference to input
+currentFunc = parse_acceptAlloc
+ref input is REF_STACK
+
+line 379: [    if(parse_accept(input,"alloc ")){]
+
+line 380: [        float num;]
+found local var num (BL = 2)
+
+line 381: [        if(parse_acceptNum(input,&num)){]
+found reference to num
+currentFunc = parse_acceptAlloc
+ref num is REF_STACK
+
+line 382: [            //P2("parsed alloc ",num,"\n");]
+
+line 383: [            emit_alloc(num);]
+found reference to emit_alloc
+currentFunc = parse_acceptAlloc
+ref emit_alloc is REF_EXT
+
+line 384: [            return 1;]
+
+line 385: [        }]
+
+line 386: [    }]
+
+line 387: [    *input = inp;]
+found reference to inp
+currentFunc = parse_acceptAlloc
+ref inp is REF_STACK
+
+line 388: [    return 0;]
+
+line 389: [}]
+
+line 390: []
+
+line 391: [float parse_acceptInstruction(float *input){]
+found func parse_acceptInstruction
+
+
+
+sig1 = float parse_acceptInstruction(float *input)
+sig2 = (float *input)
+found param input
+
+line 392: [    float inp = *input;]
+found local var inp (BL = 1)
+found reference to input
+currentFunc = parse_acceptInstruction
+ref input is REF_STACK
+
+line 393: [    float cmd;]
+found local var cmd (BL = 1)
+
+line 394: [    float rm1, seg1, op1;]
+found local var rm1 (BL = 1)
+found reference to seg1
+currentFunc = parse_acceptInstruction
+ref seg1 is REF_EXT
+found reference to op1
+currentFunc = parse_acceptInstruction
+ref op1 is REF_EXT
+
+line 395: [    float rm2, seg2, op2;]
+found local var rm2 (BL = 1)
+found reference to seg2
+currentFunc = parse_acceptInstruction
+ref seg2 is REF_EXT
+found reference to op2
+currentFunc = parse_acceptInstruction
+ref op2 is REF_EXT
+
+line 396: [    cmd = 0;]
+found reference to cmd
+currentFunc = parse_acceptInstruction
+ref cmd is REF_STACK
+
+line 397: [    rm1 = seg1 = op1 = 0;]
+found reference to rm1
+currentFunc = parse_acceptInstruction
+ref rm1 is REF_STACK
+
+line 398: [    rm2 = seg2 = op2 = 0;]
+found reference to rm2
+currentFunc = parse_acceptInstruction
+ref rm2 is REF_STACK
+
+line 399: [    if(parse_acceptCmd(input,&cmd)){]
+found reference to parse_acceptCmd
+currentFunc = parse_acceptInstruction
+ref parse_acceptCmd is REF_EXT
+
+line 400: [        //parse_expect(input," ");]
+
+line 401: [        while(parse_acceptSpace(&str)){};]
+found reference to str
+currentFunc = parse_acceptInstruction
+ref str is REF_EXT
+
+line 402: [        parse_acceptOperand(input,&rm1,&seg1,&op1,errDefault,4);]
+found reference to errDefault
+currentFunc = parse_acceptInstruction
+ref errDefault is REF_EXT
+
+line 403: [        while(parse_acceptSpace(&str)){}]
+
+line 404: [        if(parse_accept(input,",")){]
+
+line 405: [            while(parse_acceptSpace(&str)){}]
+
+line 406: [            parse_expectOperand(input,&rm2,&seg2,&op2,errDefault,5);]
+found reference to parse_expectOperand
+currentFunc = parse_acceptInstruction
+ref parse_expectOperand is REF_EXT
+
+line 407: [        }]
+
+line 408: [        //parse_accept(input," ");]
+
+line 409: [        //parse_acceptOperand(input,&rm1,&seg1,&op1,errDefault,4);]
+
+line 410: [        //parse_accept(input,",",errDefault);]
+
+line 411: [        //parse_accept(input," ");]
+
+line 412: [        //parse_acceptOperand(input,&rm2,&seg2,&op2,errDefault,5);]
+
+line 413: [        float rm = rm1 + 10000*rm2;]
+found local var rm (BL = 2)
+
+line 414: [        //fixed size instructions]
+
+line 415: [        emit_code(2000+cmd);]
+
+line 416: [        emit_code(rm);]
+found reference to rm
+currentFunc = parse_acceptInstruction
+ref rm is REF_STACK
+
+line 417: [        emit_code(seg1);]
+
+line 418: [        emit_code(seg2);]
+
+line 419: [        emit_code(op1);]
+
+line 420: [        emit_code(op2);]
+
+line 421: [        //P("parsed instruction\n");]
+
+line 422: [        return 1;]
+
+line 423: [    }]
+
+line 424: [    *input = inp;]
+found reference to inp
+currentFunc = parse_acceptInstruction
+ref inp is REF_STACK
+
+line 425: [    return 0;]
+
+line 426: [}]
+
+line 427: []
+
+line 428: []
+
+line 429: [float parse_acceptCmd(float *input, float *cmd){]
+found func parse_acceptCmd
+
+
+
+sig1 = float parse_acceptCmd(float *input, float *cmd)
+sig2 = (float *input, float *cmd)
+found param input
+found param cmd
+
+line 430: [    float inp = *input;]
+found local var inp (BL = 1)
+found reference to input
+currentFunc = parse_acceptCmd
+ref input is REF_STACK
+
+line 431: []
+
+line 432: [    float I;]
+found local var I (BL = 1)
+
+line 433: [    for(I = 0; I < 166; I++){]
+found reference to I
+currentFunc = parse_acceptCmd
+ref I is REF_STACK
+
+line 434: [            float idx = 2*I;]
+found local var idx (BL = 2)
+
+line 435: [        float cmd_str = cmdTable+idx+1;]
+found local var cmd_str (BL = 2)
+found reference to cmdTable
+currentFunc = parse_acceptCmd
+ref cmdTable is REF_EXT
+found reference to idx
+currentFunc = parse_acceptCmd
+ref idx is REF_STACK
+
+line 436: [        cmd_str = *cmd_str;]
+found reference to cmd_str
+currentFunc = parse_acceptCmd
+ref cmd_str is REF_STACK
+
+line 437: [        if(parse_accept(input,cmd_str)){]
+
+line 438: [            *cmd = cmdTable[idx];]
+found reference to cmd
+currentFunc = parse_acceptCmd
+ref cmd is REF_STACK
+
+line 439: [            float C = *cmd;]
+found local var C (BL = 3)
+
+line 440: [            //P2("accepted cmd ",C,"\n");]
+
+line 441: [            return 1;]
+
+line 442: [        }]
+
+line 443: [    }]
+
+line 444: [    //P("not accepted cmd\n");]
+
+line 445: [    *input = inp;]
+found reference to inp
+currentFunc = parse_acceptCmd
+ref inp is REF_STACK
+
+line 446: [    return 0;]
+
+line 447: [}]
+
+line 448: []
+
+line 449: [float numToOp(float num){]
+found func numToOp
+
+
+
+sig1 = float numToOp(float num)
+sig2 = (float num)
+found param num
+
+line 450: [    float I;]
+found local var I (BL = 1)
+
+line 451: [    for(I = 0; I < 166; I++){]
+found reference to I
+currentFunc = numToOp
+ref I is REF_STACK
+
+line 452: [        float idx = 2*I;]
+found local var idx (BL = 2)
+
+line 453: [        float cmd_str = cmdTable+idx+1;]
+found local var cmd_str (BL = 2)
+found reference to idx
+currentFunc = numToOp
+ref idx is REF_STACK
+
+line 454: [        cmd_str = *cmd_str;]
+found reference to cmd_str
+currentFunc = numToOp
+ref cmd_str is REF_STACK
+
+line 455: [        float cmd = cmdTable[idx];]
+found local var cmd (BL = 2)
+
+line 456: [        if(cmd == num){]
+found reference to cmd
+currentFunc = numToOp
+ref cmd is REF_STACK
+found reference to num
+currentFunc = numToOp
+ref num is REF_STACK
+
+line 457: [            return cmd_str;]
+
+line 458: [        }]
+
+line 459: [    }]
+
+line 460: [    return 0;]
+
+line 461: [}]
+
+line 462: []
+
+line 463: []
+
+line 464: [//attempts to read str from input.]
+
+line 465: [//if succeeds, advances input by length read and returns 1.]
+
+line 466: [//if fails, input is not modified and returns 0.]
+
+line 467: [float parse_accept(float *input, float str){]
+found func parse_accept
+
+
+
+sig1 = float parse_accept(float *input, float str)
+sig2 = (float *input, float str)
+found param input
+found param str
+
+line 468: [    float inp = *input;]
+found local var inp (BL = 1)
+found reference to input
+currentFunc = parse_accept
+ref input is REF_STACK
+
+line 469: [    float len = strlen(str);]
+found local var len (BL = 1)
+
+line 470: [    ]
+
+line 471: [    //if(strncmp(inp,str) == 0){]
+
+line 472: [    if(caseless_strncmp(inp,str,len) == 0){]
+found reference to caseless_strncmp
+currentFunc = parse_accept
+ref caseless_strncmp is REF_EXT
+found reference to inp
+currentFunc = parse_accept
+ref inp is REF_STACK
+found reference to len
+currentFunc = parse_accept
+ref len is REF_STACK
+
+line 473: [        inp = inp+len;]
+
+line 474: [        *input = inp;]
+
+line 475: [        //P("accepted [");P(str);P("]\n");]
+
+line 476: [        return 1;]
+
+line 477: [    }]
+
+line 478: [    //P("not accepted [");P(str);P("]\n");]
+
+line 479: [    return 0;]
+
+line 480: [}]
+
+line 481: []
+
+line 482: []
+
+line 20: [#include <cyclone/progs/asm/asm_symbol.txt>]
+found include <cyclone/progs/asm/asm_symbol.txt>
+reading file cyclone/progs/asm/asm_symbol.txt
+
+line 1: []
+
+line 2: [//struct symbol]
+
+line 3: [//0: typeof_symbol]
+
+line 4: [//1: string name]
+
+line 5: [//2: definition address]
+
+line 6: [//3: reference addresses (vector)]
+
+line 7: []
+
+line 8: [float asm_symTable;]
+found global var asm_symTable
+
+line 9: []
+
+line 10: [void initSymbolTable(){]
+found func initSymbolTable
+
+
+
+sig1 = void initSymbolTable()
+sig2 = ()
+
+line 11: [    //printf("init symbol table\n");]
+
+line 12: [    asm_symTable = malloc(sizeof_vector);]
+
+line 13: [    vector_constructor(asm_symTable,1);]
+
+line 14: [}]
+
+line 15: []
+
+line 16: [void addSymbolDef(float str){]
+found func addSymbolDef
+
+
+
+sig1 = void addSymbolDef(float str)
+sig2 = (float str)
+found param str
+
+line 17: [    float sym = findSymbol(str);]
+found local var sym (BL = 1)
+found reference to findSymbol
+currentFunc = addSymbolDef
+ref findSymbol is REF_EXT
+
+line 18: [    float symaddr = cur_address;]
+found local var symaddr (BL = 1)
+found reference to cur_address
+currentFunc = addSymbolDef
+ref cur_address is REF_EXT
+
+line 19: [    if(!sym){    ]
+found reference to sym
+currentFunc = addSymbolDef
+ref sym is REF_STACK
+
+line 20: [        sym = malloc(4);]
+
+line 21: [        sym[0] = typeof_symbol;]
+
+line 22: [        sym[1] = str_alloc(str);]
+found reference to str_alloc
+currentFunc = addSymbolDef
+ref str_alloc is REF_EXT
+
+line 23: [        sym[2] = symaddr;]
+found reference to symaddr
+currentFunc = addSymbolDef
+ref symaddr is REF_STACK
+
+line 24: [        sym[3] = 0;]
+
+line 25: [        vector_push(asm_symTable,sym);]
+
+line 26: [       // printf("added new sym def:\n%s @ %d\n",str,symaddr);]
+
+line 27: [    }else{]
+
+line 28: [        //printf("sym before:\n");]
+
+line 29: [        //printSymbol(sym);]
+
+line 30: [        if(sym[2] != -1){Perr("symbol ");Perr(str);Perr(" already defined\n"); shell_panic();}]
+
+line 31: [        sym[2] = cur_address;]
+
+line 32: [        //printf("added def to existing sym:\n%s @ %d\n",str,symaddr);]
+
+line 33: [    }]
+
+line 34: [    //printf("sym after:\n");]
+
+line 35: [    //printSymbol(sym);]
+
+line 36: [}]
+
+line 37: []
+
+line 38: [void addSymbolRef(float str, float offs){]
+found func addSymbolRef
+
+
+
+sig1 = void addSymbolRef(float str, float offs)
+sig2 = (float str, float offs)
+found param str
+found param offs
+
+line 39: [    float sym = findSymbol(str);]
+found local var sym (BL = 1)
+
+line 40: [    float reftable = 0;]
+found local var reftable (BL = 1)
+
+line 41: [    float sym_addr = cur_address+offs;]
+found local var sym_addr (BL = 1)
+found reference to offs
+currentFunc = addSymbolRef
+ref offs is REF_STACK
+
+line 42: [    if(!sym){]
+found reference to sym
+currentFunc = addSymbolRef
+ref sym is REF_STACK
+
+line 43: [        //printf("making new symbol [%s] as ref\n",str);]
+
+line 44: [        sym = malloc(4);]
+
+line 45: [        sym[0] = typeof_symbol;]
+
+line 46: [        sym[1] = str_alloc(str);]
+
+line 47: [        sym[2] = -1;]
+
+line 48: [        reftable = malloc(sizeof_vector);]
+found reference to reftable
+currentFunc = addSymbolRef
+ref reftable is REF_STACK
+
+line 49: [        vector_constructor(reftable,1);]
+
+line 50: [        sym[3] = reftable;]
+
+line 51: [        vector_push(asm_symTable,sym);]
+
+line 52: [        ]
+
+line 53: [    }else{]
+
+line 54: [        //printf("adding ref to existing symbol [%s]\n",str);]
+
+line 55: [        //printf("sym before:\n");]
+
+line 56: [        //printSymbol(sym);]
+
+line 57: [        assert_type(sym,typeof_symbol);]
+
+line 58: [        reftable = sym[3];]
+
+line 59: [        if(!reftable){]
+
+line 60: [            reftable = malloc(sizeof_vector);]
+
+line 61: [            vector_constructor(reftable,1);]
+
+line 62: [            sym[3] = reftable;]
+
+line 63: [        }]
+
+line 64: [    }]
+
+line 65: [    assert_type(reftable,typeof_vector);]
+
+line 66: [    vector_push(reftable, sym_addr);]
+found reference to sym_addr
+currentFunc = addSymbolRef
+ref sym_addr is REF_STACK
+
+line 67: [    //emit(UNLINKED_SYMBOL); nope, have each procedure do that]
+
+line 68: [    //in case of multi-byte instructions (i.e. most of them)]
+
+line 69: [    //printf("added symbol ref:\n%s @ %d\n",str, sym_addr);]
+
+line 70: [    ]
+
+line 71: [    //printf("sym after:\n");]
+
+line 72: [    //printSymbol(sym);]
+
+line 73: [}]
+
+line 74: []
+
+line 75: [float findSymbol(float str){]
+found func findSymbol
+
+
+
+sig1 = float findSymbol(float str)
+sig2 = (float str)
+found param str
+
+line 76: [    float I = 0;]
+found local var I (BL = 1)
+
+line 77: [    float size = vector_get_size(asm_symTable);]
+found local var size (BL = 1)
+
+line 78: [    for(I = 0; I < size; I++){]
+found reference to I
+currentFunc = findSymbol
+ref I is REF_STACK
+found reference to size
+currentFunc = findSymbol
+ref size is REF_STACK
+
+line 79: [        float sym = vector_get(asm_symTable,0,I);]
+found local var sym (BL = 2)
+
+line 80: [        assert_type(sym,typeof_symbol);]
+found reference to sym
+currentFunc = findSymbol
+ref sym is REF_STACK
+
+line 81: [        float str2 = sym[1];]
+found local var str2 (BL = 2)
+
+line 82: [        if(strcmp(str,str2)==0){]
+found reference to strcmp
+currentFunc = findSymbol
+ref strcmp is REF_EXT
+
+line 83: [            //printf("symbol found: %s\n",str);]
+
+line 84: [            return sym;]
+
+line 85: [        }]
+
+line 86: [    }]
+
+line 87: [    //printf("symbol not found: %s\n",str);]
+
+line 88: [    return 0;]
+
+line 89: [}]
+
+line 90: []
+
+line 91: [void printSymbol(float sym){]
+found func printSymbol
+
+
+
+sig1 = void printSymbol(float sym)
+sig2 = (float sym)
+found param sym
+
+line 92: [    assert_type(sym,typeof_symbol);]
+found reference to sym
+currentFunc = printSymbol
+ref sym is REF_STACK
+
+line 93: [    float name = sym[1];]
+found local var name (BL = 1)
+
+line 94: [    float def = sym[2];]
+found local var def (BL = 1)
+
+line 95: [    float refs = sym[3];]
+found local var refs (BL = 1)
+
+line 96: [    printf("symbol [%s]\n",name);]
+found reference to name
+currentFunc = printSymbol
+ref name is REF_STACK
+
+line 97: [    if(def != -1){printf(" defined: %d\n",def);}]
+found reference to def
+currentFunc = printSymbol
+ref def is REF_STACK
+
+line 98: [    else{printf(" no def\n");}]
+
+line 99: [    if(refs){]
+found reference to refs
+currentFunc = printSymbol
+ref refs is REF_STACK
+
+line 100: [        float n = vector_get_size(refs);]
+found local var n (BL = 2)
+
+line 101: [        printf(" %d refs:\n",n);]
+
+line 102: [        float J = 0;]
+found local var J (BL = 2)
+
+line 103: [        for(J = 0; J < n; J++){]
+found reference to J
+currentFunc = printSymbol
+ref J is REF_STACK
+
+line 104: [            float r = vector_get(refs,0,J);]
+found local var r (BL = 3)
+
+line 105: [            printf("  @ %d\n",r);]
+found reference to r
+currentFunc = printSymbol
+ref r is REF_STACK
+
+line 106: [        }]
+
+line 107: [    }else{]
+
+line 108: [        printf(" no refs\n");]
+
+line 109: [    }]
+
+line 110: [}]
+
+line 111: []
+
+line 112: [void printSymbolTable(float symtable){]
+found func printSymbolTable
+
+
+
+sig1 = void printSymbolTable(float symtable)
+sig2 = (float symtable)
+found param symtable
+
+line 113: [    float I = 0;]
+found local var I (BL = 1)
+
+line 114: [    float size = vector_get_size(symtable);]
+found local var size (BL = 1)
+found reference to symtable
+currentFunc = printSymbolTable
+ref symtable is REF_STACK
+
+line 115: [    for(I = 0; I < size; I++){]
+found reference to I
+currentFunc = printSymbolTable
+ref I is REF_STACK
+found reference to size
+currentFunc = printSymbolTable
+ref size is REF_STACK
+
+line 116: [        float sym = vector_get(symtable,0,I);]
+found local var sym (BL = 2)
+
+line 117: [        printSymbol(sym);]
+found reference to printSymbol
+currentFunc = printSymbolTable
+ref printSymbol is REF_EXT
+found reference to sym
+currentFunc = printSymbolTable
+ref sym is REF_STACK
+
+line 118: [    }]
+
+line 119: [}]
+
+line 120: []
+
+line 21: [#include <cyclone/progs/asm/asm_util.txt>]
+found include <cyclone/progs/asm/asm_util.txt>
+reading file cyclone/progs/asm/asm_util.txt
+
+line 1: []
+
+line 2: [//like str2num, but also returns the number of characters read.]
+
+line 3: [float str2num2(char* str, float *Iout)]
+found func str2num2
+
+
+
+sig1 = float str2num2(char* str, float *Iout)
+sig2 = (char* str, float *Iout)
+found param str
+found param Iout
+
+line 4: [{]
+
+line 5: [    // -1243.0423]
+
+line 6: [    // 0b1010101011]
+
+line 7: [    // 0o1702403715]
+
+line 8: [    // 0xFF0035EA12]
+
+line 9: [    float End = 0;]
+found local var End (BL = 1)
+
+line 10: [    float I = 0;]
+found local var I (BL = 1)
+
+line 11: [    float Num = 0;]
+found local var Num (BL = 1)
+
+line 12: [    float Minus = 0;]
+found local var Minus (BL = 1)
+
+line 13: [    float Frac = 0;]
+found local var Frac (BL = 1)
+
+line 14: [    float N = 0;]
+found local var N (BL = 1)
+
+line 15: [    float Base = 10;]
+found local var Base (BL = 1)
+
+line 16: [    float C = str[I];]
+found local var C (BL = 1)
+found reference to I
+currentFunc = str2num2
+ref I is REF_STACK
+
+line 17: [    if(C == 0){goto s2n2_exit;}]
+found reference to C
+currentFunc = str2num2
+ref C is REF_STACK
+found reference to s2n2_exit
+currentFunc = str2num2
+ref s2n2_exit is REF_EXT
+
+line 18: [    else]
+
+line 19: [    {]
+
+line 20: [        if(C == '-'){Minus = 1; I+=1;}]
+found reference to Minus
+currentFunc = str2num2
+ref Minus is REF_STACK
+
+line 21: [        if(C == '0')]
+
+line 22: [        {]
+
+line 23: [            if(str[I+1]=='b'){Base = 2;I+=2;}]
+found reference to Base
+currentFunc = str2num2
+ref Base is REF_STACK
+
+line 24: [            if(str[I+1]=='o'){Base = 8;I+=2;}]
+
+line 25: [            if(str[I+1]=='x'){Base = 16;I+=2;}]
+
+line 26: [            ]
+
+line 27: [        }]
+
+line 28: [    }]
+
+line 29: [    while(!End)]
+found reference to End
+currentFunc = str2num2
+ref End is REF_STACK
+
+line 30: [    {]
+
+line 31: [        C = str[I++];]
+
+line 32: [        //P("s2n2:[");Pc(C);P("]\n");]
+
+line 33: [        if(C == 0){End = 1;}else]
+
+line 34: [        {]
+
+line 35: [         if(C == '.'){End = 1; Frac = 1;}]
+found reference to Frac
+currentFunc = str2num2
+ref Frac is REF_STACK
+
+line 36: [         else]
+
+line 37: [         {]
+
+line 38: [            N = -1;]
+
+line 39: [            if(C == '0'){N=0;}]
+
+line 40: [            if(C == '1'){N=1;}]
+
+line 41: [            if(Base > 2){]
+
+line 42: [                if(C == '2'){N=2;}]
+
+line 43: [                if(C == '3'){N=3;}]
+
+line 44: [                if(C == '4'){N=4;}]
+
+line 45: [                if(C == '5'){N=5;}]
+
+line 46: [                if(C == '6'){N=6;}]
+
+line 47: [                if(C == '7'){N=7;}]
+
+line 48: [                if(Base > 8){]
+
+line 49: [                    if(C == '8'){N=8;}]
+
+line 50: [                    if(C == '9'){N=9;}]
+
+line 51: [                    if(Base > 10){]
+
+line 52: [                        if(C == 'A'){N=10;}]
+
+line 53: [                        if(C == 'B'){N=11;}]
+
+line 54: [                        if(C == 'C'){N=12;}]
+
+line 55: [                        if(C == 'D'){N=13;}]
+
+line 56: [                        if(C == 'E'){N=14;}]
+
+line 57: [                        if(C == 'F'){N=15;}]
+
+line 58: [                    }]
+
+line 59: [                }]
+
+line 60: [            }]
+
+line 61: [            if(N == -1){End = 1; Frac = 0;}]
+
+line 62: [            else{Num = Num*Base+N;}]
+found reference to Num
+currentFunc = str2num2
+ref Num is REF_STACK
+
+line 63: [         }]
+
+line 64: [        }]
+
+line 65: [    }]
+
+line 66: [    if(Frac==1)]
+
+line 67: [    {]
+
+line 68: [     End = 0;]
+
+line 69: [     while(!End) //this could screw up when string doesnt end with this number]
+
+line 70: [     {]
+
+line 71: [        C = str[I++];]
+
+line 72: [        if(C == 0){End = 1;}else]
+
+line 73: [        {]
+
+line 74: [            N = 0;]
+
+line 75: [            if(C == '0'){N=0;}]
+
+line 76: [            if(C == '1'){N=1;}]
+
+line 77: [            if(Base > 2){]
+
+line 78: [                if(C == '2'){N=2;}]
+
+line 79: [                if(C == '3'){N=3;}]
+
+line 80: [                if(C == '4'){N=4;}]
+
+line 81: [                if(C == '5'){N=5;}]
+
+line 82: [                if(C == '6'){N=6;}]
+
+line 83: [                if(C == '7'){N=7;}]
+
+line 84: [                if(Base > 8){]
+
+line 85: [                    if(C == '8'){N=8;}]
+
+line 86: [                    if(C == '9'){N=9;}]
+
+line 87: [                    if(Base > 10){]
+
+line 88: [                        if(C == 'A'){N=10;}]
+
+line 89: [                        if(C == 'B'){N=11;}]
+
+line 90: [                        if(C == 'C'){N=12;}]
+
+line 91: [                        if(C == 'D'){N=13;}]
+
+line 92: [                        if(C == 'E'){N=14;}]
+
+line 93: [                        if(C == 'F'){N=15;}]
+
+line 94: [                    }]
+
+line 95: [                }]
+
+line 96: [            }]
+
+line 97: [            Num = Num*Base+N;]
+
+line 98: [            Frac++;]
+
+line 99: [        }]
+
+line 100: [     }]
+
+line 101: [    }]
+
+line 102: [    if(Frac){Num /=(Base^^(Frac-1));}]
+
+line 103: [    if(Minus){Num = -Num;}]
+
+line 104: [    s2n2_exit:]
+found label s2n2_exit
+
+line 105: [    *Iout = I-1;]
+found reference to Iout
+currentFunc = str2num2
+ref Iout is REF_STACK
+
+line 106: [    return Num;]
+
+line 107: [}]
+
+line 108: []
+
+line 109: []
+
+line 110: [float isIdent(char C){]
+found func isIdent
+
+
+
+sig1 = float isIdent(char C)
+sig2 = (char C)
+found param C
+
+line 111: [    if(isAlpha(C)){return 1;}]
+found reference to isAlpha
+currentFunc = isIdent
+ref isAlpha is REF_EXT
+found reference to C
+currentFunc = isIdent
+ref C is REF_STACK
+
+line 112: [    if(isNum(C)){return 1;}]
+
+line 113: [    if(C == '_'){return 1;}]
+
+line 114: [    return 0;]
+
+line 115: [}]
+
+line 116: []
+
+line 117: []
+
+line 118: [float caseless_strncmp(float str1, float str2, float n){]
+found func caseless_strncmp
+
+
+
+sig1 = float caseless_strncmp(float str1, float str2, float n)
+sig2 = (float str1, float str2, float n)
+found param str1
+found param str2
+found param n
+
+line 119: [    float I1 = str1;]
+found local var I1 (BL = 1)
+found reference to str1
+currentFunc = caseless_strncmp
+ref str1 is REF_STACK
+
+line 120: [    float I2 = str2;]
+found local var I2 (BL = 1)
+
+line 121: [    while(n > 0){]
+
+line 122: [        float C1 = *I1++;]
+found local var C1 (BL = 2)
+found reference to I1
+currentFunc = caseless_strncmp
+ref I1 is REF_STACK
+
+line 123: [        float C2 = *I2++;]
+found local var C2 (BL = 2)
+found reference to I2
+currentFunc = caseless_strncmp
+ref I2 is REF_STACK
+
+line 124: [        //Pc(C1);P(", ");Pc(C2);]
+
+line 125: [        C1 = toLower(C1);]
+found reference to C1
+currentFunc = caseless_strncmp
+ref C1 is REF_STACK
+found reference to toLower
+currentFunc = caseless_strncmp
+ref toLower is REF_EXT
+
+line 126: [        C2 = toLower(C2);]
+found reference to C2
+currentFunc = caseless_strncmp
+ref C2 is REF_STACK
+
+line 127: [        //P(", ");Pc(C1);P(", ");Pc(C2);]
+
+line 128: [        float diff = C1 - C2;]
+found local var diff (BL = 2)
+
+line 129: [        //P2(", ",diff,"\n");]
+
+line 130: [        if(diff != 0){]
+found reference to diff
+currentFunc = caseless_strncmp
+ref diff is REF_STACK
+
+line 131: [            //P("strncmp: not [");P(str2);P("]\n");]
+
+line 132: [            return diff;]
+
+line 133: [        }]
+
+line 134: [        n--;]
+
+line 135: [    }]
+
+line 136: [    //P("strncmp: yes [");P(str2);P("]\n");]
+
+line 137: [    return 0;]
+
+line 138: [}]
+
+line 139: []
+
+line 22: [#include <cyclone/progs/asm/asm_constants.txt>]
+found include <cyclone/progs/asm/asm_constants.txt>
+reading file cyclone/progs/asm/asm_constants.txt
+
+line 1: []
+
+line 2: [segTable:]
+found label segTable
+
+line 3: [db str_cs;]
+found reference to str_cs
+no currentFunc
+ref str_cs is REF_EXT
+
+line 4: [db str_ss;]
+found reference to str_ss
+no currentFunc
+ref str_ss is REF_EXT
+
+line 5: [db str_ds;]
+found reference to str_ds
+no currentFunc
+ref str_ds is REF_EXT
+
+line 6: [db str_es;]
+found reference to str_es
+no currentFunc
+ref str_es is REF_EXT
+
+line 7: [db str_gs;]
+found reference to str_gs
+no currentFunc
+ref str_gs is REF_EXT
+
+line 8: [db str_fs;]
+found reference to str_fs
+no currentFunc
+ref str_fs is REF_EXT
+
+line 9: [db str_ks;]
+found reference to str_ks
+no currentFunc
+ref str_ks is REF_EXT
+
+line 10: [db str_ls;]
+found reference to str_ls
+no currentFunc
+ref str_ls is REF_EXT
+
+line 11: [db str_eax;]
+found reference to str_eax
+no currentFunc
+ref str_eax is REF_EXT
+
+line 12: [db str_ebx;]
+found reference to str_ebx
+no currentFunc
+ref str_ebx is REF_EXT
+
+line 13: [db str_ecx;]
+found reference to str_ecx
+no currentFunc
+ref str_ecx is REF_EXT
+
+line 14: [db str_edx;]
+found reference to str_edx
+no currentFunc
+ref str_edx is REF_EXT
+
+line 15: [db str_esi;]
+found reference to str_esi
+no currentFunc
+ref str_esi is REF_EXT
+
+line 16: [db str_edi;]
+found reference to str_edi
+no currentFunc
+ref str_edi is REF_EXT
+
+line 17: [db str_esp;]
+found reference to str_esp
+no currentFunc
+ref str_esp is REF_EXT
+
+line 18: [db str_ebp;]
+found reference to str_ebp
+no currentFunc
+ref str_ebp is REF_EXT
+
+line 19: [db 0;]
+
+line 20: []
+
+line 21: [regTable:]
+found label regTable
+
+line 22: [db str_eax;]
+
+line 23: [db str_ebx;]
+
+line 24: [db str_ecx;]
+
+line 25: [db str_edx;]
+
+line 26: [db str_esi;]
+
+line 27: [db str_edi;]
+
+line 28: [db str_esp;]
+
+line 29: [db str_ebp;]
+
+line 30: [db str_cs;]
+
+line 31: [db str_ss;]
+
+line 32: [db str_ds;]
+
+line 33: [db str_es;]
+
+line 34: [db str_gs;]
+
+line 35: [db str_fs;]
+
+line 36: [db str_ks;]
+
+line 37: [db str_ls;]
+
+line 38: [db 0;]
+
+line 39: []
+
+line 40: []
+
+line 41: [str_eax: db "EAX",0;]
+found label str_eax
+
+line 42: [str_ebx: db "EBX",0;]
+found label str_ebx
+
+line 43: [str_ecx: db "ECX",0;]
+found label str_ecx
+
+line 44: [str_edx: db "EDX",0;]
+found label str_edx
+
+line 45: [str_esi: db "ESI",0;]
+found label str_esi
+
+line 46: [str_edi: db "EDI",0;]
+found label str_edi
+
+line 47: [str_esp: db "ESP",0;]
+found label str_esp
+
+line 48: [str_ebp: db "EBP",0;]
+found label str_ebp
+
+line 49: [str_cs: db "CS", 0;]
+found label str_cs
+
+line 50: [str_ss: db "SS", 0;]
+found label str_ss
+
+line 51: [str_ds: db "DS", 0;]
+found label str_ds
+
+line 52: [str_es: db "ES", 0;]
+found label str_es
+
+line 53: [str_gs: db "GS", 0;]
+found label str_gs
+
+line 54: [str_fs: db "FS", 0;]
+found label str_fs
+
+line 55: [str_ks: db "KS", 0;]
+found label str_ks
+
+line 56: [str_ls: db "LS", 0;]
+found label str_ls
+
+line 57: []
+
+line 58: [cmdTable:]
+found label cmdTable
+
+line 59: [db 0, db str_stop;]
+found reference to str_stop
+no currentFunc
+ref str_stop is REF_EXT
+
+line 60: [db 1, db str_jne;]
+found reference to str_jne
+no currentFunc
+ref str_jne is REF_EXT
+
+line 61: [db 1, db str_jnz;]
+found reference to str_jnz
+no currentFunc
+ref str_jnz is REF_EXT
+
+line 62: [db 2, db str_jmp;]
+found reference to str_jmp
+no currentFunc
+ref str_jmp is REF_EXT
+
+line 63: [db 3, db str_jg;]
+found reference to str_jg
+no currentFunc
+ref str_jg is REF_EXT
+
+line 64: [db 3, db str_jnle;]
+found reference to str_jnle
+no currentFunc
+ref str_jnle is REF_EXT
+
+line 65: [db 4, db str_jge;]
+found reference to str_jge
+no currentFunc
+ref str_jge is REF_EXT
+
+line 66: [db 4, db str_jnl;]
+found reference to str_jnl
+no currentFunc
+ref str_jnl is REF_EXT
+
+line 67: [db 5, db str_jl;]
+found reference to str_jl
+no currentFunc
+ref str_jl is REF_EXT
+
+line 68: [db 5, db str_jnge;]
+found reference to str_jnge
+no currentFunc
+ref str_jnge is REF_EXT
+
+line 69: [db 6, db str_jle;]
+found reference to str_jle
+no currentFunc
+ref str_jle is REF_EXT
+
+line 70: [db 6, db str_jng;]
+found reference to str_jng
+no currentFunc
+ref str_jng is REF_EXT
+
+line 71: [db 7, db str_je;]
+found reference to str_je
+no currentFunc
+ref str_je is REF_EXT
+
+line 72: [db 7, db str_jz;]
+found reference to str_jz
+no currentFunc
+ref str_jz is REF_EXT
+
+line 73: [db 8, db str_cpuid;]
+found reference to str_cpuid
+no currentFunc
+ref str_cpuid is REF_EXT
+
+line 74: [db 9, db str_push;]
+found reference to str_push
+no currentFunc
+ref str_push is REF_EXT
+
+line 75: [db 10, db str_add;]
+found reference to str_add
+no currentFunc
+ref str_add is REF_EXT
+
+line 76: [db 11, db str_sub;]
+found reference to str_sub
+no currentFunc
+ref str_sub is REF_EXT
+
+line 77: [db 12, db str_mul;]
+found reference to str_mul
+no currentFunc
+ref str_mul is REF_EXT
+
+line 78: [db 13, db str_div;]
+found reference to str_div
+no currentFunc
+ref str_div is REF_EXT
+
+line 79: [db 14, db str_mov;]
+found reference to str_mov
+no currentFunc
+ref str_mov is REF_EXT
+
+line 80: [db 15, db str_cmp;]
+found reference to str_cmp
+no currentFunc
+ref str_cmp is REF_EXT
+
+line 81: [db 18, db str_min;]
+found reference to str_min
+no currentFunc
+ref str_min is REF_EXT
+
+line 82: [db 19, db str_max;]
+found reference to str_max
+no currentFunc
+ref str_max is REF_EXT
+
+line 83: [db 20, db str_inc;]
+found reference to str_inc
+no currentFunc
+ref str_inc is REF_EXT
+
+line 84: [db 21, db str_dec;]
+found reference to str_dec
+no currentFunc
+ref str_dec is REF_EXT
+
+line 85: [db 22, db str_neg;]
+found reference to str_neg
+no currentFunc
+ref str_neg is REF_EXT
+
+line 86: [db 23, db str_rand;]
+found reference to str_rand
+no currentFunc
+ref str_rand is REF_EXT
+
+line 87: [db 24, db str_loop;]
+found reference to str_loop
+no currentFunc
+ref str_loop is REF_EXT
+
+line 88: [db 25, db str_loopa;]
+found reference to str_loopa
+no currentFunc
+ref str_loopa is REF_EXT
+
+line 89: [db 26, db str_loopb;]
+found reference to str_loopb
+no currentFunc
+ref str_loopb is REF_EXT
+
+line 90: [db 27, db str_loopd;]
+found reference to str_loopd
+no currentFunc
+ref str_loopd is REF_EXT
+
+line 91: [db 28, db str_spg;]
+found reference to str_spg
+no currentFunc
+ref str_spg is REF_EXT
+
+line 92: [db 29, db str_cpg;]
+found reference to str_cpg
+no currentFunc
+ref str_cpg is REF_EXT
+
+line 93: [db 30, db str_pop;]
+found reference to str_pop
+no currentFunc
+ref str_pop is REF_EXT
+
+line 94: [db 31, db str_call;]
+found reference to str_call
+no currentFunc
+ref str_call is REF_EXT
+
+line 95: [db 32, db str_bnot;]
+found reference to str_bnot
+no currentFunc
+ref str_bnot is REF_EXT
+
+line 96: [db 33, db str_fint;]
+found reference to str_fint
+no currentFunc
+ref str_fint is REF_EXT
+
+line 97: [db 34, db str_frnd;]
+found reference to str_frnd
+no currentFunc
+ref str_frnd is REF_EXT
+
+line 98: [db 35, db str_ffrac;]
+found reference to str_ffrac
+no currentFunc
+ref str_ffrac is REF_EXT
+
+line 99: [db 36, db str_finv;]
+found reference to str_finv
+no currentFunc
+ref str_finv is REF_EXT
+
+line 100: [db 38, db str_fshl;]
+found reference to str_fshl
+no currentFunc
+ref str_fshl is REF_EXT
+
+line 101: [db 39, db str_fshr;]
+found reference to str_fshr
+no currentFunc
+ref str_fshr is REF_EXT
+
+line 102: [db 40, db str_ret;]
+found reference to str_ret
+no currentFunc
+ref str_ret is REF_EXT
+
+line 103: [db 41, db str_iret;]
+found reference to str_iret
+no currentFunc
+ref str_iret is REF_EXT
+
+line 104: [db 42, db str_sti;]
+found reference to str_sti
+no currentFunc
+ref str_sti is REF_EXT
+
+line 105: [db 43, db str_cli;]
+found reference to str_cli
+no currentFunc
+ref str_cli is REF_EXT
+
+line 106: [db 47, db str_retf;]
+found reference to str_retf
+no currentFunc
+ref str_retf is REF_EXT
+
+line 107: [db 48, db str_stef;]
+found reference to str_stef
+no currentFunc
+ref str_stef is REF_EXT
+
+line 108: [db 49, db str_clef;]
+found reference to str_clef
+no currentFunc
+ref str_clef is REF_EXT
+
+line 109: [db 50, db str_and;]
+found reference to str_and
+no currentFunc
+ref str_and is REF_EXT
+
+line 110: [db 51, db str_or;]
+found reference to str_or
+no currentFunc
+ref str_or is REF_EXT
+
+line 111: [db 52, db str_xor;]
+found reference to str_xor
+no currentFunc
+ref str_xor is REF_EXT
+
+line 112: [db 53, db str_fsin;]
+found reference to str_fsin
+no currentFunc
+ref str_fsin is REF_EXT
+
+line 113: [db 54, db str_fcos;]
+found reference to str_fcos
+no currentFunc
+ref str_fcos is REF_EXT
+
+line 114: [db 55, db str_ftan;]
+found reference to str_ftan
+no currentFunc
+ref str_ftan is REF_EXT
+
+line 115: [db 56, db str_fasin;]
+found reference to str_fasin
+no currentFunc
+ref str_fasin is REF_EXT
+
+line 116: [db 57, db str_facos;]
+found reference to str_facos
+no currentFunc
+ref str_facos is REF_EXT
+
+line 117: [db 58, db str_fatan;]
+found reference to str_fatan
+no currentFunc
+ref str_fatan is REF_EXT
+
+line 118: [db 59, db str_mod;]
+found reference to str_mod
+no currentFunc
+ref str_mod is REF_EXT
+
+line 119: [db 60, db str_bit;]
+found reference to str_bit
+no currentFunc
+ref str_bit is REF_EXT
+
+line 120: [db 61, db str_sbit;]
+found reference to str_sbit
+no currentFunc
+ref str_sbit is REF_EXT
+
+line 121: [db 62, db str_cbit;]
+found reference to str_cbit
+no currentFunc
+ref str_cbit is REF_EXT
+
+line 122: [db 63, db str_tbit;]
+found reference to str_tbit
+no currentFunc
+ref str_tbit is REF_EXT
+
+line 123: [db 64, db str_band;]
+found reference to str_band
+no currentFunc
+ref str_band is REF_EXT
+
+line 124: [db 65, db str_bor;]
+found reference to str_bor
+no currentFunc
+ref str_bor is REF_EXT
+
+line 125: [db 66, db str_bxor;]
+found reference to str_bxor
+no currentFunc
+ref str_bxor is REF_EXT
+
+line 126: [db 67, db str_bshl;]
+found reference to str_bshl
+no currentFunc
+ref str_bshl is REF_EXT
+
+line 127: [db 68, db str_bshr;]
+found reference to str_bshr
+no currentFunc
+ref str_bshr is REF_EXT
+
+line 128: [db 69, db str_jmpf;]
+found reference to str_jmpf
+no currentFunc
+ref str_jmpf is REF_EXT
+
+line 129: [db 70, db str_extint;]
+found reference to str_extint
+no currentFunc
+ref str_extint is REF_EXT
+
+line 130: [db 71, db str_cne;]
+found reference to str_cne
+no currentFunc
+ref str_cne is REF_EXT
+
+line 131: [db 73, db str_cg;  //greater / notlessequal]
+found reference to str_cg
+no currentFunc
+ref str_cg is REF_EXT
+
+line 132: [db 73, db str_cnle;]
+found reference to str_cnle
+no currentFunc
+ref str_cnle is REF_EXT
+
+line 133: [db 74, db str_cge;]
+found reference to str_cge
+no currentFunc
+ref str_cge is REF_EXT
+
+line 134: [db 74, db str_cnl;]
+found reference to str_cnl
+no currentFunc
+ref str_cnl is REF_EXT
+
+line 135: [db 75, db str_cl;]
+found reference to str_cl
+no currentFunc
+ref str_cl is REF_EXT
+
+line 136: [db 75, db str_cnge;]
+found reference to str_cnge
+no currentFunc
+ref str_cnge is REF_EXT
+
+line 137: [db 76, db str_cle;]
+found reference to str_cle
+no currentFunc
+ref str_cle is REF_EXT
+
+line 138: [db 76, db str_cng;]
+found reference to str_cng
+no currentFunc
+ref str_cng is REF_EXT
+
+line 139: [db 77, db str_ce;]
+found reference to str_ce
+no currentFunc
+ref str_ce is REF_EXT
+
+line 140: [db 77, db str_cz;]
+found reference to str_cz
+no currentFunc
+ref str_cz is REF_EXT
+
+line 141: [db 78, db str_mcopy; //mentioned twice]
+found reference to str_mcopy
+no currentFunc
+ref str_mcopy is REF_EXT
+
+line 142: [db 79, db str_mxchg;]
+found reference to str_mxchg
+no currentFunc
+ref str_mxchg is REF_EXT
+
+line 143: [db 80, db str_fpwr;]
+found reference to str_fpwr
+no currentFunc
+ref str_fpwr is REF_EXT
+
+line 144: [db 81, db str_xchg;]
+found reference to str_xchg
+no currentFunc
+ref str_xchg is REF_EXT
+
+line 145: [db 82, db str_fln;]
+found reference to str_fln
+no currentFunc
+ref str_fln is REF_EXT
+
+line 146: [db 83, db str_flog10;]
+found reference to str_flog10
+no currentFunc
+ref str_flog10 is REF_EXT
+
+line 147: [db 84, db str_in;]
+found reference to str_in
+no currentFunc
+ref str_in is REF_EXT
+
+line 148: [db 85, db str_out;]
+found reference to str_out
+no currentFunc
+ref str_out is REF_EXT
+
+line 149: [db 86, db str_fabs;]
+found reference to str_fabs
+no currentFunc
+ref str_fabs is REF_EXT
+
+line 150: [db 87, db str_fsgn;]
+found reference to str_fsgn
+no currentFunc
+ref str_fsgn is REF_EXT
+
+line 151: [db 88, db str_fexp;]
+found reference to str_fexp
+no currentFunc
+ref str_fexp is REF_EXT
+
+line 152: [db 89, db str_callf;]
+found reference to str_callf
+no currentFunc
+ref str_callf is REF_EXT
+
+line 153: [db 90, db str_fpi;]
+found reference to str_fpi
+no currentFunc
+ref str_fpi is REF_EXT
+
+line 154: [db 91, db str_fe;]
+found reference to str_fe
+no currentFunc
+ref str_fe is REF_EXT
+
+line 155: [db 92, db str_int;]
+found reference to str_int
+no currentFunc
+ref str_int is REF_EXT
+
+line 156: [db 93, db str_tpg;]
+found reference to str_tpg
+no currentFunc
+ref str_tpg is REF_EXT
+
+line 157: [db 94, db str_fceil;]
+found reference to str_fceil
+no currentFunc
+ref str_fceil is REF_EXT
+
+line 158: [db 95, db str_erpg;]
+found reference to str_erpg
+no currentFunc
+ref str_erpg is REF_EXT
+
+line 159: [db 96, db str_wrpg;]
+found reference to str_wrpg
+no currentFunc
+ref str_wrpg is REF_EXT
+
+line 160: [db 97, db str_rdpg;]
+found reference to str_rdpg
+no currentFunc
+ref str_rdpg is REF_EXT
+
+line 161: [db 98, db str_timer;]
+found reference to str_timer
+no currentFunc
+ref str_timer is REF_EXT
+
+line 162: [db 99, db str_lidtr;]
+found reference to str_lidtr
+no currentFunc
+ref str_lidtr is REF_EXT
+
+line 163: [db 101, db str_jner;]
+found reference to str_jner
+no currentFunc
+ref str_jner is REF_EXT
+
+line 164: [db 101, db str_jnzr;]
+found reference to str_jnzr
+no currentFunc
+ref str_jnzr is REF_EXT
+
+line 165: [db 102, db str_jmpr;]
+found reference to str_jmpr
+no currentFunc
+ref str_jmpr is REF_EXT
+
+line 166: [db 103, db str_jgr;]
+found reference to str_jgr
+no currentFunc
+ref str_jgr is REF_EXT
+
+line 167: [db 103, db str_jnler;]
+found reference to str_jnler
+no currentFunc
+ref str_jnler is REF_EXT
+
+line 168: [db 104, db str_jger;]
+found reference to str_jger
+no currentFunc
+ref str_jger is REF_EXT
+
+line 169: [db 104, db str_jnlr;]
+found reference to str_jnlr
+no currentFunc
+ref str_jnlr is REF_EXT
+
+line 170: [db 105, db str_jlr;]
+found reference to str_jlr
+no currentFunc
+ref str_jlr is REF_EXT
+
+line 171: [db 105, db str_jnger;]
+found reference to str_jnger
+no currentFunc
+ref str_jnger is REF_EXT
+
+line 172: [db 106, db str_jler;]
+found reference to str_jler
+no currentFunc
+ref str_jler is REF_EXT
+
+line 173: [db 106, db str_jngr;]
+found reference to str_jngr
+no currentFunc
+ref str_jngr is REF_EXT
+
+line 174: [db 107, db str_jer;]
+found reference to str_jer
+no currentFunc
+ref str_jer is REF_EXT
+
+line 175: [db 107, db str_jzr;]
+found reference to str_jzr
+no currentFunc
+ref str_jzr is REF_EXT
+
+line 176: [db 108, db str_lneg;]
+found reference to str_lneg
+no currentFunc
+ref str_lneg is REF_EXT
+
+line 177: [db 110, db str_extret;]
+found reference to str_extret
+no currentFunc
+ref str_extret is REF_EXT
+
+line 178: [db 111, db str_idle;]
+found reference to str_idle
+no currentFunc
+ref str_idle is REF_EXT
+
+line 179: [db 112, db str_nop;]
+found reference to str_nop
+no currentFunc
+ref str_nop is REF_EXT
+
+line 180: [db 114, db str_pusha;]
+found reference to str_pusha
+no currentFunc
+ref str_pusha is REF_EXT
+
+line 181: [db 115, db str_popa;]
+found reference to str_popa
+no currentFunc
+ref str_popa is REF_EXT
+
+line 182: [db 116, db str_std2;]
+found reference to str_std2
+no currentFunc
+ref str_std2 is REF_EXT
+
+line 183: [db 117, db str_leave;]
+found reference to str_leave
+no currentFunc
+ref str_leave is REF_EXT
+
+line 184: [db 118, db str_stm;]
+found reference to str_stm
+no currentFunc
+ref str_stm is REF_EXT
+
+line 185: [db 119, db str_clm;]
+found reference to str_clm
+no currentFunc
+ref str_clm is REF_EXT
+
+line 186: [db 120, db str_cpuget;]
+found reference to str_cpuget
+no currentFunc
+ref str_cpuget is REF_EXT
+
+line 187: [db 121, db str_cpuset;]
+found reference to str_cpuset
+no currentFunc
+ref str_cpuset is REF_EXT
+
+line 188: [db 122, db str_spp;]
+found reference to str_spp
+no currentFunc
+ref str_spp is REF_EXT
+
+line 189: [db 123, db str_cpp;]
+found reference to str_cpp
+no currentFunc
+ref str_cpp is REF_EXT
+
+line 190: [db 124, db str_srl;]
+found reference to str_srl
+no currentFunc
+ref str_srl is REF_EXT
+
+line 191: [db 125, db str_grl;]
+found reference to str_grl
+no currentFunc
+ref str_grl is REF_EXT
+
+line 192: [db 126, db str_lea;]
+found reference to str_lea
+no currentFunc
+ref str_lea is REF_EXT
+
+line 193: [db 127, db str_block;]
+found reference to str_block
+no currentFunc
+ref str_block is REF_EXT
+
+line 194: [db 128, db str_cmpand;]
+found reference to str_cmpand
+no currentFunc
+ref str_cmpand is REF_EXT
+
+line 195: [db 129, db str_cmpor;]
+found reference to str_cmpor
+no currentFunc
+ref str_cmpor is REF_EXT
+
+line 196: [db 130, db str_mshift;]
+found reference to str_mshift
+no currentFunc
+ref str_mshift is REF_EXT
+
+line 197: [db 131, db str_smap;]
+found reference to str_smap
+no currentFunc
+ref str_smap is REF_EXT
+
+line 198: [db 132, db str_gmap;]
+found reference to str_gmap
+no currentFunc
+ref str_gmap is REF_EXT
+
+line 199: [db 133, db str_rstack;]
+found reference to str_rstack
+no currentFunc
+ref str_rstack is REF_EXT
+
+line 200: [db 134, db str_sstack;]
+found reference to str_sstack
+no currentFunc
+ref str_sstack is REF_EXT
+
+line 201: [db 135, db str_enter;]
+found reference to str_enter
+no currentFunc
+ref str_enter is REF_EXT
+
+line 202: [db 250, db str_vadd;]
+found reference to str_vadd
+no currentFunc
+ref str_vadd is REF_EXT
+
+line 203: [db 251, db str_vsub;]
+found reference to str_vsub
+no currentFunc
+ref str_vsub is REF_EXT
+
+line 204: [db 252, db str_vmul;]
+found reference to str_vmul
+no currentFunc
+ref str_vmul is REF_EXT
+
+line 205: [db 253, db str_vdot;]
+found reference to str_vdot
+no currentFunc
+ref str_vdot is REF_EXT
+
+line 206: [db 254, db str_vcross;]
+found reference to str_vcross
+no currentFunc
+ref str_vcross is REF_EXT
+
+line 207: [db 255, db str_vmov;]
+found reference to str_vmov
+no currentFunc
+ref str_vmov is REF_EXT
+
+line 208: [db 256, db str_vnorm;]
+found reference to str_vnorm
+no currentFunc
+ref str_vnorm is REF_EXT
+
+line 209: [db 257, db str_vcolornorm;]
+found reference to str_vcolornorm
+no currentFunc
+ref str_vcolornorm is REF_EXT
+
+line 210: [db 259, db str_loopxy;]
+found reference to str_loopxy
+no currentFunc
+ref str_loopxy is REF_EXT
+
+line 211: [db 260, db str_madd;]
+found reference to str_madd
+no currentFunc
+ref str_madd is REF_EXT
+
+line 212: [db 261, db str_msub;]
+found reference to str_msub
+no currentFunc
+ref str_msub is REF_EXT
+
+line 213: [db 262, db str_mmul;]
+found reference to str_mmul
+no currentFunc
+ref str_mmul is REF_EXT
+
+line 214: [db 263, db str_mrotate;]
+found reference to str_mrotate
+no currentFunc
+ref str_mrotate is REF_EXT
+
+line 215: [db 264, db str_mscale;]
+found reference to str_mscale
+no currentFunc
+ref str_mscale is REF_EXT
+
+line 216: [db 265, db str_mperspective;]
+found reference to str_mperspective
+no currentFunc
+ref str_mperspective is REF_EXT
+
+line 217: [db 266, db str_mtranslate;]
+found reference to str_mtranslate
+no currentFunc
+ref str_mtranslate is REF_EXT
+
+line 218: [db 267, db str_mlookat;]
+found reference to str_mlookat
+no currentFunc
+ref str_mlookat is REF_EXT
+
+line 219: [db 268, db str_mmov;]
+found reference to str_mmov
+no currentFunc
+ref str_mmov is REF_EXT
+
+line 220: [db 269, db str_vlen;]
+found reference to str_vlen
+no currentFunc
+ref str_vlen is REF_EXT
+
+line 221: [db 270, db str_mident;]
+found reference to str_mident
+no currentFunc
+ref str_mident is REF_EXT
+
+line 222: [db 273, db str_vmode;]
+found reference to str_vmode
+no currentFunc
+ref str_vmode is REF_EXT
+
+line 223: [db 295, db str_vdiv;]
+found reference to str_vdiv
+no currentFunc
+ref str_vdiv is REF_EXT
+
+line 224: [db 296, db str_vtransform;]
+found reference to str_vtransform
+no currentFunc
+ref str_vtransform is REF_EXT
+
+line 225: [db 0, 0, 0, 0;]
+
+line 226: []
+
+line 227: []
+
+line 228: [str_stop:	        db "stop", db 0;]
+found label str_stop
+
+line 229: [str_jne:	        db "jne", db 0;]
+found label str_jne
+
+line 230: [str_jnz:	        db "jnz", db 0;]
+found label str_jnz
+
+line 231: [str_jmp:	        db "jmp", db 0;]
+found label str_jmp
+
+line 232: [str_jg:		        db "jg", db 0;]
+found label str_jg
+
+line 233: [str_jnle:	        db "jnle", db 0;]
+found label str_jnle
+
+line 234: [str_jge:	        db "jge", db 0;]
+found label str_jge
+
+line 235: [str_jnl:	        db "jnl", db 0;]
+found label str_jnl
+
+line 236: [str_jl:		        db "jl", db 0;]
+found label str_jl
+
+line 237: [str_jnge:	        db "jnge", db 0;]
+found label str_jnge
+
+line 238: [str_jle:	        db "jle", db 0;]
+found label str_jle
+
+line 239: [str_jng:	        db "jng", db 0;]
+found label str_jng
+
+line 240: [str_je:		        db "je", db 0;]
+found label str_je
+
+line 241: [str_jz:		        db "jz", db 0;]
+found label str_jz
+
+line 242: [str_cpuid:	        db "cpuid", db 0;]
+found label str_cpuid
+
+line 243: [str_push:	        db "push", db 0;]
+found label str_push
+
+line 244: [str_add:	        db "add", db 0;]
+found label str_add
+
+line 245: [str_sub:	        db "sub", db 0;]
+found label str_sub
+
+line 246: [str_mul:	        db "mul", db 0;]
+found label str_mul
+
+line 247: [str_div:	        db "div", db 0;]
+found label str_div
+
+line 248: [str_mov:	        db "mov", db 0;]
+found label str_mov
+
+line 249: [str_cmp:	        db "cmp", db 0;]
+found label str_cmp
+
+line 250: [str_min:	        db "min", db 0;]
+found label str_min
+
+line 251: [str_max:	        db "max", db 0;]
+found label str_max
+
+line 252: [str_inc:	        db "inc", db 0;]
+found label str_inc
+
+line 253: [str_dec:	        db "dec", db 0;]
+found label str_dec
+
+line 254: [str_neg:	        db "neg", db 0;]
+found label str_neg
+
+line 255: [str_rand:	        db "rand", db 0;]
+found label str_rand
+
+line 256: [str_loop:	        db "loop", db 0;]
+found label str_loop
+
+line 257: [str_loopa:	        db "loopa", db 0;]
+found label str_loopa
+
+line 258: [str_loopb:	        db "loopb", db 0;]
+found label str_loopb
+
+line 259: [str_loopd:	        db "loopd", db 0;]
+found label str_loopd
+
+line 260: [str_spg:	        db "spg", db 0;]
+found label str_spg
+
+line 261: [str_cpg:	        db "cpg", db 0;]
+found label str_cpg
+
+line 262: [str_pop:	        db "pop", db 0;]
+found label str_pop
+
+line 263: [str_call:	        db "call", db 0;]
+found label str_call
+
+line 264: [str_bnot:	        db "bnot", db 0;]
+found label str_bnot
+
+line 265: [str_fint:	        db "fint", db 0;]
+found label str_fint
+
+line 266: [str_frnd:	        db "frnd", db 0;]
+found label str_frnd
+
+line 267: [str_ffrac:	        db "ffrac", db 0;]
+found label str_ffrac
+
+line 268: [str_finv:	        db "finv", db 0;]
+found label str_finv
+
+line 269: [str_fshl:	        db "fshl", db 0;]
+found label str_fshl
+
+line 270: [str_fshr:	        db "fshr", db 0;]
+found label str_fshr
+
+line 271: [str_ret:	        db "ret", db 0;]
+found label str_ret
+
+line 272: [str_iret:	        db "iret", db 0;]
+found label str_iret
+
+line 273: [str_sti:	        db "sti", db 0;]
+found label str_sti
+
+line 274: [str_cli:	        db "cli", db 0;]
+found label str_cli
+
+line 275: [str_retf:	        db "retf", db 0;]
+found label str_retf
+
+line 276: [str_stef:	        db "stef", db 0;]
+found label str_stef
+
+line 277: [str_clef:	        db "clef", db 0;]
+found label str_clef
+
+line 278: [str_and:	        db "and", db 0;]
+found label str_and
+
+line 279: [str_or:			    db "or", db 0;]
+found label str_or
+
+line 280: [str_xor:		    db "xor", db 0;]
+found label str_xor
+
+line 281: [str_fsin:	        db "fsin", db 0;]
+found label str_fsin
+
+line 282: [str_fcos:	        db "fcos", db 0;]
+found label str_fcos
+
+line 283: [str_ftan:	        db "ftan", db 0;]
+found label str_ftan
+
+line 284: [str_fasin:	        db "fasin", db 0;]
+found label str_fasin
+
+line 285: [str_facos:	        db "facos", db 0;]
+found label str_facos
+
+line 286: [str_fatan:	        db "fatan", db 0;]
+found label str_fatan
+
+line 287: [str_mod:	        db "mod", db 0;]
+found label str_mod
+
+line 288: [str_bit:	        db "bit", db 0;]
+found label str_bit
+
+line 289: [str_sbit:	        db "sbit", db 0;]
+found label str_sbit
+
+line 290: [str_cbit:	        db "cbit", db 0;]
+found label str_cbit
+
+line 291: [str_tbit:	        db "tbit", db 0;]
+found label str_tbit
+
+line 292: [str_band:	        db "band", db 0;]
+found label str_band
+
+line 293: [str_bor:	        db "bor", db 0;]
+found label str_bor
+
+line 294: [str_bxor:	        db "bxor", db 0;]
+found label str_bxor
+
+line 295: [str_bshl:	        db "bshl", db 0;]
+found label str_bshl
+
+line 296: [str_bshr:	        db "bshr", db 0;]
+found label str_bshr
+
+line 297: [str_jmpf:	        db "jmpf", db 0;]
+found label str_jmpf
+
+line 298: [str_extint:	        db "extint", db 0;]
+found label str_extint
+
+line 299: [str_cne:	        db "cne", db 0;]
+found label str_cne
+
+line 300: [str_cg:		        db "cg", db 0;]
+found label str_cg
+
+line 301: [str_cnle:	        db "cnle", db 0;]
+found label str_cnle
+
+line 302: [str_cge:	        db "cge", db 0;]
+found label str_cge
+
+line 303: [str_cnl:	        db "cnl", db 0;]
+found label str_cnl
+
+line 304: [str_cl:		        db "cl", db 0;]
+found label str_cl
+
+line 305: [str_cnge:	        db "cnge", db 0;]
+found label str_cnge
+
+line 306: [str_cle:	        db "cle", db 0;]
+found label str_cle
+
+line 307: [str_cng:	        db "cng", db 0;]
+found label str_cng
+
+line 308: [str_ce:		        db "ce", db 0;]
+found label str_ce
+
+line 309: [str_cz:		        db "cz", db 0;]
+found label str_cz
+
+line 310: [str_mcopy:	        db "mcopy", db 0;]
+found label str_mcopy
+
+line 311: [str_mxchg:	        db "mxchg", db 0;]
+found label str_mxchg
+
+line 312: [str_fpwr:	        db "fpwr", db 0;]
+found label str_fpwr
+
+line 313: [str_xchg:	        db "xchg", db 0;]
+found label str_xchg
+
+line 314: [str_fln:	        db "fln", db 0;]
+found label str_fln
+
+line 315: [str_flog10:	        db "flog10", db 0;]
+found label str_flog10
+
+line 316: [str_in:		        db "in", db 0;]
+found label str_in
+
+line 317: [str_out:	        db "out", db 0;]
+found label str_out
+
+line 318: [str_fabs:	        db "fabs", db 0;]
+found label str_fabs
+
+line 319: [str_fsgn:	        db "fsgn", db 0;]
+found label str_fsgn
+
+line 320: [str_fexp:	        db "fexp", db 0;]
+found label str_fexp
+
+line 321: [str_callf:	        db "callf", db 0;]
+found label str_callf
+
+line 322: [str_fpi:	        db "fpi", db 0;]
+found label str_fpi
+
+line 323: [str_fe:		        db "fe", db 0;]
+found label str_fe
+
+line 324: [str_int:	        db "int", db 0;]
+found label str_int
+
+line 325: [str_tpg:	        db "tpg", db 0;]
+found label str_tpg
+
+line 326: [str_fceil:	        db "fceil", db 0;]
+found label str_fceil
+
+line 327: [str_erpg:	        db "erpg", db 0;]
+found label str_erpg
+
+line 328: [str_wrpg:	        db "wrpg", db 0;]
+found label str_wrpg
+
+line 329: [str_rdpg:	        db "rdpg", db 0;]
+found label str_rdpg
+
+line 330: [str_timer:	        db "timer", db 0;]
+found label str_timer
+
+line 331: [str_lidtr:	        db "lidtr", db 0;]
+found label str_lidtr
+
+line 332: [str_jner:	        db "jner", db 0;]
+found label str_jner
+
+line 333: [str_jnzr:	        db "jnzr", db 0;]
+found label str_jnzr
+
+line 334: [str_jmpr:	        db "jmpr", db 0;]
+found label str_jmpr
+
+line 335: [str_jgr:	        db "jgr", db 0;]
+found label str_jgr
+
+line 336: [str_jnler:	        db "jnler", db 0;]
+found label str_jnler
+
+line 337: [str_jger:	        db "jger", db 0;]
+found label str_jger
+
+line 338: [str_jnlr:	        db "jnlr", db 0;]
+found label str_jnlr
+
+line 339: [str_jlr:	        db "jlr", db 0;]
+found label str_jlr
+
+line 340: [str_jnger:	        db "jnger", db 0;]
+found label str_jnger
+
+line 341: [str_jler:	        db "jler", db 0;]
+found label str_jler
+
+line 342: [str_jngr:	        db "jngr", db 0;]
+found label str_jngr
+
+line 343: [str_jer:	        db "jer", db 0;]
+found label str_jer
+
+line 344: [str_jzr:	        db "jzr", db 0;]
+found label str_jzr
+
+line 345: [str_lneg:	        db "lneg", db 0;]
+found label str_lneg
+
+line 346: [str_extret:	        db "extret", db 0;]
+found label str_extret
+
+line 347: [str_idle:	        db "idle", db 0;]
+found label str_idle
+
+line 348: [str_nop:	        db "nop", db 0;]
+found label str_nop
+
+line 349: [str_pusha:	        db "pusha", db 0;]
+found label str_pusha
+
+line 350: [str_popa:	        db "popa", db 0;]
+found label str_popa
+
+line 351: [str_std2:	        db "std2", db 0;]
+found label str_std2
+
+line 352: [str_leave:	        db "leave", db 0;]
+found label str_leave
+
+line 353: [str_stm:	        db "stm", db 0;]
+found label str_stm
+
+line 354: [str_clm:	        db "clm", db 0;]
+found label str_clm
+
+line 355: [str_cpuget:	        db "cpuget", db 0;]
+found label str_cpuget
+
+line 356: [str_cpuset:	        db "cpuset", db 0;]
+found label str_cpuset
+
+line 357: [str_spp:	        db "spp", db 0;]
+found label str_spp
+
+line 358: [str_cpp:	        db "cpp", db 0;]
+found label str_cpp
+
+line 359: [str_srl:	        db "srl", db 0;]
+found label str_srl
+
+line 360: [str_grl:	        db "grl", db 0;]
+found label str_grl
+
+line 361: [str_lea:	        db "lea", db 0;]
+found label str_lea
+
+line 362: [str_block:	        db "block", db 0;]
+found label str_block
+
+line 363: [str_cmpand:	        db "cmpand", db 0;]
+found label str_cmpand
+
+line 364: [str_cmpor:	        db "cmpor", db 0;]
+found label str_cmpor
+
+line 365: [str_mshift:	        db "mshift", db 0;]
+found label str_mshift
+
+line 366: [str_smap:	        db "smap", db 0;]
+found label str_smap
+
+line 367: [str_gmap:	        db "gmap", db 0;]
+found label str_gmap
+
+line 368: [str_rstack:	        db "rstack", db 0;]
+found label str_rstack
+
+line 369: [str_sstack:	        db "sstack", db 0;]
+found label str_sstack
+
+line 370: [str_enter:	        db "enter", db 0;]
+found label str_enter
+
+line 371: [str_vadd:	        db "vadd", db 0;]
+found label str_vadd
+
+line 372: [str_vsub:	        db "vsub", db 0;]
+found label str_vsub
+
+line 373: [str_vmul:	        db "vmul", db 0;]
+found label str_vmul
+
+line 374: [str_vdot:	        db "vdot", db 0;]
+found label str_vdot
+
+line 375: [str_vcross:	        db "vcross", db 0;]
+found label str_vcross
+
+line 376: [str_vmov:	        db "vmov", db 0;]
+found label str_vmov
+
+line 377: [str_vnorm:	        db "vnorm", db 0;]
+found label str_vnorm
+
+line 378: [str_vcolornorm:		db "vcolornorm", db 0;]
+found label str_vcolornorm
+
+line 379: [str_loopxy:			db "loopxy", db 0;]
+found label str_loopxy
+
+line 380: [str_madd:			db "madd", db 0;]
+found label str_madd
+
+line 381: [str_msub:			db "msub", db 0;]
+found label str_msub
+
+line 382: [str_mmul:			db "mmul", db 0;]
+found label str_mmul
+
+line 383: [str_mrotate:		db "mrotate", db 0;]
+found label str_mrotate
+
+line 384: [str_mscale:			db "mscale", db 0;]
+found label str_mscale
+
+line 385: [str_mperspective:	db "mperspective", db 0;]
+found label str_mperspective
+
+line 386: [str_mtranslate:		db "mtranslate", db 0;]
+found label str_mtranslate
+
+line 387: [str_mlookat:		db "mlookat", db 0;]
+found label str_mlookat
+
+line 388: [str_mmov:			db "mmov", db 0;]
+found label str_mmov
+
+line 389: [str_vlen:			db "vlen", db 0;]
+found label str_vlen
+
+line 390: [str_mident:			db "mident", db 0;]
+found label str_mident
+
+line 391: [str_vmode:			db "vmode", db 0;]
+found label str_vmode
+
+line 392: [str_vdiv:			db "vdiv", db 0;]
+found label str_vdiv
+
+line 393: [str_vtransform:		db "vtransform", db 0;	]
+found label str_vtransform
+
+line 394: []
+
+line 395: []
+
+line 23: [//command syntax:]
+
+line 24: [//byte]
+
+line 25: [//0   1     2           3           4       5]
+
+line 26: [//cmd RM    Segment1    Segment2    OP1     OP2]
+
+line 27: []
+
+line 28: [void assembler(float infilepath, float outfilepath){]
+found func assembler
+
+
+
+sig1 = void assembler(float infilepath, float outfilepath)
+sig2 = (float infilepath, float outfilepath)
+found param infilepath
+found param outfilepath
+
+line 29: [    //float n = isNum(':');]
+
+line 30: [    //float n2 = isAlpha(':');]
+
+line 31: [    //P2("isnum(:) = ",n,"\n");]
+
+line 32: [    //P2("isalpha(:) = ",n2,"\n");]
+
+line 33: [    fpin = fopen(infilepath,"r");]
+found reference to fpin
+currentFunc = assembler
+ref fpin is REF_EXT
+found reference to fopen
+currentFunc = assembler
+ref fopen is REF_EXT
+found reference to infilepath
+currentFunc = assembler
+ref infilepath is REF_STACK
+
+line 34: [    if(!fpin){Perr("can't open input file\n"); return;}]
+
+line 35: [    fpout = fopen(outfilepath,"w");]
+found reference to fpout
+currentFunc = assembler
+ref fpout is REF_EXT
+found reference to outfilepath
+currentFunc = assembler
+ref outfilepath is REF_STACK
+
+line 36: [    if(!fpout){Perr("can't open output file\n"); return;}]
+
+line 37: []
+
+line 38: [    initEmit();]
+found reference to initEmit
+currentFunc = assembler
+ref initEmit is REF_EXT
+
+line 39: [    initSymbolTable();]
+found reference to initSymbolTable
+currentFunc = assembler
+ref initSymbolTable is REF_EXT
+
+line 40: [    //line by line processing    ]
+
+line 41: [    asm_abort = 0;    ]
+
+line 42: [    float I = 0;]
+found local var I (BL = 1)
+
+line 43: [    float line_from = 0;]
+found local var line_from (BL = 1)
+
+line 44: [    float line_to = 9999; // from and to define a window of which lines we focus debugging on]
+found local var line_to (BL = 1)
+
+line 45: [    ]
+
+line 46: [    str = fgetstring(fpin,asm_str1,80);]
+found reference to fgetstring
+currentFunc = assembler
+ref fgetstring is REF_EXT
+found reference to asm_str1
+currentFunc = assembler
+ref asm_str1 is REF_EXT
+
+line 47: [    str2 = str;]
+
+line 48: []
+
+line 49: [    //skip first few lines for faster debug]
+
+line 50: [    for(I = 0; I < line_from; I++){]
+found reference to I
+currentFunc = assembler
+ref I is REF_STACK
+found reference to line_from
+currentFunc = assembler
+ref line_from is REF_STACK
+
+line 51: [        str = fgetstring(fpin,asm_str1,80);]
+
+line 52: [        str2 = str;]
+
+line 53: [    }]
+
+line 54: [    ]
+
+line 55: [    while(str){]
+
+line 56: [        P2("line ",I,": [");]
+found reference to P2
+currentFunc = assembler
+ref P2 is REF_EXT
+
+line 57: [        P(str);]
+
+line 58: [        P("]\n");]
+
+line 59: [        float str_last;]
+found local var str_last (BL = 2)
+
+line 60: [        parse_string_loop:]
+found label parse_string_loop
+
+line 61: [        str_last = str;]
+found reference to str_last
+currentFunc = assembler
+ref str_last is REF_STACK
+
+line 62: [        while(parse_acceptSpace(&str)){}]
+
+line 63: [        if(strcmp(str,"")==0){goto parse_string_good;}//are we at the end of string?]
+found reference to parse_string_good
+currentFunc = assembler
+ref parse_string_good is REF_EXT
+
+line 64: [        //instruction parse should move input to the end of the line]
+
+line 65: [        ]
+
+line 66: [        //if(parse_acceptComment(&str)){goto parse_string_good;}]
+
+line 67: [        //if(parse_acceptLabel(&str)){goto parse_string_good;}]
+
+line 68: [        //if(parse_acceptDb(&str)){goto parse_string_good;}]
+
+line 69: [        //if(parse_acceptAlloc(&str)){goto parse_string_good;}]
+
+line 70: [        //if(parse_acceptEnter(&str)){goto parse_string_good;}]
+
+line 71: [        //if(parse_acceptInstruction(&str)){goto parse_string_good;}]
+
+line 72: [        parse_acceptComment(&str);]
+found reference to parse_acceptComment
+currentFunc = assembler
+ref parse_acceptComment is REF_EXT
+
+line 73: [        parse_acceptInstruction(&str);]
+found reference to parse_acceptInstruction
+currentFunc = assembler
+ref parse_acceptInstruction is REF_EXT
+
+line 74: [        parse_acceptDb(&str);]
+found reference to parse_acceptDb
+currentFunc = assembler
+ref parse_acceptDb is REF_EXT
+
+line 75: [        parse_acceptAlloc(&str);]
+found reference to parse_acceptAlloc
+currentFunc = assembler
+ref parse_acceptAlloc is REF_EXT
+
+line 76: [        //parse_acceptEnter(&str);]
+
+line 77: [        parse_acceptLabel(&str);]
+found reference to parse_acceptLabel
+currentFunc = assembler
+ref parse_acceptLabel is REF_EXT
+
+line 78: [        parse_accept(&str,";");]
+
+line 79: [        if(asm_abort){return 1;}]
+
+line 80: [        if(str == str_last){goto parse_string_bad;}]
+found reference to parse_string_bad
+currentFunc = assembler
+ref parse_string_bad is REF_EXT
+
+line 81: [        else{goto parse_string_loop;}]
+found reference to parse_string_loop
+currentFunc = assembler
+ref parse_string_loop is REF_EXT
+
+line 82: [        parse_string_bad:]
+found label parse_string_bad
+
+line 83: [        Perr("can't parse string: [");Perr(str);Perr("]\n");]
+
+line 84: [        shell_panic();]
+
+line 85: [        parse_string_good:]
+found label parse_string_good
+
+line 86: [        I++;]
+
+line 87: [        if(I > line_to){return;}]
+found reference to line_to
+currentFunc = assembler
+ref line_to is REF_STACK
+
+line 88: [        str = fgetstring(fpin,asm_str1,80);]
+
+line 89: [        str2 = str;]
+
+line 90: [        ]
+
+line 91: [    }]
+
+line 92: [    ]
+
+line 93: [    printf("\n-----------------------\n");]
+
+line 94: [    printf("symbol table:\n");]
+
+line 95: [    printSymbolTable(asm_symTable);]
+found reference to printSymbolTable
+currentFunc = assembler
+ref printSymbolTable is REF_EXT
+
+line 96: [    printf("\n-----------------------\n");]
+
+line 97: [        ]
+
+line 98: [    writeOFile(fpout);]
+found reference to writeOFile
+currentFunc = assembler
+ref writeOFile is REF_EXT
+
+line 99: [    printf("\n-----------------------\n");]
+
+line 100: [    printf("code listing:\n");]
+
+line 101: [    ]
+
+line 102: [    float codeptr = vector_get_array(asm_code);]
+found local var codeptr (BL = 1)
+
+line 103: [    float codesize = vector_get_size(asm_code);]
+found local var codesize (BL = 1)
+
+line 104: [    printCodeListing(codeptr,codesize);]
+found reference to printCodeListing
+currentFunc = assembler
+ref printCodeListing is REF_EXT
+found reference to codeptr
+currentFunc = assembler
+ref codeptr is REF_STACK
+found reference to codesize
+currentFunc = assembler
+ref codesize is REF_STACK
+
+line 105: [}]
+
+line 106: []
+
+line 107: []
+
+line 108: [void printCodeListing(float ptr, float size){]
+found func printCodeListing
+
+
+
+sig1 = void printCodeListing(float ptr, float size)
+sig2 = (float ptr, float size)
+found param ptr
+found param size
+
+line 109: [    //float size = vector_get_size(asm_code);]
+
+line 110: [    float I = 0;]
+found local var I (BL = 1)
+
+line 111: [    float J = 0;]
+found local var J (BL = 1)
+
+line 112: [    for(I = 0; I < size; I++){]
+found reference to I
+currentFunc = printCodeListing
+ref I is REF_STACK
+found reference to size
+currentFunc = printCodeListing
+ref size is REF_STACK
+
+line 113: [        float num = ptr[I];//vector_get(asm_code,0,I);]
+found local var num (BL = 2)
+found reference to ptr
+currentFunc = printCodeListing
+ref ptr is REF_STACK
+
+line 114: [        if(J == 0){]
+found reference to J
+currentFunc = printCodeListing
+ref J is REF_STACK
+
+line 115: [            printf("%d: ",I);]
+
+line 116: [            float num2 = num-2000;]
+found local var num2 (BL = 3)
+found reference to num
+currentFunc = printCodeListing
+ref num is REF_STACK
+
+line 117: [            float op = numToOp(num2);]
+found local var op (BL = 3)
+found reference to numToOp
+currentFunc = printCodeListing
+ref numToOp is REF_EXT
+found reference to num2
+currentFunc = printCodeListing
+ref num2 is REF_STACK
+
+line 118: [            if(op){]
+found reference to op
+currentFunc = printCodeListing
+ref op is REF_STACK
+
+line 119: [                printf("%s ",op);]
+
+line 120: [            }else{]
+
+line 121: [                printf("%d ",num);]
+
+line 122: [            }]
+
+line 123: [        }else{]
+
+line 124: [            printf("%d ",num);]
+
+line 125: [        }]
+
+line 126: [        if(J == 5){]
+
+line 127: [            printf("\n");]
+
+line 128: [            J = 0;]
+
+line 129: [        }else{J++;}]
+
+line 130: [    }]
+
+line 131: [    printf("\n");]
+
+line 132: [}]
+
+line 133: []
+
+line 134: [void initEmit(){]
+found func initEmit
+
+
+
+sig1 = void initEmit()
+sig2 = ()
+
+line 135: [    //printf("init emit\n");]
+
+line 136: [    asm_code = malloc(sizeof_vector);]
+
+line 137: [    vector_constructor(asm_code,1);]
+
+line 138: [    cur_address = 0;]
+
+line 139: [}]
+
+line 140: []
+
+line 141: []
+
+line 142: []
+
+line 143: [float emit_code(float num){]
+found func emit_code
+
+
+
+sig1 = float emit_code(float num)
+sig2 = (float num)
+found param num
+
+line 144: [    //P2("emit ",num,"\n");]
+
+line 145: [    vector_push(asm_code, num);]
+found reference to num
+currentFunc = emit_code
+ref num is REF_STACK
+
+line 146: [    cur_address = vector_get_size(asm_code);]
+
+line 147: [    //if(!curSegment){]
+
+line 148: [    //    Perr("emit: no segment\n");]
+
+line 149: [    //}]
+
+line 150: [    //vector_push(curSegment,num);]
+
+line 151: [//    if(!fwrite(&num,1,fpout)){]
+
+line 152: [//        Perr("can't write into output file\n");]
+
+line 153: [//    }]
+
+line 154: [}]
+
+line 155: []
+
+line 156: [float emit_alloc(float num){]
+found func emit_alloc
+
+
+
+sig1 = float emit_alloc(float num)
+sig2 = (float num)
+found param num
+
+line 157: [    float I;]
+found local var I (BL = 1)
+
+line 158: [    for(I = 0; I < num; I++){]
+found reference to I
+currentFunc = emit_alloc
+ref I is REF_STACK
+found reference to num
+currentFunc = emit_alloc
+ref num is REF_STACK
+
+line 159: [        emit_code(0);]
+
+line 160: [    }]
+
+line 161: [}]
+
+line 162: []
+
+line 163: []
+
+line 164: [void errDefault(){]
+found func errDefault
+
+
+
+sig1 = void errDefault()
+sig2 = ()
+
+line 165: [    P("expected [");P(str_expected);P("]\n");]
+
+line 166: [    asm_abort = 1;]
+
+line 167: [    //goto parse_string_bad;]
+
+line 168: [}]
+
+line 169: []
+
+line 170: [void pointOutErr(){]
+found func pointOutErr
+
+
+
+sig1 = void pointOutErr()
+sig2 = ()
+
+line 171: [    float len = str-asm_str1;]
+found local var len (BL = 1)
+
+line 172: [    P2("len = ",len,"\n");]
+found reference to len
+currentFunc = pointOutErr
+ref len is REF_STACK
+
+line 173: [    P(asm_str1);P("\n");]
+
+line 174: [    while(len--){]
+
+line 175: [        P(" ");]
+
+line 176: [    }]
+
+line 177: [    P("^\n")]
+
+line 178: [}]
+
+line 179: []
+
+line 180: [void cmd_asm(){]
+found func cmd_asm
+
+
+
+sig1 = void cmd_asm()
+sig2 = ()
+
+line 181: [    float argc = strlen(Arr);]
+found local var argc (BL = 1)
+found reference to Arr
+currentFunc = cmd_asm
+ref Arr is REF_EXT
+
+line 182: [    if(argc != 3){]
+found reference to argc
+currentFunc = cmd_asm
+ref argc is REF_STACK
+
+line 183: [        P("Usage: asm in.asm out.exe");]
+
+line 184: [        return;]
+
+line 185: [    }]
+
+line 186: [    Print("Assembling ",90);Print(Arr[1],90);Print("\n",90);]
+found reference to Print
+currentFunc = cmd_asm
+ref Print is REF_EXT
+
+line 187: [    assembler(Arr[1],Arr[2]);]
+found reference to assembler
+currentFunc = cmd_asm
+ref assembler is REF_EXT
+
+line 188: [    Print("Done\n",90);]
+
+line 189: [}]
+
+line 190: [asm_help: db "\"asm <input file> <output file>\" to compile assembly from input into machine code at output.\n", db 0;]
+found label asm_help
+
+line 191: []
+
+line 192: []
+
+line 193: [void cmd_disasm(){]
+found func cmd_disasm
+
+
+
+sig1 = void cmd_disasm()
+sig2 = ()
+
+line 194: [    float argc = strlen(Arr);]
+found local var argc (BL = 1)
+
+line 195: [    argc--;]
+found reference to argc
+currentFunc = cmd_disasm
+ref argc is REF_STACK
+
+line 196: [    if(argc){]
+
+line 197: [        float cmd = Arr+1;]
+found local var cmd (BL = 2)
+
+line 198: [        float flag = *cmd;]
+found local var flag (BL = 2)
+found reference to cmd
+currentFunc = cmd_disasm
+ref cmd is REF_STACK
+
+line 199: [        float short = 0;]
+found local var short (BL = 2)
+
+line 200: [        float fast = 0;]
+found local var fast (BL = 2)
+
+line 201: [        if(strcmp(flag,"-s")==0){short = 1; argc--; cmd++;}]
+found reference to flag
+currentFunc = cmd_disasm
+ref flag is REF_STACK
+found reference to short
+currentFunc = cmd_disasm
+ref short is REF_STACK
+
+line 202: [        if(strcmp(flag,"-f")==0){fast = 1; argc--; cmd++;}]
+found reference to fast
+currentFunc = cmd_disasm
+ref fast is REF_STACK
+
+line 203: [        float ptr = 0;]
+found local var ptr (BL = 2)
+
+line 204: [        if(argc--){ptr = str2num(*cmd);}else{return 0;}]
+found reference to ptr
+currentFunc = cmd_disasm
+ref ptr is REF_STACK
+found reference to str2num
+currentFunc = cmd_disasm
+ref str2num is REF_EXT
+
+line 205: [        if(ptr == 0){]
+
+line 206: [            ptr = findSymbolByName(*cmd);]
+found reference to findSymbolByName
+currentFunc = cmd_disasm
+ref findSymbolByName is REF_EXT
+
+line 207: [            if(ptr == 0){]
+
+line 208: [                printf("can't read start address\n");]
+
+line 209: [                return 0;]
+
+line 210: [            }]
+
+line 211: [        }]
+
+line 212: [        cmd++;]
+
+line 213: [        float size = 0;]
+found local var size (BL = 2)
+
+line 214: [        if(argc--){size = str2num(*cmd++); if(!size){printf("can't read size\n"); return 0}}]
+found reference to size
+currentFunc = cmd_disasm
+ref size is REF_STACK
+
+line 215: [        ]
+
+line 216: [        ]
+
+line 217: [        float instr[6];]
+found local var instr (BL = 2)
+
+line 218: [        float I = 0;]
+found local var I (BL = 2)
+
+line 219: [        while(1){]
+
+line 220: [            memcpy(instr,ptr,6);]
+found reference to instr
+currentFunc = cmd_disasm
+ref instr is REF_STACK
+
+line 221: [            float cmd1 = instr[0];]
+found local var cmd1 (BL = 3)
+
+line 222: [            float cmd2 = cmd1-2000;]
+found local var cmd2 (BL = 3)
+found reference to cmd1
+currentFunc = cmd_disasm
+ref cmd1 is REF_STACK
+
+line 223: [            float opname = numToOp(cmd1);]
+found local var opname (BL = 3)
+
+line 224: [            if(!opname){opname = numToOp(cmd2);}]
+found reference to opname
+currentFunc = cmd_disasm
+ref opname is REF_STACK
+found reference to cmd2
+currentFunc = cmd_disasm
+ref cmd2 is REF_STACK
+
+line 225: [            ]
+
+line 226: [            float rm = instr[1];]
+found local var rm (BL = 3)
+
+line 227: [            float seg1 = instr[2];]
+found local var seg1 (BL = 3)
+
+line 228: [            float seg2 = instr[3];]
+found local var seg2 (BL = 3)
+
+line 229: [            float op1 = instr[4];]
+found local var op1 (BL = 3)
+
+line 230: [            float op2 = instr[5];]
+found local var op2 (BL = 3)
+
+line 231: [            ]
+
+line 232: [            printf("%d: ",ptr);]
+
+line 233: [            if(opname){printf("%s ",opname);}else{printf("%d ",cmd1);}]
+
+line 234: [            ]
+
+line 235: [            if(!short){printf("%d %d %d ",rm,seg1,seg2);}]
+found reference to rm
+currentFunc = cmd_disasm
+ref rm is REF_STACK
+
+line 236: [            ]
+
+line 237: [            float sym1name = 0;]
+found local var sym1name (BL = 3)
+
+line 238: [            float sym2name = 0;]
+found local var sym2name (BL = 3)
+
+line 239: [            if(!fast){]
+
+line 240: [                sym1name = getSymbolName(op1);]
+found reference to sym1name
+currentFunc = cmd_disasm
+ref sym1name is REF_STACK
+found reference to getSymbolName
+currentFunc = cmd_disasm
+ref getSymbolName is REF_EXT
+
+line 241: [                sym2name = getSymbolname(op2);]
+found reference to sym2name
+currentFunc = cmd_disasm
+ref sym2name is REF_STACK
+
+line 242: [            }]
+
+line 243: [            if(sym1name){printf("%s ",sym1name);}else{printf("%d ",op1);}]
+
+line 244: [            if(sym2name){printf("%s ",sym2name);}else{printf("%d ",op2);}]
+
+line 245: [            printf("\n");]
+
+line 246: [            ]
+
+line 247: [            ptr+=6;]
+
+line 248: [            I++;]
+found reference to I
+currentFunc = cmd_disasm
+ref I is REF_STACK
+
+line 249: [            //float c1 = (I == size);]
+
+line 250: [            //printf("I %d, size %d, == %d\n",I,size,c1);]
+
+line 251: [            if(size){]
+
+line 252: [                if(I == size){break;}]
+
+line 253: [            }else{]
+
+line 254: [                if(((cmd1 == 40)||(cmd1 == 2040))){break;}]
+
+line 255: [            }]
+
+line 256: [        }]
+
+line 257: [        ]
+
+line 258: [    }else{]
+
+line 259: [        P("usage: disasm <ptr> [size]\n");]
+
+line 260: [    }]
+
+line 261: [    ]
+
+line 262: [}]
+
+line 263: [disasm_help: db "\"disasm [-s][-f] <ptr> [size]\" prints the disassembly of code at ptr. If size is not specified, prints until \"ret\" is found.\n", ]
+found label disasm_help
+
+line 264: [             db "flags:\n-s for shorter output\n-f to go faster"; db 0;]
+
+line 265: []
+
+line 266: []
+
+line 267: [/*]
+
+line 268: []
+
+line 269: [ tl;dr:]
+
+line 270: [ style 3]
+
+line 271: [ 0: exe style = 3]
+
+line 272: [ 1: link style = 2]
+
+line 273: [ 2: has static = 0]
+
+line 274: [ 3: compile timestamp]
+
+line 275: [    section list (null-term arrray)]
+
+line 276: [ 4: 0: section1 = 7]
+
+line 277: [ 5: 1: section2 = 9+x]
+
+line 278: [ 6: 2: end = 0]
+
+line 279: [    section1]
+
+line 280: [ 7: 0: type = 3 (sym table)]
+
+line 281: [ 8: 1: size = x]
+
+line 282: [ 9: 2: sym table data]
+
+line 283: [    section2]
+
+line 284: [9+x:0: type = 0 (data+code)]
+
+line 285: [10+x:1:size = y]
+
+line 286: [11+x:2:program data ]
+
+line 287: [ ]
+
+line 288: []
+
+line 289: []
+
+line 290: [*/]
+
+line 291: []
+
+line 292: [/*]
+
+line 293: [    tree mode structure:]
+
+line 294: [    ]
+
+line 295: [    0: exe style = 3]
+
+line 296: [    1: link style = 2]
+
+line 297: [    2: has static = 0]
+
+line 298: [    3: compile timestamp]
+
+line 299: [    4: section list]
+
+line 300: []
+
+line 301: [*/]
+
+line 302: []
+
+line 303: [/*]
+
+line 304: [    struct exe]
+
+line 305: [    {]
+
+line 306: [    0   typeof_exe;]
+
+line 307: [    1   float exe_style;]
+
+line 308: [    2   float link_style;]
+
+line 309: [    3   float has_static;]
+
+line 310: [    4   float compile_timestamp;]
+
+line 311: [    5   ptr<nt_array<section>> section_list;     ]
+
+line 312: [    };]
+
+line 313: [    ]
+
+line 314: [    nt_array<x>:]
+
+line 315: [        x,x,x,x,0;]
+
+line 316: [        ]
+
+line 317: [    struct section{]
+
+line 318: [        typeof_section;]
+
+line 319: [        float type;]
+
+line 320: [        float size;]
+
+line 321: [        ptr data;]
+
+line 322: [    }]
+
+line 323: [*/]
+
+line 324: []
+
+line 325: []
+
+line 326: [void writeOFile(float fpout){]
+found func writeOFile
+
+
+
+sig1 = void writeOFile(float fpout)
+sig2 = (float fpout)
+found param fpout
+
+line 327: [    ]
+
+line 328: [    float code_size_actual = vector_get_size(asm_code);]
+found local var code_size_actual (BL = 1)
+
+line 329: [    ]
+
+line 330: [    float struct_exe = make_exe();]
+found local var struct_exe (BL = 1)
+found reference to make_exe
+currentFunc = writeOFile
+ref make_exe is REF_EXT
+
+line 331: [    float size = exe_get_linsize(struct_exe);]
+found local var size (BL = 1)
+found reference to exe_get_linsize
+currentFunc = writeOFile
+ref exe_get_linsize is REF_EXT
+found reference to struct_exe
+currentFunc = writeOFile
+ref struct_exe is REF_STACK
+
+line 332: [    float new_exe = malloc(size);]
+found local var new_exe (BL = 1)
+found reference to size
+currentFunc = writeOFile
+ref size is REF_STACK
+
+line 333: [    struct_exe = exe_linearize(struct_exe,new_exe,0,-new_exe);]
+found reference to exe_linearize
+currentFunc = writeOFile
+ref exe_linearize is REF_EXT
+found reference to new_exe
+currentFunc = writeOFile
+ref new_exe is REF_STACK
+
+line 334: [    ]
+
+line 335: [    ]
+
+line 336: [    printf("\ncode size actual = %d\n",code_size_actual);]
+found reference to code_size_actual
+currentFunc = writeOFile
+ref code_size_actual is REF_STACK
+
+line 337: [    printf("writing exe %d / size %d\n",struct_exe,size);]
+
+line 338: [    fwrite(struct_exe,size,fpout);]
+found reference to fwrite
+currentFunc = writeOFile
+ref fwrite is REF_EXT
+
+line 339: [}]
+
+line 340: []
+
+line 341: []
+
+line 342: [#include <cyclone/loaded/epilogue.txt>]
+found include <cyclone/loaded/epilogue.txt>
+reading file cyclone/loaded/epilogue.txt
+
+line 1: [epilogue_start:]
+found label epilogue_start
+
+line 2: [epilogue_end:]
+found label epilogue_end
+
+line 3: []
+
+line 343: []
+
+line 344: []
+
+line 345: []
+
+line 346: []
+
+line 347: []
+
+line 348: []
+
+line 349: []
+
+line 350: []
+
+line 351: []
+
+line 352: []
+
+line 353: []
+file cyclone\progs\assembler.txt: 10 funcs
+assembler		(void assembler(float infilepath, float outfilepath))
+printCodeListing		(void printCodeListing(float ptr, float size))
+initEmit		(void initEmit())
+emit_code		(float emit_code(float num))
+emit_alloc		(float emit_alloc(float num))
+errDefault		(void errDefault())
+pointOutErr		(void pointOutErr())
+cmd_asm		(void cmd_asm())
+cmd_disasm		(void cmd_disasm())
+writeOFile		(void writeOFile(float fpout))
+
+included from cyclone\progs\assembler.txt:
+file cyclone/loaded/prologue2.txt: 0 funcs
+
+included from cyclone/loaded/prologue2.txt:
+file cyclone/defines.txt: 0 funcs
+
+included from cyclone\progs\assembler.txt:
+file cyclone/progs/generated/reference_table.txt: 0 funcs
+
+included from cyclone\progs\assembler.txt:
+file cyclone/progs/asm/asm_data.txt: 17 funcs
+make_exe		(float make_exe())
+exe_get_linsize		(float exe_get_linsize(float exe))
+exe_linearize		(float exe_linearize(float exe, float newpos, float readoffset, float writeoffset))
+make_section_list		(float make_section_list())
+section_list_get_linsize		(float section_list_get_linsize(float sectionlist))
+section_list_linearize		(float section_list_linearize(float sectionlist, float newpos, float readoffset, float writeoffset))
+make_section_symtable		(float make_section_symtable())
+make_section_code		(float make_section_code())
+section_get_linsize		(float section_get_linsize(float section))
+section_linearize		(float section_linearize(float section, float newpos, float readoffset, float writeoffset))
+symtable_get_linsize		(float symtable_get_linsize(float symtable))
+symtable_linearize		(float symtable_linearize(float symtable, float newpos, float readoffset, float writeoffset))
+symbol_get_linsize		(float symbol_get_linsize(float sym))
+symbol_linearize		(float symbol_linearize(float sym, float newpos, float readoffset, float writeoffset))
+vector_get_linsize		(float vector_get_linsize(float v))
+vector_linearize2		(float vector_linearize2(float v, float newpos, float readoffset, float writeoffset))
+printVector		(void printVector(float v,float readoffset))
+
+included from cyclone\progs\assembler.txt:
+file cyclone/progs/asm/asm_parse.txt: 19 funcs
+expectedError		(float expectedError(float str))
+parse_expect		(void parse_expect(float *input, float str))
+parse_acceptNum		(float parse_acceptNum(float *input, float *num))
+parse_expectNum		(float parse_expectNum(float *input, float *num))
+parse_acceptSegment		(float parse_acceptSegment(float *input, float *seg))
+parse_acceptReg		(float parse_acceptReg(float *input, float *reg))
+parse_acceptOperand		(float parse_acceptOperand(float *input, float *rm, float *seg, float *op, float errFunc, float offs))
+parse_expectOperand		(void parse_expectOperand(float *input, float *rm, float *seg, float *op, float *errfunc, float offs))
+parse_acceptIdent		(float parse_acceptIdent(float *input, float *id))
+parse_acceptSpace		(float parse_acceptSpace(float *input))
+parse_acceptComment		(float parse_acceptComment(float *input))
+parse_acceptLabel		(float parse_acceptLabel(float *input))
+parse_acceptString		(float parse_acceptString(float *input, float *str))
+parse_acceptDb		(float parse_acceptDb(float *input))
+parse_acceptAlloc		(float parse_acceptAlloc(float *input))
+parse_acceptInstruction		(float parse_acceptInstruction(float *input))
+parse_acceptCmd		(float parse_acceptCmd(float *input, float *cmd))
+numToOp		(float numToOp(float num))
+parse_accept		(float parse_accept(float *input, float str))
+
+included from cyclone\progs\assembler.txt:
+file cyclone/progs/asm/asm_symbol.txt: 6 funcs
+initSymbolTable		(void initSymbolTable())
+addSymbolDef		(void addSymbolDef(float str))
+addSymbolRef		(void addSymbolRef(float str, float offs))
+findSymbol		(float findSymbol(float str))
+printSymbol		(void printSymbol(float sym))
+printSymbolTable		(void printSymbolTable(float symtable))
+
+included from cyclone\progs\assembler.txt:
+file cyclone/progs/asm/asm_util.txt: 3 funcs
+str2num2		(float str2num2(char* str, float *Iout))
+isIdent		(float isIdent(char C))
+caseless_strncmp		(float caseless_strncmp(float str1, float str2, float n))
+
+included from cyclone\progs\assembler.txt:
+file cyclone/progs/asm/asm_constants.txt: 0 funcs
+
+included from cyclone\progs\assembler.txt:
+file cyclone/loaded/epilogue.txt: 0 funcs
+
+
+55 functions found
+make_exe
+exe_get_linsize
+exe_linearize
+make_section_list
+section_list_get_linsize
+section_list_linearize
+make_section_symtable
+make_section_code
+section_get_linsize
+section_linearize
+symtable_get_linsize
+symtable_linearize
+symbol_get_linsize
+symbol_linearize
+vector_get_linsize
+vector_linearize2
+printVector
+expectedError
+parse_expect
+parse_acceptNum
+parse_expectNum
+parse_acceptSegment
+parse_acceptReg
+parse_acceptOperand
+parse_expectOperand
+parse_acceptIdent
+parse_acceptSpace
+parse_acceptComment
+parse_acceptLabel
+parse_acceptString
+parse_acceptDb
+parse_acceptAlloc
+parse_acceptInstruction
+parse_acceptCmd
+numToOp
+parse_accept
+initSymbolTable
+addSymbolDef
+addSymbolRef
+findSymbol
+printSymbol
+printSymbolTable
+str2num2
+isIdent
+caseless_strncmp
+assembler
+printCodeListing
+initEmit
+emit_code
+emit_alloc
+errDefault
+pointOutErr
+cmd_asm
+cmd_disasm
+writeOFile
+
+
+
+9 vars found:
+str
+str2
+fpin
+fpout
+asm_abort
+asm_code
+cur_address
+str_expected
+asm_symTable
+
+
+29 defined symbols:
+CYCLONE_BUILDER
+TYPE_VECTOR
+TYPE_STRING
+TYPE_EXE
+TYPE_SECTION
+TYPE_SYMBOL
+TYPE_PROGINFO
+TYPE_FILE_EXE
+PROP_FILE_EXE_PROGRAMSIZE
+PROP_FILE_EXE_CODEBASE
+PROP_FILE_EXE_FILEBASE
+PROP_FILE_EXE_EXE_STYLE
+PROP_FILE_EXE_LINK_STYLE
+PROP_FILE_EXE_CODESTART
+PROP_FILE_EXE_REFTABLE_START
+PROP_FILE_EXE_REFTABLE_END
+EXE_STYLE_FLAT
+EXE_STYLE_ALCOR
+EXE_STYLE_ALLFUNC
+EXE_STYLE_SYMBOL
+IS_POSITION_DEPENDENT
+IS_POSITION_INDEPENDENT
+LINK_STYLE_NONE
+LINK_STATIC_REQUESTED
+LINK_DYNAMIC_REQUESTED
+LINK_REFTABLE_REQUESTED
+HAS_NO_STATIC_LINKS
+HAS_STATIC_LINKS
+UNLINKED_SYMBOL
+func_table written
+func_export_table written
+func_import_table written
+reference_table written
+execution took 0 min 9 s.
+done

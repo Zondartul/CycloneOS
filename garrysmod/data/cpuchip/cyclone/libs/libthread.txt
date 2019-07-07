@@ -1,0 +1,263 @@
+#ifndef LIBTHREAD_GUARD
+#define LIBTHREAD_GUARD
+//creates and manages threads
+#include <cyclone/libs/zthread.txt>
+
+float threadpool = 0;
+float cur_thread = 0;
+
+float thread_stack_size = 5000;
+
+float initThreads(){
+    threadpool = malloc(sizeof_vector);
+    vector_constructor(threadpool,1);
+    P("threads initialized\n");
+}
+
+void regs_set_to_entry(float regs, float stack, float entry, float args){
+    //stack / EBP+2 / argument 1: args
+    //        EBP+1 / prev IP:    thread_exit_func
+    //        EBP+0 / prev EBP:   0
+    //ESP+0 / EBP-1 / local var1: 0
+    
+    //regTable:
+    //0: eax;
+    //1: ebx;
+    //2: ecx;
+    //3: edx;
+    //4: esi;
+    //5: edi;
+    //6: esp;
+    //7: ebp;
+    //8: cs;
+    //9: ss;
+    //10: ds;
+    //11: es;
+    //12: gs;
+    //13: fs;
+    //14: ks;
+    //15: ls;
+    //16-47: r0-r31;
+    memset(regs,0,48);
+    float t_esp = stack+thread_stack_size-2000;
+    regs[6] = t_esp; //ESP
+    regs[7] = t_esp+10;
+    regs[2] = 1; //ecx; 1 argument.
+    
+    t_esp[3] = args;
+    t_esp[2] = 0//ebpprev (ebp?);
+    t_esp[1] = thread_exit_func;//(ip prev?);
+    t_esp[0] = 0;
+}
+
+float thread_run(float thread){
+    P("thread_run\n");
+    //usually this is for turning the thread on,
+    //and we should already be in a thread
+    //(copying a thread is not implemented).
+    thread_yield();
+}
+//#pragma set OutputFinalListing true
+//#pragma set OutputToFile true
+float thread_enter(float thread){
+    //P("thread_enter\n");
+    cur_thread = thread;
+    float t_regs = thread_get_regs(thread);
+    float t_ip = thread_get_ip(thread);
+    cpuset 9,9999999; //set ESZ to 10 MB or so (remove underflow protection)
+     
+    //purpose: go away from current stack towards a heap stack, so that the new thread doesn't fuck with the old one's stack.    
+    mov r0, t_regs; //[eax:6] is t_esp; [eax:7] is t_ebp = t_esp+10.
+    mov r1, t_ip;
+   //mov r2, [ebp:1]; //ip prev
+    mov ebp, [r0:7];
+    mov esp, [r0:6];
+    //push r2;
+    call r1;
+    P("thread_enter end\n");
+    ret; //avoid spurous leave
+}
+
+void multitask_test(float argc, float argv){
+    P("MT test\n");
+    out 7,200;
+    float word = "boop";
+    float period = 1;
+    float count = 10;
+    float col = randint2(3,9)*100+randint2(3,9)*10+randint2(3,9);
+    //if(argc > 1){word = argv[1];}
+    //if(argc > 2){period = str2num(argv[2]);}
+    //if(argc > 3){count = str2num(argv[3]);}
+    //if(argc > 4){col = str2num(argv[4]);}
+    
+    float I = 0;
+    for(I = 0; I < count; I++){
+        Print(word,col);
+        Print(num2str(I),col);
+        Print(" ",col);
+        thread_yield();//delay(period);
+    }
+}
+
+
+//    out 7,1  ;
+//    out 7,2  ;   
+//    out 7,3  ;  
+//    out 7,4  ;  
+//    out 7,5  ;  
+//    out 7,6  ;  
+//    out 7,7  ;  
+//    out 7,8  ;  
+//    out 7,9  ;  
+//    out 7,10 ;  
+//    out 7,11 ;  
+//    out 7,12 ;  
+//    out 7,13 ;  
+//    out 7,14 ;  
+//    out 7,15 ;  
+//    out 7,16 ;  
+//    out 7,17 ;  
+//    out 7,18 ;  
+//    out 7,19 ;  
+//    out 7,20 ;  
+//    out 7,21 ;  
+//    out 7,22 ;  
+//    out 7,23 ;  
+//    out 7,24 ;  
+//    out 7,25 ;  
+//    out 7,26 ;  
+//    out 7,27 ;  
+//    out 7,28 ;  
+//    out 7,29 ;  
+//    out 7,30 ;  
+//    out 7,31 ;  
+//    out 7,32 ;  
+//    out 7,33 ;  
+//    out 7,34 ;  
+
+//stack grows by a "doomed" leaf that happens 
+float thread_yield(){
+    //out 7,101;
+    //P("thread_yield enter\n");
+    float nthreads = vector_get_size(threadpool);
+    if(nthreads < 2){return;}
+    //out 7,102;
+    float thread = cur_thread;
+    float regs = thread_get_regs(thread);
+    //out 7,103;
+    thread_set_ip(thread, thread_yield_end);
+    //out 7,104;
+    //pusha;
+//    regs[0] = eax;
+//    regs[1] = ebx;
+//    regs[2] = ecx;
+//    regs[3] = edx;
+//    regs[4] = esi;
+//    regs[5] = edi;
+//    regs[6] = esp;
+//    regs[7] = ebp;
+//    regs[8] = cs;
+//    regs[9] = ss;
+//    regs[10] = ds;
+//    regs[11] = es;
+//    regs[12] = gs;
+//    regs[13] = fs;
+//    regs[14] = ks;
+//    regs[15] = ls;
+    mov r0, regs;
+    mov [r0:7], ebp;
+    mov [r0:6], esp;
+    
+    //out 7,105;
+    //float len = vector_get_size(threadpool);
+    //out 7,106;
+    //if(len == 0){Perr("thread_yield: no threads to yield to\n"); shell_panic();}
+    //out 7,107;
+    float I = 0;
+    float thread2 = -1;
+    //out 7,108;
+    for(I = 0; I < nthreads; I++){
+        thread2 = vector_get(threadpool,0,I);
+    //out 7,109;
+        if(thread2 == thread){
+    //out 7,110;
+            goto start_next_thread;
+        }
+    }
+    Perr("thread_yield: can't find current thread\n"); shell_panic();
+    //out 7,111;
+    start_next_thread:
+    //out 7,112;
+    I = I+1;
+    if(I >= nthreads){I = 0;}
+    thread2 = vector_get(threadpool,0,I);
+    //out 7,113;
+    thread_enter(thread2);
+    
+    //out 7,114;
+    thread_yield_end:
+    //out 7,115;
+    //P("thread_yield end\n");
+    //out 7,116;
+}
+
+void print_threads(){
+    float num = vector_get_size(threadpool);
+    P2("Num threads: ",num,"\n");
+    float I = 0;
+    for(I = 0; I < num; I++){
+        float T = vector_get(threadpool,0,I);
+        P2("thread ",I,": ");
+        float t_entry = thread_get_entry(T);
+        P2("",t_entry," ");
+        if(T == cur_thread){
+            P("<-- cur");
+        }
+        P("\n");
+    }
+}
+
+float thread_exit_func(){
+    P("thread_exit_func\n");
+    //like yield, but more final
+    //to be implemented
+    //while(1){}
+    //while(1){thread_yield();}
+    shell_panic();
+}
+
+//creates a thread and returns a pointer to its descriptor
+float thread_create(float entry, float args){
+    P("thread_create enter\n");
+    float thread = thread_new();
+    float stack = malloc(thread_stack_size);
+    float regs = malloc(50);
+    if(!stack){Perr("insufficient RAM to make a thread");}
+    thread_set_entry(thread,entry);
+    thread_set_args(thread,args);
+    thread_set_time(thread,0);
+    thread_set_ip(thread,entry);
+    thread_set_stack(thread,stack);
+    thread_set_regs(thread,regs);
+    regs_set_to_entry(regs,stack,entry,args);
+    vector_push(threadpool,thread);
+    P("thread_create exit\n");
+    return thread;
+}
+
+
+void delay(float time)
+{
+    preserve edx;
+    timer edx;
+    float T = edx;
+    while((edx-T)<time)
+    {
+        thread_yield();
+        timer edx;
+    }
+    zap edx;
+}
+
+
+#endif
