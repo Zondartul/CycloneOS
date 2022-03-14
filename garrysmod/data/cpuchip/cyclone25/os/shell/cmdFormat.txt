@@ -1,0 +1,22 @@
+//format the specified device as a lightfs3 volume
+//a blank filesystem will be written to the device
+float cmdFormat(float shell, float argc, float argv){
+    assert_type(shell, typeof_shell2);
+    if(argc > 1){
+        float devNum = str2num(argv[1]);
+        float devEntry = EBcb_get_entry(EBcb_1,devNum);
+        float devType = EBcb_entry_get_type(devEntry);
+        float typeString = udhTypeToString(devType);
+        float devAdr = EBcb_entry_get_addr(devEntry);
+        float devSize = EBcb_entry_get_size(devEntry);
+        
+        float blockSize = 300;
+        printf("formatting device %d\n(%s) @ %d\nas lightfs3\n", devnum, typeString, devAdr);
+        printf("device size = %d\n", devSize);
+        printf("block size = %d\n", blockSize); 
+        float fs3 = init_fs3();
+        //shell2_set_fs(shell, fs3);
+        fs3_disk_format(fs3, devAdr, devSize, blockSize);
+        //fs struct may be discarded now
+    }else{cmdHelp2(shell,argv[0]);}
+}

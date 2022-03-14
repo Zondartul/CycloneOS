@@ -1,0 +1,47 @@
+#ifndef TYPES_GUARD
+#define TYPES_GUARD
+
+void assert(float n, float str){
+    if(n == 0){
+        Perr("assertion failed: ");
+        Perr(str);
+        panic();
+    }
+}
+void assert_type(float self, float t){
+    if(self[0] != t){
+        Perr("type error: ");
+        Perr(num2str(self));
+        Perr(" is not a\n");
+        Perr(t);
+        Perr("\n");
+        panic();
+    }
+}
+
+float curticks(){
+    float T;
+    cpuget eax,29;
+    T = eax;
+    return T;
+}
+
+float curtime()
+{
+    timer eax;
+    return eax;
+}
+
+float assert_arity(float ecx_here, float num_args){
+    if(ecx_here != num_args){
+        Perr("Arity error: func expects ");
+        Perr(num2str(num_args));
+        Perr(" args, but got ");
+        Perr(num2str(ecx_here));
+        Perr("\n");
+        panic();
+    }
+}
+
+#endif
+

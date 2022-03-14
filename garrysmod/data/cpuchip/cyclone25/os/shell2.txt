@@ -1,0 +1,283 @@
+//shell2
+
+/*
+shell structure:
+0 - typeof shell2
+1 - command text len
+2 - fs letter table
+3 - current fs
+4 - current dir len
+5 - commands table
+10..80 - command text
+100..180 - current dir
+*/
+
+typeof_shell2: db "shell2", 0;
+float sizeof_shell2 = 180;
+float sizeof_shell2_text = 80;
+float sizeof_shell2_cd = 80;
+
+float init_shell2(){
+    float shell = malloc(sizeof_shell2);
+    shell2_constructor(shell);
+    return shell;
+}
+
+float shell2_constructor(float self){
+    self[0] = typeof_shell2;
+    self[1] = 0;
+    float V = malloc(sizeof_vector);
+    vector_constructor(V,10); //element size = 10
+    self[2] = V; // fs letter table
+    self[3] = 0; // current fs
+    self[4] = 0; // current dir len
+    float V2 = malloc(sizeof_vector);
+    vector_constructor(V2,4);
+    self[5] = V2; // commands table
+    self[10] = 0; //command text
+    self[100] = 0; // current dir len;
+    
+    shell2_add_command(self, cmdHelp,   "help",   "helps with commands", "usage: help (command)");
+    shell2_add_command(self, cmdCls,    "cls",    "clear screen",0);
+    shell2_add_command(self, cmdEcho,   "echo",   "print a message",0);
+    shell2_add_command(self, cmdDevice, "device", "enumerates devices",  "usage: device [list/info]");
+    shell2_add_command(self, cmdMount,  "mount",  "assign drive letter", "usage: mount [deviceNum] [driveLetter]");
+    shell2_add_command(self, cmdCD,     "cd",     "change directory",0);
+    shell2_add_command(self, cmdFormat, "format", "installs lightfs3", "usage: format [deviceNum]");
+    shell2_add_command(self, cmdDir,    "dir",    "lists current dirs",0);
+    shell2_add_command(self, cmdMem,    "mem",    "disp. memory contents", "usage: mem [from] [numBytes]");
+    shell2_add_command(self, cmdWrite,  "write",  "write text to file", "usage: write [-f filename] text");
+    shell2_add_command(self, cmdRead,   "read",   "read text from file", "usage: read [-f filename]");
+    shell2_add_command(self, cmdMkDir,  "mkdir",  "create a directory", "usage: mkdir [name]");
+    shell2_add_command(self, cmdDiag,   "diag",   "run system diagnostic", "usage: diag [stack/heap/disk]");
+    shell2_add_command(self, cmdFS,     "fs",     "filesystem settings", "usage: fs [blocks/cache [on/off/reset]]");
+    shell2_add_command(self, cmdDel,    "del",    "delete a file or folder",0);
+    shell2_add_command(self, cmdOverstack, "overstack", "test overstack",0);
+    shell2_add_command(self, cmdDump,   "dump",   "write dev to file", "usage: dump [deviceNum] [filename]");
+    shell2_add_command(self, cmdRun,    "run",    "run executable file", "usage: run [-ilr][filename]\n-i -- init app PT template\n-l -- load only\n-r also start it");
+    shell2_add_command(self,cmdTestArgs,"testArgs","test arg collection", "usage: testArgs -h -lr arg1 arg2 --yay -d derp"); 
+}
+
+float shell2_open(float self){
+    assert_type(self, typeof_shell2);
+    screen_clear();
+    setPrintCursor(0,0);
+    printf("shell = %d\n", self);
+    
+    float EB_Kb = 0;
+    EBcb_device_bind_addr(EBcb_1, UDH_KEYBOARD, 1, &EB_Kb);
+    if(!EB_Kb){
+        printf("no keyboard, quitting.\n");
+        return;
+    }
+    printf("found keyboard at %d\n", EB_Kb);
+    setKeyboard(EB_Kb);
+
+    while(1){
+        shell2_waitInput(self);
+    }
+}
+
+float shell2_add_command(float self, float func, float str_cmd, float str_desc, float str_help){
+    assert_type(self, typeof_shell2);
+    float entry[4];
+    entry[0] = func;
+    entry[1] = str_cmd;
+    entry[2] = str_desc;
+    entry[3] = str_help;
+    float V = self[5];
+    vector_push(V, entry);
+}
+
+//returns command entry and returns 1 on success or 0 on failure.
+float shell2_lookup_command(float self, float str_cmd, float entry){
+    assert_type(self, typeof_shell2);
+    //printf("s2 lookup(%d, %s, @ %d)\n",self,str_cmd,entry);
+    float V = self[5];
+    float S = vector_size(V);
+    float I;
+    //printf("V = %d, S = %d\n",V,S);
+    for(I = 0; I < S; I++){
+        //printf("try entry %d...",I);
+        //float vector_get(void *self, void *element, float pos)
+        vector_get(V, entry, I);
+        float e_str = entry[1];
+        //printf("str =[%s]\n",e_str);
+        if(strcmp(e_str, str_cmd) == 0){
+            //printf("found!\n");
+            return 1;
+        }
+    }
+    //printf("not found\n");
+    return 0;
+}
+
+float shell2_waitInput(float self){
+    assert_type(self, typeof_shell2);
+    shell2_print_prompt(self);
+    screen_cursor_enable();
+    while(1){
+        screen_set_cursor_pos_xy( printScrX, printScrY);
+        float K = waitkey();
+        float R = shell2_process_key(self, K);
+        if(R){return;}
+    }
+}
+
+float shell2_print_prompt(float self){
+    assert_type(self, typeof_shell2);
+    float cd_str = self+100; //current dir
+    float cd_len = self[4]; //current dir len
+    if(cd_len){
+        printf("%s", cd_str);
+    }
+    printf("> ");
+}
+
+float shell2_process_key(float self, float K){
+    assert_type(self, typeof_shell2);
+    float text_len;
+    float text_ptr;
+    if(K == KEY_ENTER){
+        screen_cursor_disable();
+        printf("\n");
+        shell2_process_command(self);
+        text_len = 0;
+        text_ptr[0] = 0;
+        self[1] = text_len; //text len
+        return 1;   
+    }
+    if(K == KEY_BACKSPACE){
+        text_len = self[1]; //command text len
+        text_ptr = self+10; //command text
+        if(text_len > 0){
+            text_len--;
+            text_ptr[text_len] = 0;
+            //print a backspace
+            screenEraseChar();
+        }
+        self[1] = text_len; //text len
+    }
+    if(isPrint1(K)){
+        printf("%c",K);
+        text_len = self[1]; //text len
+        text_ptr = self+10; //command text
+        text_ptr[text_len] = K;   text_len++;
+        text_ptr[text_len] = 0;
+        self[1] = text_len;
+    }
+    return 0;
+}
+
+float shell2_process_command(float self){
+    assert_type(self, typeof_shell2);
+    float str = self+10; //command text
+    //printf("you entered: [%s]\n", str);
+    float buff[120];
+    strcpy(buff,str);
+    float argv = explode(buff, " ");
+    float argc = strlen(argv); 
+    
+    float cmd_entry[4];
+    if(shell2_lookup_command(self, argv[0], cmd_entry)){
+        float cmd_func = cmd_entry[0];
+        cmd_func(self, argc, argv);
+    }else{
+        printf("%mcommand not found\n",822);
+    }
+    
+    
+    //if(strcmp(argv[0], "help")==0){cmdHelp(self, argc, argv);}
+    //if(strcmp(argv[0], "device")==0){cmdDevice(self, argc, argv);}
+    //if(strcmp(argv[0], "mount")==0){cmdMount(self, argc, argv);} 
+    //if(strcmp(argv[0], "cd")==0){cmdCD(self, argc, argv);}
+    //if(strcmp(argv[0], "format")==0){cmdFormat(self, argc, argv);}
+    //if(strcmp(argv[0], "dir")==0){cmdDir(self, argc, argv);}
+    
+}
+
+float shell2_associate_fs3_with_letter(float self, float fs3, float letter){
+    assert_type(self, typeof_shell2);
+    //fs entry:
+    //[0] - fs
+    //[1-10] - letter
+    float entry[10];
+    float e_letter = entry+1;
+    entry[0] = fs3;
+    //char* strncpy(char *dest, *src, float n)
+    strncpy(e_letter, letter, 8);
+    float V = self[2]; //fs letter table
+    vector_push(V, entry);
+}
+
+float shell2_set_fs_by_drive_letter(float self, float letter){
+    assert_type(self, typeof_shell2);
+    //printf("sdl 1\n");
+    self[3] = 0; //current fs
+    float V = self[2]; //command letter table
+    float S = vector_size(V);
+    float I;
+    //printf("sdl 2\n");
+    for(I = 0; I < S; I++){
+   // printf("sdl 3\n");
+        float entry[10];
+        //float vector_get(void *self, void *element, float pos)
+        float e_letter = entry+1;
+        vector_get(V,entry,I);
+    //printf("sdl 4\n");
+    //    printf("entry %d : letter [%s]\n",I,e_letter);
+        if(strcmp(letter,e_letter) == 0){
+    //printf("sdl 5\n");
+            //found it
+            self[3] = entry[0]; //current fs = fs
+            
+            //printf("letter found, fs = %d\n", self[3]);
+            return 1;
+        }
+    }
+    //printf("sdl 6\n");
+    printf("fs not found for letter %s\n",letter);
+    return 0; //not found
+}
+
+float shell2_set_cd(float self, float dir){
+    assert_type(self, typeof_shell2);
+    float cd_str = self+100; //current dir 
+    //float new_str = concat(dir, ":/");
+    //strncpy(cd_str, new_str, sizeof_shell2_cd);
+    strncpy(cd_str, dir, sizeof_shell2_cd);
+    self[4] = strlen(cd_str); // current dir len
+}
+
+//------------ commands -------------
+
+#include "shell/cmdHelp.txt"
+#include "shell/cmdCls.txt"
+#include "shell/cmdEcho.txt"
+#include "shell/cmdDevice.txt"
+
+//---------- Filesystem stuff
+#include "lightfs3.txt"
+
+#include "shell/cmdMount.txt"
+#include "shell/cmdCD.txt"
+#include "shell/cmdFormat.txt"
+#include "shell/cmdDir.txt"
+#include "shell/cmdMkDir.txt"
+#include "shell/cmdDel.txt"
+#include "shell/cmdMem.txt"
+#include "shell/cmdWrite.txt"
+#include "shell/cmdRead.txt"
+//---- diagnostic stuff
+#include "shell/cmdCountHDD.txt"
+#include "shell/cmdFS.txt"
+#include "shell/cmdDiag.txt"
+//--- program loading
+#include "shell/cmdDump.txt"
+#include "shell/cmdRun.txt"
+//--- random test stuff
+#include "shell/cmdOverstack.txt"
+#include "shell/cmdTestArgs.txt"
+
+
+

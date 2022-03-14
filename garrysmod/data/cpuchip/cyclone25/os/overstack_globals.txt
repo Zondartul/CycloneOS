@@ -1,0 +1,6 @@
+#ifndef OVERSTACK_GLOBALS_GUARD
+#define OVERSTACK_GLOBALS_GUARD
+
+float overstack_func_stack = 0; //vector<string>, names of functions as a stack
+
+#endif

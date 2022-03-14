@@ -1,0 +1,36 @@
+float countHDD(float fs3, float ret_bytes_free, float ret_bytes_used, float ret_bytes_total, float ret_blocks_free, float ret_blocks_used, float ret_blocks_total){
+    float blocksize;     
+	fs3_low_read(fs3, 12, &blocksize, 1);
+    float num_blocks;    
+	fs3_low_read(fs3, 13, &num_blocks, 1);
+    float dptr_blockmap; 
+	fs3_low_read(fs3, 14, &dptr_blockmap, 1);
+    
+    float blockmap_size = num_blocks*2;
+    float blockmap = malloc(blockmap_size);
+    fs3_low_read(fs3, dptr_blockmap, blockmap, blockmap_size);
+    
+    float B;
+    float Buser;
+    float Bnext;
+    float col;
+    float I;
+    float num_free = 0;
+    float num_used = 0;
+    for(I = 0; I < num_blocks; I++){
+        B = blockmap + I*2;
+        Buser = B[0];
+        if(Buser == 0){num_free++;}
+        else{num_used++;}
+    }
+    float bytes_total = num_blocks*blocksize;
+    float bytes_free = blocksize*num_free;
+    float bytes_used = bytes_total - bytes_free;
+    
+    if(ret_bytes_free){*ret_bytes_free = bytes_free;}
+    if(ret_bytes_used){*ret_bytes_used = bytes_used;}
+    if(ret_bytes_total){*ret_bytes_total = bytes_total;}
+    if(ret_blocks_free){*ret_blocks_free = num_free;}
+    if(ret_blocks_used){*ret_blocks_used = num_used;}
+    if(ret_blocks_total){*ret_blocks_total = num_blocks;}
+}

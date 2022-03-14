@@ -1,0 +1,4 @@
+float cmdCls(float shell){
+    screen_clear();
+    setPrintCursor(0,0);
+}

@@ -1,0 +1,47 @@
+float printKbs(float bytes){
+    if(bytes > 1000000){
+        bytes = floor(bytes/1000000);
+        printf("%d Mb", bytes);
+    }
+    if(bytes > 1000){
+        bytes = floor(bytes/1000);
+        printf("%d kb", bytes);
+    }else{
+        printf("%d bytes", bytes);
+    }
+}
+
+float cmdDiag(float shell, float argc, float argv){
+    float ovs = overstack_fenter("cmdDiag");
+    
+    assert_type(shell, typeof_shell2);
+    if(argc > 1){
+        if(strcmp(argv[1], "stack")==0){
+            printf("stack diagnostic\n");
+            float psize = kernelSize();
+            float p_ss = SS;
+            float p_esp = esp;
+            printf("code size = %d\nstack segment = %d\nesp = %d\n", psize, p_ss, p_esp);
+            
+            overstack_fexit(ovs, "cmdDiag"); return 1;
+        }else if(strcmp(argv[1], "heap")==0){
+            printf("heap diagnostic\n");
+            //malloc
+            float res = malloc_test();
+            if(res == 0){printf("malloc test %mOK\n",90);}
+            
+            float freesize, usedsize, freecount, usedcount;
+            malloc_count(&freesize, &usedsize, &freecount, &usedcount);
+            //printf("heap: %d bytes used, %d bytes free\n", usedsize, freesize);
+            printf("heap: "); printKbs(usedsize); printf(" used, "); printKbs(freesize); printf(" free\n");
+            
+            //palloc
+            overstack_fexit(ovs, "cmdDiag"); return 1;
+        }else if(strcmp(argv[1], "disk")==0){
+            printf("disk diagnostic\n");
+            overstack_fexit(ovs, "cmdDiag"); return 1;
+        }
+    }
+    cmdHelp2(shell, argv[0]);
+    overstack_fexit(ovs, "cmdDiag"); return 0;
+}

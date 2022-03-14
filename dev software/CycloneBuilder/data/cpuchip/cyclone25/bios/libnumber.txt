@@ -1,0 +1,112 @@
+// E2-like libraries - Number
+// By Nikita (Zondartul)
+#ifndef LIBNUMBER_GUARD
+#define LIBNUMBER_GUARD
+
+float pow(float A, float B)     {return A^^B;}
+float modulo(float A, float B)  {mod A, B; return A;}
+float sqrt(float A)             {return A^^(0.5);}//inexact
+float cbrt(float A)             {return A^^(1/3);}//inexact
+float root(float A, float B)    {return A^^(1/B);}//inexact
+float e()                       {preserve eax; FE eax; return eax ;}
+float exp(float A)              {preserve eax; FPI eax; fpwr eax, A; return eax;}
+float ln(float A)               {preserve eax, edx; mov eax, A; FLN edx, eax; return edx;}
+float log2(float A)             {preserve eax, edx, ecx; mov eax, A;FLN edx, eax; FLN ecx, 2; return edx/ecx;} 
+float log10(float A)            {preserve eax, edx; FLOG10 edx, eax; return edx;}
+float log(float A, float B)     {preserve eax, edx, ecx, ebx;mov eax, A; mov ebx, B; FLN edx, eax; FLN ecx, ebx; div edx, ecx; return edx;}
+float abs(float A)              {preserve eax, edx; mov eax, A; FABS edx, eax; return edx;}
+float ceil(float A)             {preserve eax; mov eax, A; FCEIL eax; return eax;}
+float floor(float A)            {preserve eax; mov eax, A; FINT eax; return eax;}
+float round(float A)            {preserve eax; mov eax, A;FRND eax; return eax;}
+float integer(float A)          {preserve eax; mov eax, A; FINT eax; return eax;}
+float frac(float A)             {preserve eax; mov eax, A; FFRAC eax; return eax;}
+float clamp(float A, float MinA, float MaxA){preserve eax; mov eax, A; max eax, MinA; min eax, MaxA; return eax;}
+float inrange(float A, float MinA, float MaxA){return ((A>MinA)&&(A<MaxA));}
+float minimal(float A, float B) {preserve eax, ebx; mov eax, A; mov ebx, B;min eax, ebx; return eax;}
+float maximal(float A, float B) {preserve eax, ebx; mov eax, A; mov ebx, B;max eax, ebx; return eax;}
+
+float random()                  {preserve eax; rand eax; return eax;}
+float random1(float A)          {preserve eax, edx; mov eax, A;rand edx;mul edx, eax; return edx;}
+float random2(float A,B)        {preserve eax, ebx, edx; mov eax, A; mov ebx, B; rand edx; sub ebx, eax; mul edx, ebx; add edx, eax; return edx;}
+float randint1(float A)         {preserve eax, edx; mov eax, A; rand edx;mul edx, eax; fint edx; return edx;}
+float randint2(float A,B)       {preserve eax, ebx, edx; mov eax, A; mov ebx, B;rand edx; sub ebx, eax; mul edx, ebx; add edx, eax; fint edx; return edx;}
+
+float pi()                      {preserve eax; FPI eax; return eax ;}
+float toRad(float N)            {preserve eax, ebx; mov eax, N; FPI ebx; mul eax, ebx; div eax, 180; return eax;}
+float toDeg(float N)            {preserve eax, ebx; mov eax, N; FPI ebx; mul eax, 180; div eax, ebx; return eax;}
+float sin(float N)              {preserve eax; FSIN eax, toRad(N);  return eax;}
+float cos(float N)              {preserve eax; FCOS eax, toRad(N); return eax;}
+float tan(float N)              {preserve eax; FTAN eax, toRad(N); return eax;}
+float cot(float N)              {preserve eax; FTAN eax, toRad(N); FINV eax; return eax;}
+float sec(float N)              {preserve eax; FCOS eax, toRad(N); FINV eax; return eax;}
+float csc(float N)              {preserve eax; FSIN eax, toRad(N); FINV eax; return eax;} 
+float asin(float N)             {preserve eax; FASIN eax, N; mov eax, toDeg(eax); return eax;}
+float acos(float N)             {preserve eax; FACOS eax, N; mov eax, toDeg(eax); return eax;} 
+float atan(float N)             {preserve eax; FATAN eax, N; mov eax, toDeg(eax); return eax;} 
+float sinh(float N)             {preserve eax; FE eax; return 0.5*( eax ^^N-eax^^(-N));} 
+float cosh(float N)             {preserve eax; FE eax; return 0.5*( eax ^^N+eax^^(-N));} 
+float tanh(float N)             {preserve eax; FE eax; return ( eax ^^(2*N)-1)/( eax ^^(2*N )+1);} 
+float coth(float N)             {preserve eax; FE eax; return ( eax ^^(2*N)+1)/( eax ^^(2*N )-1);}
+float sech(float N)             {preserve eax; FE eax; return 2/( eax ^^N+ eax ^^(-N));} 
+float csch(float N)             {preserve eax; FE eax; return 2/( eax ^^N- eax ^^(-N));} 
+float sinr(float N)             {preserve eax; FSIN eax, N; return eax;} 
+float cosr(float N)             {preserve eax; FCOS eax, N; return eax;} 
+float tanr(float N)             {preserve eax; FTAN eax, N; return eax;} 
+float cotr(float N)             {preserve eax; FTAN eax, N;FINV eax; return eax;} 
+float secr(float N)             {preserve eax; FCOS eax, N;FINV eax; return eax;} 
+float cscr(float N)             {preserve eax; FSIN eax, N;FINV eax; return eax;} 
+float asinr(float N)            {preserve eax; FASIN eax, N; return eax;} 
+float acosr(float N)            {preserve eax; FACOS eax, N; return eax;} 
+float atanr(float N)            {preserve eax; FATAN eax, N; return eax;}
+
+float ceil2(float A, float B)   
+{
+    preserve edx,ebx,eax;
+    mov eax, A;
+    mov ebx, B;
+    mov edx, 10;
+    fpwr ebx, edx;
+    div eax, B;
+    mov edx, eax;
+    //edx = A/(10^^(B)); 
+    FCEIL edx;
+    mul edx, ebx;
+    //`mov edx,edx*(10^^(B)); 
+    return edx; 
+    zap edx;
+}
+
+float floor2(float A, float B)
+{
+    preserve edx,ebx,eax;
+    mov eax, A;
+    mov ebx, B;
+    mov edx, 10;
+    fpwr ebx, edx;
+    div eax, B;
+    mov edx, eax;
+    //edx = A/(10^^(B)); 
+    FINT edx;
+    mul edx, ebx;
+    //`mov edx,edx*(10^^(B)); 
+    return edx; 
+    zap edx;
+}
+ 
+float round2(float A, float B)  
+{
+    preserve edx,ebx,eax;
+    mov eax, A;
+    mov ebx, B;
+    mov edx, 10;
+    fpwr ebx, edx;
+    div eax, B;
+    mov edx, eax;
+    //edx = A/(10^^(B)); 
+    FRND edx;
+    mul edx, ebx;
+    //`mov edx,edx*(10^^(B)); 
+    return edx; 
+    zap edx;
+}
+#endif

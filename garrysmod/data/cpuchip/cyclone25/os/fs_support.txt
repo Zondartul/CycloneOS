@@ -1,0 +1,347 @@
+//proposed standards:
+//Disk format:
+// starting on byte 0 should be a c_string indicating the type of the filesystem currently on disk.
+//
+//FS API:
+// suggested:
+//  void fs_init(params)
+//   initializes the RAM portion of the filesystem
+//
+//  void fs_format(params)
+//   install an empty filesystem on the disk
+//
+//  void fs_write_to_disk(params)
+//   write fs state from RAM to disk (or sync/update)
+//
+//  void fs_read_from_disk(params)
+//   read fs state from disk to RAM (or sync/update)
+//
+// necessary:
+//  file_handle fopen(char *filename, char *mode)
+//      returns file_handle on success
+//      returns 0 on failure
+//
+//  fwrite(ptr *from, int size, file_handle *fp)
+//      1 - success, 0 - failure
+//
+//  fread(ptr *to, int size, file_handle *fp)
+//      1 - success, 0 - failure
+//
+//  fseek(file_handle *fp, int offset, enum whence);
+//      new pos is offset+whence, where
+//      whence: 0 - beginning of file, 1 - current pos, 2 - end of file
+//
+//  feof(file_handle *fp)
+//      returns 1 if r/w ptr reached the end of file.
+//
+// weakly defined:
+//  fputc(file_handle *fp, char C)
+//  freadc(file_handle *fp, char C)
+//
+// provided:
+//  file_handle:
+//    0 - typeid
+//    1 - r/w ptr, relative to beginning of file
+//    2 - implementation-defined   
+//
+//  translate_fopen_mode(char *mode, out *read, *write, *data, *from, *nofile)
+//    tells you the meaning of *mode.
+//    modes  |read|write|data   |from  |no file
+//    ------------------------------------------
+//    "r"    |read|     |keep   |start |error
+//    "w"    |    |write|discard|start |new file
+//    "r+"   |read|write|keep   |start |error
+//    "w+"   |read|write|discard|start |new file
+//    "a"    |    |write|keep   |end   |new file
+//    "a+"   |read|write|keep   |end   |new file
+//
+//  int filepath_legal(char *filename)   
+//   returns 1 if filepath is legal.
+//   legal filepaths:
+//   -contain only letters, numbers, and slashes '/'.
+//   -do not contain two slashes in a row "//"
+//
+//  char *current_path;
+//   path to the "current" folder, from which relative paths originate.   
+//
+//  char *filepath_abs(char *filename)
+//   translates relative path into absolute one.
+//
+//  void filepath_decimate(char *filename, out *folders[], out *name, out *is_abs)
+//   -returns an array of c_strings, each corresponding to a dir in the path
+//   -if there is anything after the final slash, returns that as the *name of the file.
+//    else it is a path to folder.
+//   -sets *is_abs to true if the first symbol is a slash, false otherwise.
+//   
+//  char *filename_extension(char *filename)
+//   -returns the substring after the last dot '.'
+//
+//  char *filepath_base(char *filename)
+//   -returns the file's name without extension.
+//
+//  float filepath_drive(char *filename, out *driveletter);
+//   -extracts the drive letter ("C:\bob" -> "C") and returns 1,
+//    else returns 0 if there is none.
+
+#ifndef file_handle_GUARD
+#define file_handle_GUARD
+
+#define SEEK_SET 0
+#define SEEK_CUR 1
+#define SEEK_END 2
+
+//generated using:
+//skeleton file_handle rw_ptr imp -canary -nomalloc 
+
+//struct file_handle
+//    0: canary
+//    1: rw_ptr
+//    2: imp
+//
+
+typeof_file_handle: db "file_handle",0;
+
+#ifndef CANARY_GUARD
+#define CANARY_GUARD
+void check_canary(float this, float canary){
+//   if(this[0] != canary){
+//        panic();
+//   }
+    assert_type(this, canary);
+}
+#endif
+
+//float sizeof_file_handle(){return 3};
+float sizeof_file_handle = 3;
+//default constructor
+void file_handle_constructor(float this){
+    this[0] = typeof_file_handle;
+    this[1] = 0;
+    this[2] = 0;
+}
+
+//copy constructor
+void file_handle_copy_constructor(float this, float that){
+    this[0] = that[0];
+    this[1] = that[1];
+    this[2] = that[2];
+    check_canary(this,typeof_file_handle);
+}
+
+//default destructor
+void file_handle_destructor(float this){
+    check_canary(this,typeof_file_handle);
+    //add your code here
+}
+
+//getters
+float file_handle_get_canary(float this){check_canary(this,typeof_file_handle);return this[0];}
+float file_handle_get_rw_ptr(float this){check_canary(this,typeof_file_handle);return this[1];}
+float file_handle_get_imp(float this){check_canary(this,typeof_file_handle);return this[2];}
+
+//setters
+void file_handle_set_canary(float this, float N){check_canary(this,typeof_file_handle);this[0] = N;}
+void file_handle_set_rw_ptr(float this, float N){check_canary(this,typeof_file_handle);this[1] = N;}
+void file_handle_set_imp(float this, float N){check_canary(this,typeof_file_handle);this[2] = N;}
+
+#endif
+
+void translate_fopen_mode(char *mode, float *read, float *write, float *keepdata, float *from, float *newfile){
+    if(strcmp(mode,"r")==0){  
+        *read = 1;
+        *write = 0;
+        *keepdata = 1;
+        *from = 0;
+        *newfile = 0;
+        return;
+    }
+      if(strcmp(mode,"w")==0){  
+        *read = 0;
+        *write = 1;
+        *keepdata = 0;
+        *from = 0;
+        *newfile = 1;
+        return;
+    }
+        if(strcmp(mode,"r+")==0){  
+        *read = 1;
+        *write = 1;
+        *keepdata = 1;
+        *from = 0;
+        *newfile = 0;
+        return;
+    }
+        if(strcmp(mode,"w+")==0){  
+        *read = 1;
+        *write = 1;
+        *keepdata = 0;
+        *from = 0;
+        *newfile = 1;
+        return;
+    }
+        if(strcmp(mode,"a")==0){  
+        *read = 0;
+        *write = 1;
+        *keepdata = 1;
+        *from = 1;
+        *newfile = 1;
+        return;
+    }
+        if(strcmp(mode,"a+")==0){  
+        *read = 1;
+        *write = 1;
+        *keepdata = 1;
+        *from = 1;
+        *newfile = 1;
+        return;
+    }  
+    *read = 0;
+    *write = 0;
+    *keepdata = 0;
+    *from = 0;
+    *newfile = 0;
+    return;
+}
+
+
+
+float filepath_legal(char *filename){
+    float I = 0;
+    while(filename[I] != 0){
+        float C = filename[I];
+        I++;
+        if(isalpha(C) && (C!= '/')){return 0;}  
+    }
+    return 1;
+}
+
+//char current_path = 0;
+
+char *filepath_abs(float current_path, char *filename){
+    if(!current_path){
+#ifdef FS_DEBUG
+        printf("current_path is null"); 
+#endif
+        return 0;
+    }
+    if(!filename){
+#ifdef FS_DEBUG
+        printf("filename is null");
+#endif 
+        return 0;
+    }
+    float I = cstr_find_first_of(filename,':');
+    if(I != -1){return filename;}
+    if(filename[0] == '/'){return filename;}
+    //float len1 = strlen(current_path);
+    //float len2 = strlen(filename);
+    //float abspath = malloc(len1+len2+2);
+    //strcpy(abspath,current_path);
+    //abspath[len1] = '/';
+    //strcpy(abspath+len1+1,filename);
+    float abspath = concat(current_path,filename);
+    //printf("filepath_abs(<%d>[%s]+<%d>[%s])=<%d>[%s]\n", current_path, current_path, filename, filename, abspath, abspath);
+    float len = strlen(abspath);
+                //src, size, num_args
+    stack_return(abspath,len+1,2);
+}
+
+//explodes the filepath
+//the filename string is copied into a buffer,
+// then that buffer is modified to separate substrings.
+//then pointers to substrings are put into "folders" and "name".
+//a pointer to an array of folders is returned through "folders".
+void filepath_decimate(char *filename, float *folders, char *name, float *is_abs){
+    //filename = str_stack_copy(filename);
+    //printf("filepath_decimate(%s)\n",filename);
+    *folders = 0;
+    *name = 0;
+    *is_abs = 0;
+    float len = strlen(filename);
+    //P2(".len = ",len,"\n");
+    float is_file = 1;
+    float dir_arr = malloc(12+len);
+    strcpy(dir_arr+11,filename);
+    filename = dir_arr+11;
+    float dir_arr_I = 0;
+    if(filename[len-1] == '/'){is_file = 0;filename[len-1] = 0;}
+    if(filename[0] == '/'){*is_abs = 1; filename++;}
+    //P2(".is_file = ",is_file,"\n");    
+        
+    float I = 0;
+    fp_dec_loop:
+    //P("loop\n");
+    I = cstr_find_first_of(filename, '/');
+    //P2(".I = ",I,"\n");
+    if(I == -1){
+        if(is_file){
+            //P(".1(isfile)\n");
+            //len = strlen(filename);
+            *name = filename;//stack_return(filename,len+1,4);
+        }else{
+            dir_arr[dir_arr_I] = filename;
+            dir_arr_I++;
+            I++;  
+        }
+        //P2(".1dir_arr_I = ",dir_arr_I,"\n");
+        dir_arr[dir_arr_I] = 0;
+    }else{
+        //P2(".2dir_arr_I = ",dir_arr_I,"\n");
+        filename[I] = 0;
+        dir_arr[dir_arr_I] = filename;
+        dir_arr_I++;
+        //*I = 0;
+        filename = filename+I+1;
+        goto fp_dec_loop;
+    }
+    //P2(".3dir_arr_I = ",dir_arr_I,"\n");
+    *folders = dir_arr;//stack_return(dir_arr,10,4);
+    //P(".done\n");
+}
+
+char *filepath_extension(char *filename){
+    float I = cstr_find_last_of(filename,'.');
+    if(I == -1){
+        return 0;
+    }else{
+        return filename+I+1;
+    }
+}
+
+char *filepath_base(char *filename){
+    float folders;
+    float name;
+    float is_abs;
+    filepath_decimate(filename, &folders, &name, &is_abs);
+    float I = cstr_find_last_of(name,'.');
+    if(I == -1){return name;}
+    else{name[I] = 0; return name;}
+}
+
+//returns the "drive letter" part of a filepath, i.e. C:/bob becomes C.
+//returns 1 on success, 0 on failure.
+//the minimum filepath with a drive letter is :/
+float filepath_drive(float filename, float driveletter){
+    float I = cstr_find_first_of(filename, '/');
+    if((I != -1) && (I >= 1)){
+        //has backslash, check if it's got : as a drive letter selector
+        I = I-1;
+        if(filename[I] == ':'){
+            //got it!
+            driveletter[0] = 0;
+            //char* strncpy(char *dest, *src, float n)
+            strncpy(driveletter, filename, I);
+            return 1;
+        }else{
+            return 0; //no drive letter
+        }
+    }else{
+        return 0; //no drive letter
+    }
+}
+
+float filepath_no_drive(float filename){
+    float I = cstr_find_first_of(filename, ':');
+    if(I != -1){filename = filename+I+1;}
+    return filename;
+}

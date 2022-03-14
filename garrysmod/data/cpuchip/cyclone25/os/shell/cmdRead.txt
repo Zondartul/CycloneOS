@@ -1,0 +1,38 @@
+float cmdRead(float shell, float argc, float argv){
+    assert_type(shell, typeof_shell2);
+    if(argc > 1){
+        if(strcmp(argv[1], "-f")==0){
+            if(argc > 2){
+                float filename = argv[2];
+                printf("read from file [%s]\n", filename);
+                float fh = fopen(shell, filename, "r");
+                if(!fh){printf("can't open file\n"); return 0;}
+                else{printf("%mfile opened\n",90);}
+                //printf("fh = %d\n",fh);
+                //float fs3 = shell[3]; //current fs //debug
+                //fs3_print_file_handle(fs3, fh);    //debug
+                
+                //float buff[100];
+                float len = fsize(fh);
+                float buff = malloc(len+1);
+                //float res = fread(buff, 100, fh);
+                float res = fread(buff, len, fh);
+                buff[len] = 0;
+                if(res){printf("%m%s\n",90,buff); free(buff);}
+                else{printf("can't fread\n"); free(buff); return 0;}
+                //float I;
+                //for(I = 3; I < argc; I++){
+                //    float str = argv[I];
+                //    //printf("writing [%s]...\n", str);
+                //    float len = strlen(str);
+                //    float res = fwrite(str, len, fh);
+                //    if(res){/*printf("wrote %d bytes to file\n", res);*/}
+                //    else{printf("can't fwrite\n"); return 0;}
+                //}
+                return 1;
+            }
+        }
+    }
+    cmdHelp2(shell,argv[0]);
+    return 0;
+}

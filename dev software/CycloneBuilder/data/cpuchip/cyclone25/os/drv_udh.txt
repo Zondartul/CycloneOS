@@ -1,0 +1,195 @@
+//------------------------------------------------------------------------------
+// ZCPU standard library and drivers set              (C) 2011 by Black Phoenix
+//
+// Universal device host driver. Only supports 8 devices right now
+//------------------------------------------------------------------------------
+#ifndef DRV_UDH_GUARD
+#define DRV_UDH_GUARD
+
+#define UDH_DRIVER
+
+//Maximum number of devices supported
+#define MAX_UDH_DEVICES 8
+
+//Address range of a single device
+#define MAX_UDH_ADDRESS_RANGE 4*1024
+
+//Maximum number of drivers that may register with UDH
+#define MAX_UDH_DRIVERS 8
+
+
+#define UDH_NONE            0
+#define UDH_UNKNOWN         1
+#define UDH_EXTENDED_BUS    2
+#define UDH_ADDRESS_BUS     3
+#define UDH_ZCPU            4
+#define UDH_ZGPU            5 
+#define UDH_ZSPU            6
+#define UDH_FLASH           7
+#define UDH_ROM             8
+#define UDH_DATA_BUS        9
+#define UDH_CD             10
+#define UDH_CONSOLE_SCREEN 11
+#define UDH_DIGITAL_SCREEN 12
+#define UDH_DATA_PLUG      13
+#define UDH_DATA_SOCKET    14
+#define UDH_KEYBOARD       15
+#define UDH_OSCILLOSCOPE   16
+#define UDH_SOUND_EMITTER  17
+#define UDH_CONSTANT       18
+#define UDH_DATA_PORT      19
+#define UDH_RAM            20
+
+//Device name/string data
+string udhDeviceString0,"None";
+string udhDeviceString1,"Unknown";
+string udhDeviceString2,"Extended bus";
+string udhDeviceString3,"Address bus";
+string udhDeviceString4,"Zyelios CPU";
+string udhDeviceString5,"Zyelios GPU";
+string udhDeviceString6,"Zyelios SPU";
+string udhDeviceString7,"Flash EEPROM";
+string udhDeviceString8,"ROM";
+string udhDeviceString9,"Data bus";
+string udhDeviceString10,"CD Ray";
+string udhDeviceString11,"Console screen";
+string udhDeviceString12,"Digital screen";
+string udhDeviceString13,"Data plug";
+string udhDeviceString14,"Data socket";
+string udhDeviceString15,"Keyboard";
+string udhDeviceString16,"Oscilloscope";
+string udhDeviceString17,"Sound emitter";
+string udhDeviceString18,"Constant value";
+string udhDeviceString19,"Data port";
+string udhDeviceString20,"RAM";
+udhDeviceName:
+  db udhDeviceString0, udhDeviceString1, udhDeviceString2;
+  db udhDeviceString3, udhDeviceString4, udhDeviceString5;
+  db udhDeviceString6, udhDeviceString7, udhDeviceString8;
+  db udhDeviceString9, udhDeviceString10,udhDeviceString11;
+  db udhDeviceString12,udhDeviceString13,udhDeviceString14;
+  db udhDeviceString15,udhDeviceString16,udhDeviceString17;
+  db udhDeviceString18,udhDeviceString19,udhDeviceString20;
+
+//Extended bus offset
+float udhBusOffset;
+
+//List of callbacks to call when querying devices
+float udhQueryCallback[MAX_UDH_DRIVERS];
+float udhQueryCallbackCount = 0;
+
+float udhSetBusAddress(float extOffset) {
+  udhBusOffset = extOffset;
+  udhQueryDevices();
+}
+//my theory: telling the EB (udh) how many devices there are through eb[16] changes
+//the offset of the first device.
+
+void udhQueryDevices() {
+  //printf("query start (bus = %d)\n",udhBusOffset);
+  //testBoot();
+  float i;
+
+  //Run the query
+  //printf("part1\n");
+  udhBusOffset[16] = 32+MAX_UDH_DEVICES;
+  //testBoot();
+  //printf("part2\n");
+  udhBusOffset[17] = 1;
+    
+  //Reconfigure all devices
+  //FIXME: only supports single extended bus right now
+//  for (i = 0; i < 8; i++) {
+//    udhBusOffset[i*2+0] = (4*1024)*i;
+//    udhBusOffset[i*2+1] = (4*1024)*i+((4*1024)-1);
+//  }
+
+  //Update all drivers 
+  //testBoot();
+  //printf("running -update-drivers\n");
+  for (i = 0; i < udhQueryCallbackCount; i++) {
+    void* functionPtr = udhQueryCallback[i];
+    functionPtr();
+  }
+  //printf("update done\n");
+}
+
+void udhRegisterDriver(void* queryDeviceFunction) {
+  udhQueryCallback[udhQueryCallbackCount] = queryDeviceFunction;
+  if (udhQueryCallbackCount < MAX_UDH_DRIVERS) udhQueryCallbackCount++;
+}
+
+float udhGetDeviceType(float busIndex) {
+  return udhBusOffset[32+busIndex];
+}
+
+float udhGetDeviceOffset(float busIndex) {
+  return udhBusOffset+32+MAX_UDH_DEVICES+udhBusOffset[busIndex*2];
+    //return udhBusOffset[busIndex*2];//udhBusOffset+32+udhBusOffset[busIndex*2];
+//  return udhBusOffset+32+MAX_UDH_DEVICES+udhBusOffset[32+busIndex*2];
+
+}
+
+float udhGetDeviceStart(float busIndex){return udhBusOffset[busIndex*2];}
+float udhGetDeviceEnd(float busIndex){return udhBusOffset[busIndex*2+1];}
+float udhSetDeviceStart(float busIndex, float val){udhBusOffset[busIndex*2] = val;}
+float udhSetDeviceEnd(float busIndex, float val){return udhBusOffset[busIndex*2+1] = val;}
+
+
+char* udhGetDeviceName(float busIndex) {
+  float deviceType = udhGetDeviceType(busIndex);
+  if ((deviceType >= 0) && (deviceType <= 20)) {
+    return udhDeviceName[deviceType];
+  } else {
+    return udhDeviceName[1];
+  }
+}
+
+float udhTypeToString(float type){
+    if((type >= 0) && (type <= 20)){
+        return udhDeviceName[type];
+    }else{
+        return udhDeviceName[1];
+    }
+}
+
+void udhSetDeviceOffsetSize(float busIndex, char* offst, char* size) {
+  udhBusOffset[busIndex*2+0] = offst;
+  udhBusOffset[busIndex*2+1] = offst+size-1;
+}
+
+float udhGetNumDevices() {
+  return MAX_UDH_DEVICES;
+}
+
+float udhGetDevices(float type, float maxCount, char* deviceList) {
+  float i,devPtr,n;
+
+  devPtr = deviceList;
+  n = 0;
+  for (i = 0; i < MAX_UDH_DEVICES; i++) {
+    if ((udhGetDeviceType(i) == type) && (n < maxCount)) {
+      n++;
+      *devPtr++ = i;
+    }
+  }
+
+  return n;
+}
+
+float udhSetRecursive(float val){
+    udhBusOffset[20] = val;
+}
+
+float udh_getSizeFromType(float type){
+    float size = 4*1024;
+    if(type == UDH_KEYBOARD){size = 32+128;}
+    if(type == UDH_RAM){size = 128*1024;}
+    if(type == UDH_ROM){size = 256*1024;}
+    if(type == UDH_CONSOLE_SCREEN){size = 2048;}
+    if(type == UDH_DIGITAL_SCREEN){size = 256*256;}
+    if(type == UDH_ZCPU){size = 65536;}
+    return size;
+}
+
+#endif

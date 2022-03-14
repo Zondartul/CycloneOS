@@ -1,0 +1,29 @@
+float cmdWrite(float shell, float argc, float argv){
+    assert_type(shell, typeof_shell2);
+    if(argc > 1){
+        if(strcmp(argv[1], "-f")==0){
+            if(argc > 2){
+                float filename = argv[2];
+                //printf("write to file [%s]\n", filename);
+                float fh = fopen(shell, filename, "a"); //mode append
+                //lfa_check("after fopen: ");
+                if(!fh){printf("can't open file\n"); return 0;}
+                else{printf("%mfile opened\n",90);}
+                //printf("fh = %d\n",fh);
+                float I;
+                for(I = 3; I < argc; I++){
+                    float str = argv[I];
+                    //printf("writing [%s]...\n", str);
+                    float len = strlen(str);
+                    //float res = fwrite(str, len+1, fh);
+                    float res = fwrite(str, len, fh);
+                    if(res){/*printf("wrote %d bytes to file\n", res);*/}
+                    else{printf("can't fwrite\n"); return 0;}
+                }
+                return 1;
+            }
+        }
+    }
+    cmdHelp2(shell,argv[0]);
+    return 0;
+}

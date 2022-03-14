@@ -1,0 +1,77 @@
+//cyclone 25 loaded program test 2
+db programsize;
+jmp main;
+//db programsize;
+alloc 128;
+ORG 2048;
+
+#pragma set OutputFinalListing true
+#pragma set OutputToFile true
+
+//float main(){
+//    return 0;
+//}
+
+#include "variadic.txt"
+#define int_kernell_call 40
+#define kk_prints 1
+#define kk_printn 2
+#define kk_printf 3
+#define kk_thread_exit 4
+#define kk_proc_id 5
+float exit(){kcall(kk_thread_exit,0,0,0);}
+float kprints(float s){kcall(kk_prints, s, 0, 0);}
+float kprintn(float n){kcall(kk_printn, n, 0, 0);}
+
+float dbgPrint(float str, float val){
+    kprints(str); kprints(" = "); kprintn(val); kprints(".\n");
+}
+
+float kprintf(float fmt){
+    float nargs = ecx;
+    float va = va_start(&fmt); //if va_start behaves in a fucky manner, it is because we have a separate copy of variatic.txt in loaded for some retarded reason    
+    kcall(kk_printf, fmt, nargs, va);
+}
+float getProcID(){
+    kcall(kk_proc_id, 0, 0, 0); 
+    return r0;
+}
+
+float kcall(float a, float b, float c, float d){
+    preserve r0, r1, r2, r3;
+    mov r0, a;
+    mov r1, b;
+    mov r2, c;
+    mov r3, d;
+    int int_kernell_call;
+    zap r0, r1, r2, r3;
+}
+
+void delay(float time)
+{
+    preserve edx;
+    timer edx;
+    float T = edx;
+    while((edx-T)<time)
+    {
+        timer edx;
+    }
+    zap edx;
+}
+
+float main(){
+    kprintf("hello world\n");
+    float id = getProcID();
+    kprints("id = "); kprintn(id); kprints(".\n");
+    kprintf("proc_id = %d\n",id);
+    
+    //float I = 0;
+    //while(1){
+    //    kprintf("%mpone %d\n",col, I);
+    //    I = I+1;
+    //}
+    exit();
+    while(1){}
+    return 0;
+}
+

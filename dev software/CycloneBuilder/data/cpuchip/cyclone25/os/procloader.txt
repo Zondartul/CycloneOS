@@ -1,0 +1,216 @@
+//
+// Cyclone 25 process loader
+//
+
+// generateProcess(proginfo, procID) - allocate and construct a new process, load a program, add it to process list.
+// process_run(proccess_h, jmpPos) - execute process (without switching)
+// ------- page table manipulation (internal) -------
+// process_setup_pagetable(process_h) - create a page table for the process, with all the usual stuff mapped
+// mapPages(map,idx_from, idx_to, phys_page, flags, runlevel) - sets the mapping, flags, and runlevel for a continuous range of pages
+// mapPagesAlloc(map, idx_from, idx_to, flags, runlevel) - maps a range of pages to newly allocated pages
+//
+#include "proginfo.txt"
+
+float generateProcess(float proginfo, float procID){
+    printf("generateProcess() begin\n");
+    printf("constructing process...\n");
+    float proc = malloc(sizeof_process_h);
+    process_h_constructor(proc);
+    process_h_set_procID(proc, procID);
+    printf("allocating pages...\n");
+    
+    process_setup_pagetable(proc);//, pagemap, npages);
+    float prog_addr = proginfo_get_addr(proginfo);
+    float prog_size = proginfo_get_size(proginfo);
+    
+    float res = process_insert_program(proc, 2048, prog_addr, prog_size);
+    process_h_set_proginfo(proc, proginfo);
+    
+    //if(res)
+    //{
+    //    init_ktimer();       
+    //    process_run(process1, jmpPos);        
+    //}
+    vector_push(v_proclist, proc);
+    printf("generateProcess() end\n");
+}
+
+
+float process_run(float proc){
+    printf("process_run() begin\n");
+    printf("running program...\n");
+    float proginfo = process_h_get_proginfo(proc);
+    float jmpPos = proginfo_get_entry(proginfo);
+    process_h_set_thread(proc, jmpPos);
+    float c_ebp = ebp;
+    float c_esp = esp;
+    setThreadExitPoint(c_ebp, c_esp, threadExitPos);
+    switchToProcessAndRun(proc);
+        
+    threadExitPos:nop;
+    lastProcess = 0;
+    printf("program complete\n");
+    printf("process_run() end\n");
+}
+
+//---------- page table manipulation -----------------------
+
+float process_setup_pagetable(float proc){//(float v_pagemap, float process_npages){
+    printf("process_setup_pagetable() begin\n");
+    float v_pagemap = process_h_get_pagemap(proc);
+    float os_size = 60*1024;
+    float os_pages = floor(os_size/128);
+        
+    //float map_size = (process_npages+1+10+os_pages)*2;
+    float map_size = os_pages*2;  
+      
+    float runlevel_default = 1;           float flags_default = page_no_exec + page_no_read + page_no_write;
+    float runlevel_nullptr = 0;           float flags_nullptr = page_disabled;
+    float runlevel_thread_entry = 1;      float flags_thread_entry = 0;
+    float runlevel_kernel_interface = 0;  float flags_kernel_interface = page_no_write + page_no_exec;
+    float runlevel_process = 1;           float flags_process = page_remapped;
+    float runlevel_kernel = 0;            float flags_kernel = page_no_exec + page_no_read + page_no_write;
+    float runlevel_int_table = 0;         float flags_int_table = page_no_write;
+    float runlevel_int_handler = 0;       float flags_int_handler = page_no_write;
+    float runlevel_stack = 1;             float flags_stack = page_no_exec;
+        
+    vector_resize(v_pagemap,map_size);
+    float arr = vector_array(v_pagemap);
+    //set default page
+      mapPages(arr,-1,0, 0, flags_default, runlevel_default);
+    //set nullptr page
+      mapPages(arr, 0, 0, 0, flags_nullptr, runlevel_nullptr);
+    //set thread entry page
+      mapPages(arr, 1, 1, 1, flags_thread_entry, runlevel_thread_entry);
+    //set kernel interface pages
+      mapPages(arr, 2, 8, 2, flags_kernel_interface, runlevel_kernel_interface);
+    //set interrupt table pages
+      mapPages(arr, 10, 11, 10, flags_int_table, runlevel_int_table); 
+    //set process pages
+    //  float Istart = 16;
+    //  float Iend = Istart+process_npages-1;
+   //// float runlevel_process = 1;           float flags_process = page_remapped;
+    //  mapPagesAlloc(arr, Istart, Iend, flags_process, runlevel_process);
+    //set os pages (forbid)
+      float Istart = floor(programslot_end/128);//Iend+1;
+      float Iend = os_pages-1;//Istart+os_pages-1;
+      mapPages(arr, Istart, Iend, Istart, flags_kernel, runlevel_kernel);
+    //unforbid interrupt handler pagesnt_handlers/128);
+      Iend = floor(pg_int_handlers_end/128);
+      mapPages(arr, Istart, Iend, Istart, flags_int_handler, runlevel_int_handler);
+    //unforbid stack for read/write
+      Istart = floor(stack_buffer/128);
+      Iend = floor(stack_buffer_end/128);
+      mapPages(arr, Istart, Iend, Istart, flags_stack, runlevel_stack);
+    
+    //write down the free pages ptr
+    process_h_set_free_pages_start(proc, 16);
+    float lastFreePage = floor(programslot_end/128);
+    process_h_set_free_pages_end(proc, lastFreePage);
+    
+    
+    printf("pages allocated and mapped\n");
+    printf("process_setup_pagetable() end\n");
+}
+
+float mapPages(float map, float idx_from, float idx_to, float phys_page, float flags, float runlevel){
+    float I;
+    float offs = phys_page - idx_from;
+    for(I = idx_from; I <= idx_to; I++){
+        float phys_page_I = I+offs;
+        mapPage(map, I, phys_page_I, flags, runlevel);
+    }
+}
+
+float mapPagesAlloc(float map, float idx_from, float idx_to, float flags, float runlevel){
+    float I;
+    for(I = idx_from; I <= idx_to; I++){
+        float phys_page_I = floor(palloc()/128);
+        printf("map virt %d to alloc phys %d\n",I, phys_page_I);
+        mapPage(map, I, phys_page_I, flags, runlevel);
+    }
+}
+
+
+//---------- program reading and copying -------------------
+
+float readProgramInfo(float mem){
+    printf("readProgramInfo() begin\n");
+    float jmpPos = 0;
+    float offs = findJmp(mem, 10, &jmpPos);
+    float offs_programsize = 0;
+    if(offs != -1){
+        printf("found jmp to %d at %d\n",jmpPos,offs);
+        if(offs == 0){
+            offs_programsize = offs+3;
+        }
+    }else{
+        printf("no jmp found\n");
+    }
+    float psize = mem[offs_programsize];
+    printf("programsize at %d = %d\n",offs_programsize, psize);
+    
+    float prog = malloc(sizeof_proginfo);
+    proginfo_set_addr(prog, mem);
+    proginfo_set_size(prog, psize);
+    proginfo_set_entry(prog, jmpPos);
+    printf("readProgramInfo() end\n");
+    return prog;
+}
+
+float process_insert_program(float proc, float dest_addr, float src_addr, float size){
+    printf("process_insert_program() begin\n");
+    printf("copying program...\n");
+    float errcol = 850;
+    float pagemap = process_h_get_pagemap(proc);
+    float npages = floor(size/128)+1;
+    float pstart = process_h_get_free_pages_start(proc);
+    if(pstart == -1){
+        printf("%mError: there are no free virtual pages in this process\n", errcol);
+        return 0;
+    }
+    float pend = process_h_get_free_pages_end(proc);
+    float psize = pend - pstart;
+    float pdest_start = floor(dest_addr/128);
+    float pdest_end = pdest_start+npages;
+    if(pdest_start < pstart){
+        printf("%mError: can't insert program: first needed page is %d, but first free page is %d\n",errcol, pdest_start, pstart);
+        return 0;
+    }
+    if(pdest_end > pend){
+        printf("%mError: can't insert program: last need page is %d, bu last free page is %d\n",errcol, pdest_end, pend);
+        return 0;
+    }
+      //  float Istart = 16;
+    //  float Iend = Istart+process_npages-1;
+    float runlevel_process = 1;           float flags_process = page_remapped;
+    //  mapPagesAlloc(arr, Istart, Iend, flags_process, runlevel_process);
+  
+      
+    float arr = vector_array(pagemap);
+    mapPagesAlloc(arr, pdest_start, pdest_end, flags_process, runlevel_process);  
+
+    float I;
+    for(I = pdest_start; I < pdest_end; I++){
+        float map_page = arr+(I+1)*2;
+        float phys_page = getPageMapping(map_page);
+        float phys_addr = phys_page*128;
+        float p_src = src_addr+128*I;
+        printf("copy from filepage %d to physpage %d\n", I, phys_page);
+        memcpy(phys_addr, p_src, 128);
+    }
+    if(pdest_end < pend){
+        pstart = pdest_end+1;
+        process_h_set_free_pages_start(pstart);
+        printf("next free page is %d (%d left)\n", pstart, pend-pstart);
+    }else{
+        printf("used all pages\n");
+        process_h_set_free_pages_start(-1);
+    }
+    printf("done\n"); 
+    printf("process_insert_program() end\n");
+    return 1;
+}
+
+
+

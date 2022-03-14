@@ -1,0 +1,7 @@
+#ifndef LIBKEYBOARD_GLOBALS_GUARD
+#define LIBKEYBOARD_GLOBALS_GUARD
+
+float ptrKB;
+
+#endif
+

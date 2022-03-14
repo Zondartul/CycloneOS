@@ -1,0 +1,12 @@
+float cmdMkDir(float shell, float argc, float argv){
+    assert_type(shell, typeof_shell2);
+    float fs3 = shell[3];
+    if(!fs3){printf("no filesystem (use mount, cd)\n"); return;}
+    if(argc > 1){
+        float dirname = argv[1];
+        printf("%mmaking directory [%s]\n",90,dirname);
+        fs3_mkdir(shell, dirname);
+    }else{
+        cmdHelp2(shell, argv[0]);
+    }
+}

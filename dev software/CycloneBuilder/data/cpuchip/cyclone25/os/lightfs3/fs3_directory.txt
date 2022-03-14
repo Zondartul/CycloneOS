@@ -1,0 +1,257 @@
+//lightfs3 directory/folder functions
+
+// functions:
+// 
+// make_dir_entry - generates a file entry (for a dir file)
+// dir_add_entry - adds a file entry into a directory file.
+// new_abs - makes a new file in an open directory.
+// dir_get_filename - lists filenames in a directory.
+//
+
+#define FS3_FTYPE_FILE 0
+#define FS3_FTYPE_DIR  1
+float fs3_entry_size = 40;
+float fs3_name_size = 32;
+
+//writes data to a buff to form a dir entry
+float fs3_make_dir_entry(float buff, float file_index, float type, float size, float cap, float name){
+    buff[0] = file_index;
+    buff[1] = type;
+    buff[2] = size;
+    buff[3] = cap;
+    float len = strlen(name);
+    if(len >= fs3_name_size){len = fs3_name_size-1;}
+    strncpy(buff+4, name, len);
+}
+
+float fs3_dir_add_entry(float fs3, float fh_dir, float entry){
+    assert_type(fs3, typeof_fs3);
+    //printf("fs3_dir_add_entry(fs3 %d, fh_dir %d, entry %d)\n", fs3, fh_dir, entry);
+    //find an empty entry slot and write the entry to file
+    //  fread(ptr *to, int size, file_handle *fp)
+    float n_entries;
+    //printf("n_entries before = %d\n", n_entries);
+    fseek(fh_dir, 0, SEEK_SET);
+    fread(&n_entries, 1, fh_dir); //from 0 read 1 byte
+    
+    float new_entry_pos = 1 + n_entries*fs3_entry_size;
+    //*ret_dir_entry = new_entry_pos;
+    //printf("new entry pos = %d\n", new_entry_pos);
+    fseek(fh_dir, new_entry_pos, SEEK_SET);
+    
+    //  fwrite(ptr *from, int size, file_handle *fp)
+    fwrite(entry, fs3_entry_size, fh_dir);
+    n_entries++;
+    fseek(fh_dir, 0, SEEK_SET);
+    fwrite(&n_entries, 1, fh_dir);
+    
+    //debug check
+    float n_entries_new;
+    fseek(fh_dir, 0, SEEK_SET);
+    fread(&n_entries_new, 1, fh_dir);
+    //printf("dir_add_entry: entries before: %d, entries after: %d\n", n_entries, n_entries_new);
+    
+    //printf("n_entries after = %d\n", n_entries);
+    return 1;
+    
+}
+
+//make a new file in an already-open directory
+float fs3_new_abs(float self, float fh_dir, float name, float type){
+    assert_type(self, typeof_fs3);
+    //allocate a new block for the file
+    float file_index = fs3_get_max_file_index(self);
+    if(file_index == -1){
+#ifdef FS_DEBUG
+        //printf("fs3_new_abs fail\n"); 
+#endif
+        return -1;
+    }
+    file_index++;
+    float hasBlock = fs3_low_new(self, file_index);
+    if(hasBlock == -1){
+        //printf("fs3_new_abs: no blocks left\n");
+        return -1;
+    }
+    fs3_set_max_file_index(self, file_index);
+    //add an entry to the current directory
+    float buff[40];
+    float res = fs3_make_dir_entry(buff, file_index, FS3_FTYPE_FILE, 0, 0, name);
+    if(!res){
+#ifdef FS_DEBUG
+        //printf("fs3_new_abs fail\n"); 
+#endif
+        return -1;
+    }
+    res = fs3_dir_add_entry(self, fh_dir, buff);
+    if(!res){
+#ifdef FS_DEBUG
+       //printf("fs3_new_abs fail\n"); 
+#endif
+        return -1;
+    }
+    return file_index;
+}
+
+//copies the entry number I to buff
+float fs3_dir_read_entry(float fs3, float fh_dir, float I, float buff){
+    assert_type(fs3, typeof_fs3);
+    assert_type(fh_dir, typeof_file_handle);
+    
+    float fptr_entry = fs3_dir_get_entry_ptr(fs3, fh_dir, I);
+    if(fptr_entry != -1){
+        fseek(fh_dir, fptr_entry, SEEK_SET);
+        fread(buff, fs3_entry_size, fh_dir);
+        return 1;
+    }
+    return 0;
+}
+
+float fs3_dir_get_num_entries(float fs3, float fh_dir){
+    assert_type(fs3, typeof_fs3);
+    assert_type(fh_dir, typeof_file_handle);
+
+    float n_entries;
+    fseek(fh_dir, 0, SEEK_SET);
+    fread(&n_entries, 1, fh_dir);
+    return n_entries;
+}
+//returns file-ptr to the entry in a directory file
+float fs3_dir_get_entry_ptr(float fs3, float fh_dir, float I){
+    assert_type(fs3, typeof_fs3);
+    assert_type(fh_dir, typeof_file_handle);
+    
+    float n_entries = fs3_dir_get_num_entries(fs3, fh_dir);   
+    if(I >= n_entries){return -1;}
+    float entry_pos = 1 + I*fs3_entry_size;
+    return entry_pos;
+}
+
+float fs3_dir_erase_entry(float fs3, float fh_dir, float entry_id){
+    assert_type(fs3, typeof_fs3);
+    assert_type(fh_dir, typeof_file_handle);
+    
+    float n_entries = fs3_dir_get_num_entries(fs3, fh_dir);
+    if(entry_id >= n_entries){return -1;}
+    
+    //move the rest of the entries to this pos
+    float entry_pos = 1 + entry_id*fs3_entry_size;
+    float next_entry_pos = entry_pos + fs3_entry_size;
+    float n_rem_entries = n_entries - entry_pos - 1;
+    float rem_size = n_rem_entries * fs3_entry_size;
+    float buff = malloc(rem_size);
+    fseek(fh_dir, next_entry_pos, SEEK_SET);
+    fread(buff, rem_size, fh_dir);
+    fseek(fh_dir, entry_pos, SEEK_SET);
+    fwrite(buff, rem_size, fh_dir);
+    //write 0 to last entry
+    n_entries--;
+    float last_entry_pos = 1 + (n_entries-1)*fs3_entry_size;
+    fseek(fh_dir, last_entry_pos, SEEK_SET);
+    float val = 0;
+    fwrite(&val, 1, fh_dir);
+    //write the new num entries
+    fseek(fh_dir, 0, SEEK_SET);
+    fwrite(&n_entries, 1, fh_dir);
+}
+
+//get the name of N'th file (writes to res_str)
+//returns 1 on success, 0 on failure
+float fs3_dir_get_filename(float fs3, float fh_dir, float I, float res_str){
+    //printf("fs3_dir_get_filename(fs3 %d, fh_dir %d, I %d, res_str %d)\n", fs3, fh_dir, I, res_str);
+    assert_type(fs3, typeof_fs3);
+    assert_type(fh_dir, typeof_file_handle);
+    
+    float dptr_entry = fs3_dir_get_entry_ptr(fs3, fh_dir, I);
+    if(dptr_entry == -1){/*printf("fs3_dgf: none\n");*/ return 0;}
+    
+    float name_pos = dptr_entry + 4;
+    //printf("dptr_entry = %d, name_pos = %d\n", dptr_entry, name_pos);
+    fseek(fh_dir, name_pos, SEEK_SET);
+    fread(res_str, fs3_name_size, fh_dir);
+    return 1;
+}
+
+float fs3_print_file_handle(float fs3, float file_handle){
+    //debug: fh_dir info
+    printf("file_handle: %d\n", file_handle);
+    float fp_imp = file_handle_get_imp(file_handle);
+    printf("imp: %d\n", fp_imp);
+    assert_type(fp_imp, typeof_fs3_fh);
+    float file_index = fp_imp[4];
+    printf("file_index: %d\n", file_index);
+    float first_block = fp_imp[5];
+    printf("block: %d\n", first_block);
+}
+
+float fs3_print_entry(float fs3, float fh_dir, float I){
+    
+    
+    //buff[0] = file_index;
+    //buff[1] = type;
+    //buff[2] = size;
+    //buff[3] = cap;
+    float buff = malloc(fs3_entry_size);
+    float dptr_entry = fs3_dir_get_entry_ptr(fs3, fh_dir, I);
+    if(dptr_entry == -1){return -1;}
+    fseek(fh_dir, dptr_entry, SEEK_SET);
+    fread(buff, fs3_entry_size, fh_dir);
+    float file_index = buff[0];
+    float type = buff[1];
+    float size = buff[2];
+    float cap = buff[3];
+    float name = buff+4;
+    printf("fs3 fh_dir:\n");
+    fs3_print_file_handle(fs3, fh_dir);
+    printf("fs3 entry:\nfh_dir = %d\nentry index = %d\n",fh_dir,I);
+    printf("file_index = %d\n", file_index);
+    printf("type = %d\n", type);
+    printf("size = %d\n", size);
+    printf("cap = %d\n", cap);
+    printf("name = [%s]\n", name);
+}
+
+//get the size of N'th file
+//returns -1 on failure
+float fs3_dir_get_filesize(float fs3, float fh_dir, float I){
+    //printf("get_filesize()\n");
+    assert_type(fs3, typeof_fs3);
+    assert_type(fh_dir, typeof_file_handle);
+    float res = -1;
+    
+    float dptr_entry = fs3_dir_get_entry_ptr(fs3, fh_dir, I);
+    if(dptr_entry == -1){
+        //printf("no entry %d\n", I);
+        return -1;}
+    float size_pos = dptr_entry + 2;
+    fseek(fh_dir, size_pos, SEEK_SET);
+    fread(&res, 1, fh_dir);
+    
+    //debug
+    //fs3_print_entry(fs3, fh_dir, I);
+    
+    return res;
+}
+
+//returns the entry index of the entry with the matching file_index, or -1 if not found.
+float fs3_dir_find_fidx(float fs3, float fh_dir, float file_index){
+    assert_type(fs3, typeof_fs3);
+    assert_type(fh_dir, typeof_file_handle);
+
+    float n_entries = fs3_dir_get_num_entries(fs3, fh_dir);    
+    float I;
+    for(I = 0; I < n_entries; I++){
+        float dptr_entry = fs3_dir_get_entry_ptr(fs3, fh_dir, I);
+        float dptr_fidx = dptr_entry + 0; //entry[0] == file_index
+        float e_fidx = 0;
+        fseek(fh_dir, dptr_fidx, SEEK_SET);
+        fread(&e_fidx, 1, fh_dir);
+        
+        if(e_fidx == file_index){
+            return I;
+        }
+    }
+    return -1;
+}
+
+

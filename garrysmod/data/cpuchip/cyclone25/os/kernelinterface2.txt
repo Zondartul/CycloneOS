@@ -1,0 +1,92 @@
+// kernel interface 2
+// contains the code loaded into userspace (app pagetable)
+// to let it exit into kernel (and perform kernel calls)
+// loaded to virtual-end-of-program, but physically
+// at some fixed kernel location.
+
+float ki_kernel_PT = 0;
+float ki_kernel_PT_size = 0;
+float ki_app_PT = 0;
+float ki_app_PT_size = 0;
+
+float ki_interrupt(){
+    //setKernelPT();
+    clm;
+        CPUSET 37,ki_kernel_PT;
+        CPUSET 38,ki_kernel_PT_size;
+    stm;
+    
+    ki_appCall(r0,r1,r2,r3);
+    
+    //setProcessPT();
+    clm;
+        CPUSET 37,PT;
+        CPUSET 38,size;
+    stm;
+    
+    leave;
+    iret;
+}
+
+//float setKernelPT(){}
+//float setProcessPT(){}
+
+
+#define int_kernell_call 40
+#define int_unmapped 41
+#define int_timer 42
+// print funcs
+#define kk_prints 1
+#define kk_printn 2
+#define kk_printf 3
+// thread/process control
+#define kk_thread_exit 4
+#define kk_proc_id 5
+#define kk_yield 6
+// filesystem
+#define kk_fopen 7
+#define kk_fclose 8
+#define kk_fread 9
+#define kk_fwrite 10
+#define kk_fsize 11
+#define kk_fdir 12
+// shell access
+#define kk_run 13
+#define kk_system 14
+
+
+float ki_appCall(){
+ preserve r0, r1, r2, r3;
+    float arg1 = r0;
+    float arg2 = r1;
+    float arg3 = r2;
+    float arg4 = r3;
+    zap r0, r1, r2, r3;
+    //switchToKernel();
+    float res = 0;
+    
+    float found = 0;
+    if(arg1 == kk_prints)       {found = 1; printf("%s",toAbsSpace(arg2));}
+    if(arg1 == kk_printn)       {found = 1; printf("%s",arg2);}
+    if(arg1 == kk_printf)       {found = 1; vprintf(toAbsSpace(arg2), arg3, arg4);}
+    if(arg1 == kk_thread_exit)  {found = 1; ki_thread_exit();}
+    if(arg1 == kk_proc_id)      {found = 1; res = ki_proc_id();}
+    if(!found){printf("unrecognized kernell call %d, %d, %d, %d\n", arg1, arg2, arg3, arg4);}
+    mov r0, res;
+    return res;
+}
+
+float ki_thread_exit(){
+//    if(lastProcess){        
+//        current_thread = 0;
+//        jmpThreadExitPoint();
+//    }
+}
+
+float ki_proc_id(){
+//    if(lastProcess){
+//        float id = process_h_get_procID(lastProcess);
+//        mov r0, id;
+//    }
+    return 0;
+}

@@ -1,0 +1,179 @@
+// this is a comment 
+// this is the output skeleton/config for the CycloneBuilder
+// func_export_table
+%// this is a comment that makes it into the output file
+
+%file_out func_export_table.txt
+ func_export_table:
+ %for I in all_functions
+  db $I.name$;
+ %end
+ func_export_table_end: db 0;
+
+ var_export_table:
+ %for I in global_vars
+  db &$I.name$;
+ %end
+ var_export_table_end: db 0;
+%end
+
+%file_out func_import_table.txt
+ func_import_table:
+ %for I in all_functions
+  float $I.name$;
+ %end
+ func_import_table_end: db 0;
+
+ var_import_table:
+ %for I in global_vars
+  float $I.name$;
+ %end
+ var_import_table_end: db 0;
+%end
+
+%file_out func_table.txt
+ func_table:
+ %for I in all_functions
+  db $I.name$, db str_$I.name$;
+ %end
+ func_table_end: db 0;
+
+ var_table:
+ %for I in global_vars
+  db &$I.name$, db str_$I.name$;
+ %end
+ var_table_end: db 0;
+
+ func_name_table:
+ %for I in all_functions
+  str_$I.name$: db "$I.name$", db 0;
+ %end
+ func_name_table_end: db 0;
+
+ var_name_table:
+ %for I in global_vars
+  str_$I.name$: db "$I.name$", db 0;
+ %end
+ var_name_table_end: db 0; 
+%end
+
+%file_out reference_table.txt
+
+ reference_table:
+ %for I in all_functions
+  float $I.name$ = 0; db str2_$I.name$;
+ %end
+ reference_table_end: db 0;
+
+ reference_name_table:
+ %for I in all_functions
+  str2_$I.name$ = 0; db "$I.name$", 0;
+ %end
+ reference_name_table_end: db 0;
+
+%end
+
+//---------------------------------------
+
+//address: "db func" or "db &var"
+//var:    "float func" or "float var"
+//x.str: "str_x: db "x""
+//x.pstr: "db str_x", elsewhere "str_x: db "x""
+
+%file_out func_export_table.txt
+%table func_export_table: for I in all_functions: address
+//db func;
+%table var_export_table: for I in global_vars: address
+//db &var;
+%end
+
+%file_out func_import_table.txt
+%table func_export_table: for I in all_functions: var 
+//float func = 0;
+%table var_export_table: for I in global_vars: var
+//float var = 0;
+%end
+
+%file_out func_table.txt
+%table func_table, strings func_name_table: for I in all_functions: address, name.pstr
+//db func; db str_func;
+//str_func: db "func", 0;
+%table var_table, strings var_name_table: for I in global_vars: address, name.pstr
+//db &var; db str_var;
+//str_var: db "var", 0;
+
+%end
+
+%file_out reference_table.txt
+%table reference_table, strings reference_name_table: for I in global_symbols: var, name.pstr
+//float func=0; db str_func;
+//str_func: db "func" 0;
+%end
+
+%file_out locals_table.txt
+%table locals_table, string locals_name_table: for I in local_vars: func.address, offset, name.pstr
+//db func, db -1, db str_var
+%end
+
+//---------------------------------------------
+//- file skeleton for a loadable program file -
+//---------------------------------------------
+// raw
+%file_skeleton prog_dump_raw
+ %programsize
+ %body
+%end
+
+// AlcorOS (os io through interrupts - portable but awkward to call)
+%file_skeleton prog_dump_alcor
+ %programsize
+ jmp main;
+ %section code 
+  #include "interrupt_codes.txt"
+  %code
+ %end
+ %section vars
+  %globals
+ %end
+%end
+
+// allfunc table (uses func_import_table - single-dispatch, portable code)
+%file_skeleton prog_dump_allfunc
+ %programsize
+ jmp main;
+
+ %section header
+  %header
+  #include "func_import_table.txt"
+ %end
+
+ %section code
+  %code
+ %end
+
+ %section vars
+  %globals
+ %end
+%end
+
+// import-export table (smallest, statically-linked non-portable code)
+%file_skeleton prog_dump_importexport
+ %programsize
+ jmp main;
+
+ %section header
+  %header
+  %exports
+  %imports
+ %end
+
+ %section code
+  %code
+ %end
+
+ %section vars
+  %globals
+ %end
+%end
+
+

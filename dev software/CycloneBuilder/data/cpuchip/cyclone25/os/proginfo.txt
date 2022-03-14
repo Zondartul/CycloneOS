@@ -1,0 +1,32 @@
+// proginfo type - used to store metadata about a program, compiled with the zCPU tool (HL-zASM compiler)
+// and uploaded to some wiremod highspeed memory.
+//
+// the program should follow whatever header/prologue standard is currently used.
+
+// struct proginfo{
+//   typeof;
+//   int addr; //absolute address of the highspeed memory, where the file resides
+//   int size; //size of the highspeed memory block that fully contains the program
+//   int entry; //address of the entry point, file-relative
+// } 
+
+typeof_proginfo: db "proginfo", 0;
+float sizeof_proginfo = 4;
+
+float proginfo_constructor(float this){
+    this[0] = typeof_proginfo;
+    this[1] = 0;
+    this[2] = 0;
+    this[3] = 0;
+}
+
+float proginfo_get_addr(float this){return this[1];}
+float proginfo_get_size(float this){return this[2];}
+float proginfo_get_entry(float this){return this[3];}
+
+float proginfo_set_addr(float this, float val){this[1] = val;}
+float proginfo_set_size(float this, float val){this[2] = val;}
+float proginfo_set_entry(float this, float val){this[3] = val;}
+
+
+

@@ -1,0 +1,3 @@
+hello world!
+fullname: E:\projects\cyclone25\os\cyclone_25.txt
+dir not found

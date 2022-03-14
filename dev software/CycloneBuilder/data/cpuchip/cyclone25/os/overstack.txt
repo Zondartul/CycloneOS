@@ -1,0 +1,62 @@
+#ifndef OVERSTACK_GUARD
+#define OVERSTACK_GUARD
+
+// see also: overstack_globals.txt
+
+float overstack_init(){ 
+    overstack_func_stack = malloc(sizeof_vector);
+    vector_constructor(overstack_func_stack,1);
+}
+
+//enters the function name into the stack, returns the position in the stack.
+float overstack_fenter(float name){
+    if(overstack_func_stack == 0){return 0;}
+    vector_push(overstack_func_stack, name);
+    float s = vector_size(overstack_func_stack);
+    return s;
+}
+
+float overstack_fexit(float name, float pos){
+    if(overstack_func_stack == 0){return 0;}
+    float s = vector_size(overstack_func_stack);
+    float last = s-1
+    if(pos <= last){
+        if(pos == last){
+            float name2 = vector_get(overstack_func_stack, 0, pos);
+            if(name == name2){
+                vector_pop(overstack_func_stack);
+                return 0;
+            }else{
+                printf("%mErr: func [%s] exited but last func is [%s]\n", 900, name, name2);
+                overstack_error("function exit misfile\n");   
+            }
+        }else{
+            float diff = last-pos;
+            printf("%mErr: func [%s] exited but [%d] more funcs are above\n", 900, name, diff);
+            overstack_error("function exit misfile\n"); 
+       }
+    }else{
+        printf("mErr: func [%s] exited with pos %d but last pos is %d\n", 900, name, pos, last);
+        overstack_error("function exit misfile\n");
+    }
+}
+
+
+float overstack_error(float str){
+    printf("%mErr:overstack:%s");
+    panic();
+}
+
+float overstack_trace(){
+    if(overstack_func_stack == 0){return 0;}
+    float s = vector_size(overstack_func_stack);
+    float I = s-1;
+    while(I){
+        float name = vector_get(overstack_func_stack, 0, I);
+        printf("%d: %s\n", I, name);
+        I--;
+    } 
+}
+
+
+#endif

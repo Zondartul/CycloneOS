@@ -1,0 +1,7 @@
+float cmdEcho(float shell, float argc, float argv){
+    float I;
+    for(I = 1; I < argc; I++){
+        printf("%s ",argv[I]);
+    }
+    printf("\n");
+}

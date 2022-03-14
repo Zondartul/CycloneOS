@@ -1,0 +1,4 @@
+float cmdDel(float shell, float argc, float argv){
+    assert_type(shell, typeof_shell2);
+    fs3_delFile(shell, argc[1]);
+}

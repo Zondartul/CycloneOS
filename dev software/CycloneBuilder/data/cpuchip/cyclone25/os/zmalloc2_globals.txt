@@ -1,0 +1,16 @@
+#ifndef ZMALLOC2_GLOBALS_GUARD
+#define ZMALLOC2_GLOBALS_GUARD
+
+ZMALLOC_VARS:
+float malloc_debug = 0;
+float malloc_print = 0;
+float malloc_num2str = 0;
+float malloc_disk;
+float malloc_max_disk;
+float malloc_header;
+float malloc_user;
+float lastFreeAllocation = 1;
+float malloc_debug_iters = 0;
+
+#endif
+

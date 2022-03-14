@@ -1,0 +1,148 @@
+//lightfs3 volume operations (disk format etc)
+
+// functions:
+//
+// init_fs3 - creates a new filesystem control block structure and returns it
+// disk_format - formats a disk (memory location) by writing an empty filesystem to it
+// load_fs_descriptor - initializes an fs control block by reading info from disk
+// create_root_dir - writes an empty "root directory" file to disk.
+//
+
+//struct fs3
+//0 - typeof fs3
+//1 - disk pointer
+//2 - disk total size
+//3 - table of open handles
+//4 - cache mode (on/off)
+
+typeof_fs3: db "fs3_cb", 0;
+float sizeof_fs3 = 5;
+
+//initializes an FS3 instance and returns the control structure
+float init_fs3(){
+//#ifdef FS_DEBUG
+//    printf("init_fs3()\n");
+//#endif
+    //create an fs3 struct
+    float fs3 = malloc(sizeof_fs3);
+    fs3[0] = typeof_fs3;
+    fs3[1] = 0;
+    fs3[2] = 0;
+    fs3[3] = 0;
+    fs3[4] = 0;
+    fs3_init_file_table(fs3);
+//#ifdef FS_DEBUG
+//    printf("init_fs3() done\n");
+//#endif
+    return fs3;
+}
+
+str_lightfs3: db "lightfs3", 0;
+
+//writes an empty FS3 filesystem to a specified memory location.
+float fs3_disk_format(float fs3, float disk_addr, float disk_size, float block_size){
+    assert_type(fs3, typeof_fs3);
+//#ifdef FS_DEBUG
+//    printf("fs3_disk_format(fs3 %d, disk %d, size %d, bsize %d)\n", fs3, disk_addr, disk_size, block_size);
+//#endif
+    fs3[1] = disk_addr; //disk pointer
+    fs3[2] = disk_size; //disk total size
+    
+    float fs_header[20];
+
+    //float block_size = 1000;
+    float block_desc_size = 2;
+    float num_blocks = (disk_size-20)/(block_size+block_desc_size);
+    num_blocks = floor(num_blocks);
+    
+    //printf("fs3_format: disk_size %d, block_size %d, num_blocks %d\n", disk_size, block_size, num_blocks);
+    float dptr_block_map = 20;
+    float block_map_size = num_blocks * block_desc_size;
+    float dptr_file_blocks = dptr_block_map + block_map_size;
+    //printf("block map at %d, fileblocks at %d\n", dptr_block_map, dptr_file_blocks);
+    float max_file_index = 2; // highest allocated index (1 = boot, 2 = root, 3+ = normal files);
+    
+    
+    float len = strlen(str_lightfs3);           //disk format:
+    memcpy(fs_header, str_lightfs3, len+1);   //0 - "lightfs3"
+    fs_header[11] = disk_size;                //11 - total size
+    fs_header[12] = block_size;               //12 - block size
+    fs_header[13] = num_blocks;               //13 - number of blocks
+    fs_header[14] = dptr_block_map;           //14 - ptr to block map
+    fs_header[15] = dptr_file_blocks;         //15 - ptr to blocks
+    fs_header[16] = max_file_index;           //16 - max file index
+    
+//#ifdef FS_DEBUG
+//    printf("fdf: low write...\n");
+//#endif    
+    fs3_low_write(fs3, 0, fs_header, 20);
+    //17 - block map                  
+        //0 - file index (0 = free, 1 = boot thing, 2 = root directory)
+        //1 - next block in chain (0 = end)
+    //101 - file blocks
+    
+    //write zeroes to the block map
+//#ifdef FS_DEBUG
+//    printf("fdf: low write 0...\n");
+//#endif
+    fs3_low_write_0(fs3, dptr_block_map, block_map_size);
+    //also create a root directory
+//#ifdef FS_DEBUG
+//    printf("fdf: create root dir...\n");
+//#endif
+    fs3_create_root_dir(fs3);
+//#ifdef FS_DEBUG
+//    printf("fdf: done\n");
+//#endif
+}
+
+
+float fs3_load_fs_descriptor(float fs3, float devAdr){
+    assert_type(fs3, typeof_fs3);
+    float size;
+    fs3[1] = devAdr; //disk pointer
+    fs3_low_read(fs3, 11, &size, 1);
+    fs3[2] = size;   //disk total size
+    //also check if devAdr actually has a valid filesystem
+    float buff[10];
+    fs3_low_read(fs3, 0, buff, 10);
+    if(strcmp(buff, "lightfs3") != 0){
+        //not a lightfs3 volume
+        printf("%mnot a lightfs3 volume!\n",811);
+        return 0;
+    }
+    //all is good and cool
+    return 1;
+}
+
+float fs3_create_root_dir(float fs3){
+    assert_type(fs3, typeof_fs3);
+    //allocate a block to file_idx 2
+    //dir file format:
+    //  0 - number of entries
+    //  1+entries
+    //entry format:
+    //  0 - file index (0 = deleted)
+    //  1 - type (0 - file, 1 - directory)
+    //  2 - size
+    //  3 - capacity (reserved size)
+    //  4+32 - filename
+    float header[2];
+    header[0] = 0; //0 entries right now
+    header[1] = 0; //first entry also zero
+//#ifdef FS_DEBUG
+//    printf("create_root_dir:\n");
+//#endif
+    float fh_root = fs3_open_file_index(fs3, 2, 1);
+//#ifdef FS_DEBUG
+//    printf("crd: fh_root = %d\n", fh_root);
+//#endif
+    fwrite(header, 2, fh_root);
+    fclose(fh_root); 
+//#ifdef FS_DEBUG
+//    printf("root dir created\n");
+//#endif
+}
+
+
+

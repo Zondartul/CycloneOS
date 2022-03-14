@@ -1,0 +1,57 @@
+// this file is to be mapped to some known physical memory location
+ORG 128;
+user_kernel_interface:
+float thread_entry(float jmpPos){
+    call jmpPos;
+    //kcall(kk_thread_exit,0,0,0);
+    mov r0, kk_thread_exit;
+    int int_kernell_call;
+}
+thread_entry_end: db 0;
+ORG 256;
+float current_thread = 0;
+float lastProcess = 0;
+float switchToLastProcess(){if(lastProcess){switchToProcess(lastProcess);}}
+
+float switchToProcess(float proc_h){
+lbl_debug1:
+    float pagemap = proc_h+6;//process_h_get_pagemap(proc_h); //proc_h+3;
+lbl_debug2:
+    float arr = pagemap[1];//vector_array(pagemap); //pagemap+1
+lbl_debug3:
+    float npages = arr/2;
+lbl_debug4:
+    current_thread = 1;
+lbl_debug5:
+    lastProcess = proc_h;
+lbl_debug6:
+    CLM;//pagingDisable();
+lbl_debug7:
+    setPageTable(arr, npages);
+lbl_debug8:
+    //printf("enable paging...\n");
+lbl_debug9:
+    STM;//pagingEnable();
+lbl_debug10:
+}
+
+float switchToProcessAndRun(float proc_h){
+    float jmpPos = process_h_get_thread(proc_h); //proc_h+2;
+    switchToProcess(proc_h);
+//    call jmpPos;
+//    switchToKernel();
+    thread_entry(jmpPos);
+}
+
+float switchToKernel(){
+    //pagingDisable();
+    CLM;
+    current_thread = 0;
+}
+user_ki_middle: db 0;
+ORG 1280;
+interruptTable: alloc 200; //4*50
+
+alloc 128;
+user_kernel_interface_end: db 0;
+ORG 10000;

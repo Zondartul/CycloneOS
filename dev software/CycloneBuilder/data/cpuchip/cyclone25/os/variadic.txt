@@ -1,0 +1,99 @@
+//variadic functions library by immibis
+//
+//Usage:
+//----------------------------------------------------------------------------
+//|void printf(char *fmt, ...)                                               |
+//|{                                                                         |
+//|    float va = va_start(&fmt);                                            |
+//|    // do stuff - the point of this isn't to show how to write printf :P  |
+//|    float arg = va_next(&va);                                             |
+//|    // do more stuff                                                      |
+//|}                                                                         |
+//|                                                                          |
+//|void main()                                                               |
+//|{                                                                         |
+//|    printf("One plus one is %d\n", 1+1);                                  |
+//|}                                                                         |
+//----------------------------------------------------------------------------
+//
+//Functions:
+//float va_start(float *last_arg)
+// - Returns a pointer you can use in va_next
+// - last_arg should be a pointer to the last named argument
+//float va_start_0()
+// - Like va_start for functions with no named arguments
+//float va_next(float *va)
+// - Returns the next argument. Note that "va" is a pointer to the pointer returned by va_start. If you have "float va = va_start(&x);" you need to use "va_next(&va)"
+//float va_get(float *last_arg, float n)
+// - Gets the N'th argument after the last named argument, starting from 0. Equivalent to calling va_start, then va_next N times, then va_next once more.
+//float va_get_0(float n)
+// - Like va_get for functions with no named arguments.
+#ifndef VARIADIC_GUARD
+#define VARIADIC_GUARD
+
+/*
+va_start: // float va_start(float *last_arg)
+rstack eax, esp:2
+sub eax, ds
+add eax, ss
+ret
+
+va_start_0: // float va_start_0()
+mov eax, ebp:1
+ret
+
+va_next: // float va_next(float *va)
+rstack ebx, esp:2
+inc #ebx
+rstack eax, #ebx
+ret
+
+va_get: // float va_get(float *last_arg, float n)
+rstack eax, esp:2
+rstack ebx, esp:3
+add eax, ebx
+inc eax
+mov eax, #eax
+ret
+
+va_get_0: // float va_get_0(float n)
+rstack eax, esp:2
+add eax, ebp:2
+rstack eax, eax
+ret
+*/
+
+
+//eax is address of the last named argument in abs coords, or SS+ESP
+
+va_start: // float va_start(float *last_arg)
+rstack eax, esp:2
+sub eax, ds
+sub eax, ss
+ret
+
+va_start_0: // float va_start_0()
+mov eax, ebp:1
+ret
+
+va_next: // float va_next(float *va)
+rstack ebx, esp:2
+inc #ebx
+rstack eax, #ebx
+ret
+
+va_get: // float va_get(float *last_arg, float n)
+rstack eax, esp:2
+rstack ebx, esp:3
+add eax, ebx
+inc eax
+mov eax, #eax
+ret
+
+va_get_0: // float va_get_0(float n)
+rstack eax, esp:2
+add eax, ebp:2
+rstack eax, eax
+ret
+
+#endif

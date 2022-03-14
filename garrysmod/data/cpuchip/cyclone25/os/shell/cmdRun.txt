@@ -1,0 +1,51 @@
+float cmdRun(float shell, float argc, float argv){
+    assert_type(shell, typeof_shell2);
+    if(argc > 2){
+        float mode = argv[1];
+        float filename = argv[2];
+        if(strcmp(mode, "alcor") == 0){
+            printf("running file %s\n", filename);
+            //1. load the executable into memory
+            printf("loading file...");
+            float fp = fopen(shell, filename, "r"); if(!fp){printf("can't open file\n"); return 1;}
+            float size = fsize(fp);          
+            float buff = malloc(size);       if(!buff){printf("can't allocate buffer\n"); return 1;}
+            float res = fread(buff, size, fp); if(!res){printf("can't read file\n"); return 1;}
+            printf("ok\n");
+            //2. generate a process
+            float proginfo = malloc(sizeof_proginfo);
+            proginfo_constructor(proginfo);
+            proginfo_set_addr(proginfo, buff); //address of file (or buffer)
+            
+            //float findJmp(float addr, float nbytes, float pres)
+            float p_entry = 0;
+            float fj_res = findJmp(buff, 10, &p_entry);
+            if(fj_res == -1){printf("can't find the jump instruction"); return 1;}
+            printf("entry point is at %d\n", p_entry);
+            
+            proginfo_set_entry(proginfo, p_entry);   //file-relative
+            proginfo_set_size(proginfo, size);
+            
+            float procID = 1;
+            
+            float proc = generateProcess(proginfo, procID);
+            //3. run program
+            printf("running program...\n");
+            process_run(proc);
+            
+            
+            return 0;
+        }
+        if(strcmp(mode, "allfunc") == 0){
+            printf("unimplemented");
+            return 1;
+        }
+        if(strcmp(mode, "inex") == 0){
+            printf("unimplemented");
+            return 1;
+        }
+        printf("unknown mode\n");
+        return 1;
+    }
+    cmdHelp2(shell, argv[0]);
+}

@@ -1,0 +1,447 @@
+//lightfs3 file handle and stream ops
+
+//functions:
+// 
+// fh_constructor - constructs a file handle object
+// fh_set_filename - set member
+// fh_get_filename - get member
+// fseek - change file handle read-write pointer position
+// fread - read bytes from file and advance rw pointer
+// fwrite - read bytes from file and advance rw pointer
+// fopen - open a file and return a new file handle. 
+
+
+//---------- as mandated by fs_support
+
+//file handle implementation
+// struct fh_imp:
+//  0 - typeof fh_imp
+//  1 - fs3 control block
+//  2 - file size
+//  3 - file capacity
+//  4 - file_index
+//  5 - first block
+//  6 - current block
+//  7 - prev block
+//  8 - next block
+//  9 - fh_dir
+//  10 - fh_dir entry num
+//  11+32 - filename
+
+typeof_fs3_fh: db "fs3_file_handle",0;
+float sizeof_fs3_fh = 43;
+
+float fs3_fh_constructor(float self, float fs3, float file_index, float fblock, float backlink){
+    assert_arity(ecx, 5);
+    
+    self[0] = typeof_fs3_fh;    //typeof
+    self[1] = fs3;              //fs3 control block
+    self[2] = 0;                //file size (mirror of dir-entry)
+    self[3] = 0;                //file capacity (TBD with multiblocks)
+    self[4] = file_index;       //file_index
+    self[5] = fblock;           //first block
+    self[6] = fblock;           //current block
+    self[7] = 0;                //resrved (prev block?)
+    self[8] = 0;                //reserved (next block?)
+    self[9] = backlink;         //backlink (directory file index)
+    self[10]= 0;                //reserved
+    self[11]= 0;                //filename
+}
+
+float print_file_handle(float fh){
+    assert_type(fh, typeof_file_handle);
+    printf("file_handle: %d\n", fh);
+    printf(" rw ptr: %d\n", fh[1]);
+    printf(" imp: %d\n", fh[2]);
+    float fp_imp = file_handle_get_imp(fh);
+    printf("  fs3: %d\n", fp_imp[1]);
+    printf("  file size:   %d\n", fp_imp[2]);
+    printf("  file cap:    %d\n", fp_imp[3]);
+    printf("  file_index:  %d\n", fp_imp[4]);
+    printf("  first block: %d\n", fp_imp[5]);
+    printf("  cur block:   %d\n", fp_imp[6]);
+    printf("  reserved 1:  %d\n", fp_imp[7]);
+    printf("  reserved 2:  %d\n", fp_imp[8]);
+    printf("  backlink:    %d\n", fp_imp[9]);
+    printf("  reserved 3:  %d\n", fp_imp[10]);
+    printf("  filename: [%s]\n", fp_imp+11);    
+}
+
+float fs3_fh_set_filename(float self, float filename){
+    assert_type(self, typeof_fs3_fh);
+    
+//write exactly n bytes to dest, copying from src or add 0's
+//when n = 10, writes 10 chars and 11th zero
+//char* strncpy(char *dest, *src, float n) {
+    strncpy(self+11, filename, 31);
+}
+
+float fs3_fh_get_filename(float self){
+    assert_type(self, typeof_fs3_fh);
+    return self+11;
+}
+
+float fsize(float fp){
+    assert_type(fp, typeof_file_handle);
+    float fp_imp = file_handle_get_imp(fp);
+    float size = fp_imp[2];
+    return size;
+}
+
+float fseek(float fp, float offs, float whence){
+    assert_type(fp, typeof_file_handle);
+    //printf("fseek 1\n");
+    float fp_imp = file_handle_get_imp(fp);
+    //printf("fseek 2\n");
+    float rw_ptr_cur = file_handle_get_rw_ptr(fp);
+    //printf("fseek 3\n");
+    float offs_final;
+    if(whence == SEEK_SET){
+    //printf("fseek 4a\n");
+//#ifdef FS_DEBUG
+        //printf("SEEK_SET: offs = %d\n", offs);
+//#endif
+        offs_final = offs;
+    }
+    if(whence == SEEK_CUR){
+    //printf("fseek 4b\n");
+//#ifdef FS_DEBUG
+        //printf("SEEK_CUR: offs = %d, cur = %d\n", offs, rw_ptr_cur);
+//#endif
+        offs_final = offs+rw_ptr_cur;
+    }
+    if(whence == SEEK_END){
+    //printf("fseek 4c\n");
+        float size = fp_imp[2]; //file size
+//#ifdef FS_DEBUG
+        //printf("SEEK_END: offs = %d, size = %d\n", offs, size);
+//#endif
+        offs_final = offs+size;
+    }
+    //printf("fseek 5\n");
+
+    file_handle_set_rw_ptr(fp, offs_final);
+    //printf("fseek 6\n");
+    //also do a block seek etc.
+//    return 1;
+    return offs_final;
+}
+
+
+float fread(float to, float size, float fp){
+    assert_type(fp, typeof_file_handle);
+    float fp_imp = file_handle_get_imp(fp);
+    assert_type(fp_imp, typeof_fs3_fh);
+    float rw_ptr_cur = file_handle_get_rw_ptr(fp);
+    float cur_block = fp_imp[6]; //current block
+    float fs3 = fp_imp[1]; // fs3 control block
+    //printf("fread: cur_block = %d, rw_ptr_cur = %d\n", cur_block, rw_ptr_cur);
+    float disk_adr = fs3_get_disk_adr(fs3, cur_block, rw_ptr_cur);
+    fs3_low_read(fs3, disk_adr, to, size); //needs to be updated for multiblock stuff
+    return 1;
+}
+
+float fwrite(float from, float size, float fp){
+//                lfa_check("begin fwrite: ");
+    assert_type(fp, typeof_file_handle);
+    //printf("%m---- GET IMP ---\n",990);
+    float fp_imp = file_handle_get_imp(fp);
+    assert_type(fp_imp, typeof_fs3_fh);
+    //printf("%m---- GET RW PTR ---\n",990);
+    float rw_ptr_cur = file_handle_get_rw_ptr(fp);
+    float cur_block = fp_imp[6]; //current block
+    float fs3 = fp_imp[1]; // fs3 control block
+//#ifdef FS_DEBUG
+//    printf("fwrite: cur_block = %d, rw_ptr_cur = %d\n", cur_block, rw_ptr_cur);
+//#endif
+//    printf("%m---- GET DISK ADR ---\n",990);
+    float disk_adr = fs3_get_disk_adr(fs3, cur_block, rw_ptr_cur);
+//#ifdef FS_DEBUG
+//    printf("fwrite: got dptr %d\n", disk_adr);
+//#endif
+    //float fs3_low_write(float fs3, float disk_ptr, float from, float size)
+//    printf("%m---- LOW WRITE ---\n",990);
+    float res = fs3_low_write(fs3, disk_adr, from, size); //needs to be updated for multiblock stuff
+    rw_ptr_cur += size;
+//    printf("%m---- SET PTR -----\n",990);
+    file_handle_set_rw_ptr(fp, rw_ptr_cur);
+    float filesize = fp_imp[2]; //file size;
+    if(rw_ptr_cur > filesize){
+        filesize = rw_ptr_cur;
+        fp_imp[2] = filesize;
+        //update directory entry
+        float backlink = fp_imp[9]; //backlink
+        float file_index = fp_imp[4]; //file index
+        float name_of_this_file = fp_imp+11; //filename
+//        printf("%m---- DERP BACKLINK ----\n",990);
+        if(backlink){
+//#ifdef FS_DEBUG
+//            printf("fwrite: %m(%s) has backlink (%d)\n",90, name_of_this_file, backlink);
+//#endif
+            
+//                lfa_check("fwrite_backlink: ");
+            //printf("fwrite: backlink is file_index %d\n", backlink);
+            fs3_backlink_write_size(fs3, backlink, file_index, filesize);
+            //float blr_size = fs3_backlink_read_size(fs3, backlink, file_index);
+            //printf("fwrite: backlink read size = %d\n", blr_size);
+            
+            //printf("fwrite: check if size is actually %d\n", filesize);
+            //fs3_dir_get_filesize(float fs3, float fh_dir, float I)
+            //float fh_dir = fs3_open_or_lookup_file_index(fs3, backlink, 0);
+            //printf("fwrite: fh_dir = %d\n", fh_dir);
+            //float entry_idx = fs3_find_entry_in_folder(fs3, name_of_this_file, fh_dir);
+            //printf("fwrite: entry idx = %d\n", entry_idx);
+            //fs3_dir_get_filesize(fs3, fh_dir, entry_idx);
+            //printf("fwrite check end\n");
+        }else{
+//#ifdef FS_DEBUG
+//            printf("fwrite: %m(%s) no backlink\n",990, name_of_this_file);
+//#endif
+        }
+        //float fh_dir = fs3_backlink_get_fh_dir(fs3, backlink);
+        //float fh_dir = fp_imp[9]; //fh_dir
+        //float entry_num = fp_imp[10]; //dir entry num
+        //float fp_entry = fs3_dir_get_entry_ptr(fs3, fh_dir, entry_num);
+        //float fp_entry_filesize = fp_entry+2;
+        //fseek(fh_dir, fp_entry_filesize, SEEK_SET);
+        //fwrite(&filesize, 1, fh_dir);
+    }
+//#ifdef FS_DEBUG
+//    printf("fwrite done\n");
+//#endif    
+    return res;
+}
+
+//file opening logic:
+// fs looks for the file in the filetable (where handles to already-opened files sit).
+//      if found, returns that.
+// else:
+// a file is opened (file_handle is created), and the handle is added to the filetable.
+//     in order to open the file, the directory that contains it (determined from filepath)
+//     is also opened (identical logic). The file handle contains the file_index of the
+//     containing directory, so file metadata can be referenced from that.
+
+//shell is needed for env. variables like current dir
+//features implementd:
+//  open file from disk   _   _   _ yes
+//  permit/forbid writing           no (see fwrite)
+//  permit/forbid reading _   _   _ no (see fread)
+//  append mode (read from end)     no
+//  open file in non-root dir _   _ untested
+//  erase old contents(w)           no (works as 'w+' or 'a')
+//  open file from cache/filetable  untested
+//  keep old file contents          yes (by default) 
+//  open in text mode _   _   _   _ not planned
+//
+float fopen(float shell, float filepath, float mode){    
+    assert_type(shell, typeof_shell2);
+//#ifdef FS_DEBUG
+//    printf("fopen(shell[%d], filepath[%s], mode[%s])\n", shell, filepath, mode);
+//#endif
+
+//                lfa_check("fopen begin: ");
+    //extract env. variables
+    //float fs3 = shell[3];       //current fs
+    float cur_dir = shell+100; //current directory
+    
+    float filename = filepath_abs(cur_dir, filepath);
+    //printf("abs path: [%s]\n", filename);
+    if(!filename){
+//#ifdef FS_DEBUG
+        //printf("fopen: filename is null\n"); 
+//#endif
+        return 0;
+    }
+//#ifdef FS_DEBUG
+//    printf("abs filename: <%d>[%s]\n", filename, filename);
+//#endif
+    float fs3 = fs3_from_filepath(shell, filename);
+    filename = filepath_no_drive(filename);
+    //printf("fp no drive: [%s] -> [%s]\n",filepath, filename);
+//#ifdef FS_DEBUG
+//    printf("fs3 from filepath: %d\n", fs3);
+//#endif
+    float write = 0;
+    float read = 0;
+    float keepdata = 0;
+    float from = 0;
+    float newfile = 0;
+    translate_fopen_mode(mode, &read, &write, &keepdata, &from, &newfile);
+//#ifdef FS_DEBUG
+//    printf("translated mode: (r %d, w %d, k %d, f %d, n %d)\n",read,write,keepdata,from,newfile);
+//#endif
+    float backlink = 0;
+    float f_index = fs3_find_file(fs3, filename, newfile, &backlink);
+    if(f_index == -1){
+        //printf("fopen: fs3_ff fail\n");
+        return 0;
+    }
+    float fh = 0;
+    float seekpos;
+//#ifdef FS_DEBUG
+//    printf("f_index = %d\n", f_index);
+//#endif
+    float res = fs3_FT_get_file(fs3, f_index);
+//                lfa_check("fopen 1: ");
+    if(res){
+//#ifdef FS_DEBUG
+//        printf("file already open in FT\n");
+//#endif
+        //printf("fopen: FT cache hit\n");
+        fh = res;
+    }else{
+//#ifdef FS_DEBUG
+//        printf("file needs more opening\n");
+//#endif
+        //printf("fopen: FT miss\n");
+        fh = fs3_open_file_index(fs3, f_index, newfile);
+        if(!fh){
+            //printf("fopen: fs3_ofi failed\n");
+            return 0;
+        }
+//        lfa_check("fopen 2: ");
+        //printf("fopen 2\n");
+        if(backlink){
+            //printf("yes backlink\n");
+            fs3_file_set_backlink(fh, backlink, fs3);
+        }else{
+            if(f_index != 2){
+                //not root file
+                //all other files must have a backlink
+                //printf("%mfopen: no backlink, file orphaned\n",811);
+                return 0;
+            }
+        }
+//        lfa_check("fopen 3: ");
+        //printf("fopen 3\n");
+        float fp_imp = file_handle_get_imp(fh);
+//        lfa_check("fopen 4: ");
+        //printf("fopen 4\n");
+        fs3_fh_set_filename(fp_imp, filename);
+//        lfa_check("fopen 5: ");
+        //printf("fopen 5\n");
+        
+//float fs3_add_file_to_FT(float fs3, float file_index, float file_handle)
+        //fs3_add_file_to_FT(fs3, f_index, fh); moved to "open file index"
+        //printf("fopen 6\n");
+    }
+    if(from){
+        //printf("fopen: SEEK_END ");
+        //float fseek(float fp, float offs, float whence)
+        seekpos = fseek(fh, 0, SEEK_END);
+        //printf("= %d\n", seekpos);
+    }else{
+        //printf("fopen: SEEK_SET ");
+        seekpos = fseek(fh, 0, SEEK_SET);
+        //printf("= %d\n", seekpos);
+    }
+    
+    return fh;
+    
+    //printf("what now?\n");
+    //return 0;   
+}
+
+float fclose(float shell, float fh){
+    //this is supposed to clean up the file
+    //but actually does basically nothing
+    //lets assume nobody else is using it atm
+    //free(fh);
+    //this ensures there is an error
+    fh[0] = 0;
+    //printf("file closed\n");
+    return 1;
+}
+
+float fs3_get_parent_dir(float fs3, float fh){
+    assert_type(fh, typeof_file_handle);
+    float fp_imp = file_handle_get_imp(fh);
+    float backlink = fp_imp[9];
+    float fh_dir = fs3_open_or_lookup_file_index(fs3, backlink, 0);
+    return fh_dir;
+}
+
+float fs3_mkdir(float shell, float filepath){
+    //printf("mkdir 1\n");
+    float fh = fopen(shell, filepath, "w");
+    
+    assert_type(shell, typeof_shell2);
+    float cur_dir = shell+100; //current directory
+    float filename = filepath_abs(cur_dir, filepath);
+    float fs3 = fs3_from_filepath(shell, filename);
+    assert_type(fs3, typeof_fs3);
+    
+    float buff = malloc(2);
+    buff[0] = 0; //0 entries
+    buff[1] = 0; //first entry is zero
+    //fwrite(float from, float size, float fp)
+    //printf("mkdir 2\n");
+    fwrite(buff, 2, fh);
+    //printf("mkdir 3\n");
+    //now we need to tell the parent dir that the entry for this is a dir, not file
+    float fh_dir = fs3_get_parent_dir(fs3, fh);
+    if(!fh_dir){printf("no parent dir\n"); return 0;}
+    //printf("mkdir 4\n");
+    //float fs3_dir_find_fidx(float fs3, float fh_dir, float file_index)
+    float fp_imp = file_handle_get_imp(fh);
+    float file_index = fp_imp[4];
+    float entry_index = fs3_dir_find_fidx(fs3, fh_dir, file_index);
+    float fptr_entry = fs3_dir_get_entry_ptr(fs3, fh_dir, entry_index);
+    float fptr_type = fptr_entry+1;
+    float val = FS3_FTYPE_DIR;
+    //printf("mkdir 5\n");
+    //float fseek(float fp, float offs, float whence)
+    fseek(fh_dir, fptr_type, SEEK_SET);
+    fwrite(&val, 1, fh_dir);
+    //printf("written type %d to fptr %d, entry %d of fh_dir %d\n",
+    //    val, fptr_type, entry_index, fh_dir);
+    //printf("mkdir 6\n");
+    //new type written.
+    return 1;
+}
+
+
+
+float fs3_delFile(float shell, float filepath){
+    printf("delFile is WIP, do not use\n");
+    return 0;
+    //right now just dumbly deletes a file
+    //next, also check if it's a directory
+    //and delete contents if so
+    //printf("delFile 1\n");
+    assert_type(shell, typeof_shell2);
+    float fs3 = shell[3];
+    assert_type(fs3, typeof_fs3);
+    //printf("delFile 2\n");
+    float fh = fopen(shell, filepath, "w");
+    if(!fh){
+        //printf("fs3_delFile fail\n");
+        return -1;
+    }
+    print_file_handle(fh);
+    //printf("delFile 3\n");
+    float fp_imp = file_handle_get_imp(fh);
+    //printf("delFile 4\n");
+    assert_type(fp_imp, typeof_fs3_fh);
+    //1. delete the blocks
+    float block_id = fp_imp[5]; //first block
+    //printf("delFile 5\n");
+    fs3_erase_block_chain(fs3, block_id);
+    //2. delete the folder entry
+    //printf("delFile 6\n");
+    float filename = fs3_fh_get_filename(fp_imp);
+    //printf("delFile 7\n");
+    float fh_dir = fs3_open_or_lookup_file_index(fs3, filename);
+    //printf("delFile 8\n");
+    float entry_id = fs3_find_entry_in_folder(fs3, filename, fh_dir);
+    //printf("delFile 9\n");
+    fs3_dir_erase_entry(fs3, fh_dir, entry_id);
+    //printf("delFile 10\n"); 
+   //3. axe the file handle
+    fclose(fh);
+    //printf("delFile 11\n");
+    //4. file_index - ignore it?
+}
+
+
+

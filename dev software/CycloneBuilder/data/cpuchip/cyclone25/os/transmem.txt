@@ -1,0 +1,179 @@
+#ifndef TRANSMEM_GUARD
+#define TRANSMEM_GUARD
+
+// ================= BIOS mailbox idea =========================================
+// BIOS call interface
+//
+// inter-cpu shared memory mapped to IObus
+// called "transaction memory"
+// 
+// [trans memory map] - location and size of outbound buffers for each cpu
+// [bios mailbox]
+// [user1 mailbox]
+// [user2 mailbox]
+//
+// trans memory map:
+// 0 - number of mailboxes
+// 1 - pointer to BIOS outbound mailbox
+// 2 - pointer to user1 outbound mailbox
+//
+// mailbox:
+// 0 - user ID (0 for bios)
+// 1 - size of a message slot
+// 2 - num slots
+// 3 - pointer to first slot
+// [slot 1]
+// [slot 2]
+//
+// mail slot:
+// 0 - message status (0 = slot empty, 1 - completed, 2 - requested)
+//         when status = 0 or 1, only TX can write. When status = 2, only RX can write.
+// 1 - message receiver ID (0 = bios, 1 = user1, etc)
+// 2 - message size ( < slot size)
+// 3 - message type (1 - IPC call)
+//   inter-cpu request message:
+// 4 - function ID
+// 5 - num args
+// [args]
+// [data] - args that are pointers should be relative to the beginning of the mail slot.
+//
+// ------------------------------------------
+// Each CPU on the system publishes messages to their personal TX mailbox.
+// All the CPUs inspect the mailboxes of other CPUs to see if they have any inbound messages.
+// The sender (TX) CPU writes out the body of a message, then sets "status" to "requested".
+// The receiver (RX) CPU reads the message, possibly replaces the body with a reply, and sets 
+// "status" to "completed".
+// ================================== end bios mailbox idea ===================================
+
+
+
+//types for transaction memory
+
+//----------------------------------------------------------
+typeof_mailbox: "mailbox";
+float sizeof_mailbox = 5;
+//struct mailbox{
+// typeof;
+// int userID;
+// int slotSize;
+// int numSlots;
+// ptr slots;
+//}
+
+float mailbox_constructor(float this){
+    this[0] = typeof_mailbox;
+    this[1] = 0;
+    this[2] = 0;
+    this[3] = 0;
+    this[4] = 0;
+}
+
+float mailbox_get_ID(float this){
+    assert_type(this, typeof_mailbox); 
+    return this[1];
+}
+float mailbox_get_slotSize(float this){
+    assert_type(this, typeof_mailbox); 
+    return this[2];
+}
+float mailbox_get_numSlots(float this){
+    assert_type(this, typeof_mailbox); 
+    return this[3];
+}
+float mailbox_get_slots(float this){
+    assert_type(this, typeof_mailbox); 
+    return this[4];
+}
+
+float mailbox_set_ID(float this, float val){
+    assert_arity(ecx, 2); 
+    assert_type(this, typeof_mailbox); 
+    this[1] = val;
+}
+float mailbox_set_slotSize(float this, float val){
+    assert_arity(ecx, 2); 
+    assert_type(this, typeof_mailbox); 
+    this[2] = val;
+}
+float mailbox_set_numSlots(float this, float val){
+    assert_arity(ecx, 2); 
+    assert_type(this, typeof_mailbox); 
+    this[3] = val;
+}
+float mailbox_set_slots(float this, float val){
+    assert_arity(ecx, 2); 
+    assert_type(this, typeof_mailbox); 
+    this[4] = val;
+}
+
+//----------------------------------------------------------
+typeof_mailslot: "mailslot";
+float sizeof_mailslot = 6;
+//struct mailslot{
+// typeof;
+// int status;
+// int rxID;
+// int size;
+// int type;
+// ptr msg;
+//}
+
+float mailslot_constructor(float this){
+    this[0] = typeof_mailslot;
+    this[1] = 0;
+    this[2] = 0;
+    this[3] = 0;
+    this[4] = 0;
+    this[5] = 0;
+}
+
+float mailslot_get_status(float this){
+    assert_type(this, typeof_mailslot);
+    return this[1];
+}
+float mailslot_get_rxID(float this){
+    assert_type(this, typeof_mailslot);
+    return this[2];
+}
+float mailslot_get_size(float this){
+    assert_type(this, typeof_mailslot);
+    return this[3];
+}
+float mailslot_get_type(float this){
+    assert_type(this, typeof_mailslot);
+    return this[4];
+}
+float mailslot_get_msg(float this){
+    assert_type(this, typeof_mailslot);
+    return this[5];
+}
+
+float mailslot_set_status(float this, float val){
+    assert_arity(ecx, 2); 
+    assert_type(this, typeof_mailslot); 
+    this[1] = val;
+}
+float mailslot_set_rxID(float this, float val){
+    assert_arity(ecx, 2); 
+    assert_type(this, typeof_mailslot); 
+    this[2] = val;
+}
+float mailslot_set_size(float this, float val){
+    assert_arity(ecx, 2); 
+    assert_type(this, typeof_mailslot); 
+    this[3] = val;
+}
+float mailslot_set_type(float this, float val){
+    assert_arity(ecx, 2); 
+    assert_type(this, typeof_mailslot); 
+    this[4] = val;
+}
+float mailslot_set_msg(float this, float val){
+    assert_arity(ecx, 2); 
+    assert_type(this, typeof_mailslot); 
+    this[5] = val;
+}
+//----------------------------------------------------------------
+
+#endif
+

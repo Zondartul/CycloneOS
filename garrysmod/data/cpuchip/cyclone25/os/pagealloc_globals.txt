@@ -1,0 +1,10 @@
+#ifndef PAGEALLOC_GLOBALS_GUARD
+#define PAGEALLOC_GLOBALS_GUARD
+
+float page_allocator_disk = 0;
+float page_allocator_size = 0;
+
+palloc_vpagemap: alloc 10;
+
+#endif
+

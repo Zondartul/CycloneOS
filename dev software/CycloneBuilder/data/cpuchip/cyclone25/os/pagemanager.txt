@@ -1,0 +1,111 @@
+//page manager stores a pagemap in a vector.
+#include "libpaging.txt"
+
+//struct page_manager
+//0 - typeof
+//1 - v_pagemap
+//2 - PT pointer (1.arr)
+
+typeof_page_manager: db "page_manager", 0;
+float sizeof_page_manager = 3;
+
+//page table structure (from zCPU doc):
+// 0 \ default page   
+// 1 /                                                      --ignored for default page
+// 2 \ page 0 --- runlevel and permission flags (bit-field)
+// 3 /        --- index this page should be remapped to
+// 4 \ page 1
+// 5 /
+// ...
+float page_manager_constructor(float self){
+    self[0] = typeof_page_manager;
+    float V = malloc(sizeof_vector);
+    vector_constructor(V,2); //(self, element_size)
+    self[1] = V;
+    float PT = vector_array(V);
+    self[2] = PT;
+}
+
+float page_manager_assign_default_page(float PM, float page){
+    assert_type(PM, typeof_page_manager);
+    //printf("pm_asn_default: [%d,%d]\n",page[0],page[1]);
+    float PT = PM[2];
+    float dpage = PT+0;
+    dpage[0] = page[0];
+    dpage[1] = page[1];    
+}
+
+float page_manager_check_size(float PM, float maxpage){
+    assert_type(PM, typeof_page_manager);
+    float V = PM[1];
+    float Vsize = vector_size(V);
+    float needSize = maxpage+1; //incl. default page
+    //printf("Vsize = %d, needsize = %d\n", Vsize, needSize);
+    if(Vsize < needSize){
+        //printf("PT reloc from %d\n" PM[2]);
+        vector_resize(V, needSize);
+        float PT = vector_array(V);
+        PM[2] = PT;
+        //printf("to %d\n", PM[2]);
+    } 
+}
+
+//copies the page info across an entire range in the page table.
+//grows the page table if necessary.
+//PM - page manager, page - struct page, pn_from/pn_to - page number from/to
+float page_manager_assign_page_range(float PM, float page, float pn_from, float pn_to){
+    assert_type(PM, typeof_page_manager);
+    //printf("pm_asn_pr: [%d, %d]\n in <%d .. %d>\n",page[0],page[1],pn_from,pn_to);
+    float V = PM[1];
+    pn_to = pn_to+1; //inclusive range
+    //check if page table is big enoguh
+    page_manager_check_size(PM, pn_to);
+    //iterage pages and assign them
+    float PT = PM[2];
+    float I;
+    for(I = pn_from; I < pn_to; I++){
+        //float P = I+1);
+        float pt_page = PT+(I+1)*2;
+        pt_page[0] = page[0];
+        pt_page[1] = page[1];
+        //void vector_set(void *self, void *element, float pos)
+        //float vsize = vector_get_size(V);
+        //printf("vector size = %d\n",vsize);
+        //printf("setting page %d @ %d...\n",I, P);
+        //vector_set(V, page, P);
+        //printf("assigned pg %d\n", P);
+    }
+    //printf("pm_asn_pr done\n");
+}
+
+float page_manager_map_1_to_1(float PM, float pn_from, float pn_to){
+    assert_type(PM, typeof_page_manager);
+    //printf("pm_map_121: <%d .. %d>\n", pn_from, pn_to);
+    pn_to = pn_to+1; //inclusive range
+    page_manager_check_size(PM, pn_to);
+    float PT = PM[2];
+    float I;
+    for(I = pn_from; I < pn_to; I++){
+        float page = PT+(I+1)*2;
+        page[1] = I;
+    }
+    
+}
+
+//runs setPageTable with the PM's table.
+float page_manager_activate(float PM){
+    assert_type(PM, typeof_page_manager);
+    float V = PM[1];
+    float Vsize = vector_size(V);
+    float PTsize = Vsize;
+    float PT = PM[2];
+    //void setPageTable(float PT,float size)
+    setPageTable(PT, PTsize);
+}
+
+
+
+
+
+
+

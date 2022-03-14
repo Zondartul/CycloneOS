@@ -1,0 +1,410 @@
+#ifndef ARGS_COLLECTOR_GUARD
+#define ARGS_COLLECTOR_GUARD
+
+// "args" is a class that collects arguments in standard CLI form
+// and identifies them as flags or arguments.
+//
+// methods:
+// constructor
+// collect(argc, argv) - reads argc, argv to fill out itself
+//
+// addArg(str) - adds an argument with the string "str"
+// addFlag(str) - adds a flag with the string "str"
+// add(str) - adds arg or flag with the string "str"
+// 
+// num() - returns the number of arguments
+// popArg() - returns the next argument and removes it
+// popFlag() - returns the next flag and removes it
+// popFlag_s(str) - returns (1 if the specified flag exists) and removes it 
+// popFlagParam_s(str, p_res) - returns (1 if the specified flag exists) and (puts corresponding param into p_res if exists) and removes both.
+
+
+
+typeof_args: db "args", 0;
+float sizeof_args = 3;
+float sizeof_arg_element = 2;
+//0 typeof_args
+//1 vec_args
+//2 vec_strings
+//... args vector element:
+//     0 - type: 0 = none, 1 = arg, 2 = flag//2 = short_flag, 3 = long_flag
+//     1 - str idx
+//     //2 - has_param - // 1 if next arg is a param, 0 otherwise.
+//    meh, for params we'll just check if the next one is an ARG.
+
+#define ARGS_TYPE_NONE 0
+#define ARGS_TYPE_ARG 1
+#define ARGS_TYPE_FLAG 2
+
+args_str_arg:  db "arg", 0;
+args_str_flag: db "flag", 0;
+
+//#define ARGS_TYPE_SHORT_FLAG 2
+//#define ARGS_TYPE_LONG_FLAG 3
+
+float args_constructor(float this){
+    this[0] = typeof_args;
+    float v_args = malloc(sizeof_vector);
+    vector_constructor(v_args,sizeof_arg_element);
+    this[1] = v_args;
+    float v_strings = malloc(sizeof_vector);
+    vector_constructor(v_strings,1);
+    this[2] = v_strings;
+    
+    //clear the args_buffer
+    args_buff[0] = 0;
+    args_buff[1] = 0;
+    //args_buff[2] = 0;
+}
+
+//returns 1 if string is a flag, 0 otherwise
+float is_flag(float str){
+    //float strncmp(char *src, *dest, float n) 
+    float res = (strncmp(str, "-",1) == 0);
+    //printf("is_flag? %d\n", res);
+    return res;
+}
+
+float is_long_flag(float str){
+    //float strncmp(char *src, *dest, float n) 
+    float res = (strncmp(str, "--",2) == 0);
+    //printf("is_long_flag? %d\n", res);
+    return res;
+}
+
+//returns the index the next argument would have
+//float args_next_arg_idx(float this){
+//    assert_type(this, typeof_args);
+//    return vector_size(this[1]);
+//}
+
+args_buff: alloc 2;
+
+args_str_buff: alloc 2;
+//float args_link_param(float this, float idx){
+//    assert_arity(ecx, 2);
+//    assert_type(this, typeof_args);
+//    float v_args = this[1];
+//    //if the previous thing is a flag, link it
+//    float prev_type = args_buff[0];
+//    if(prev_type == ARGS_TYPE_FLAG){
+//        args_buff[2] = idx;
+//    }
+//    float v_args_size = vector_size(v_args);
+//    if(v_args_size){
+//        float prevArgIdx = v_args_size - 1;
+//        // void   vector_set(self,element,pos)
+//        vector_set(v_args, args_buff, prevArgIdx);
+//    }
+//}
+
+float args_debug_printX(float this, float buff){
+    assert_arity(ecx, 2);
+    assert_type(this, typeof_args);
+    float v_args = this[1];
+    float v_strings = this[2];
+    
+    float a_type = buff[0];
+    float a_str_idx = buff[1];
+//    float a_param_idx = buff[2];
+    float a_str = vector_get(v_strings, 0, a_str_idx);
+    
+    float type_str = 0;
+    if(a_type == ARGS_TYPE_ARG) {type_str = args_str_arg;}
+    if(a_type == ARGS_TYPE_FLAG){type_str = args_str_flag;}
+    //printf("%m  type %d [%s]\n  str %d [%s]\n  param %d\n",990, a_type, type_str, a_str_idx, a_str, a_param_idx);
+    printf("%m  type %d [%s]\n  str %d [%s]\n",990, a_type, type_str, a_str_idx, a_str);
+}
+
+float args_debug_printBuff(float this){
+    assert_arity(ecx, 1);
+    assert_type(this, typeof_args);
+    args_debug_printX(this, args_buff);
+}
+
+float args_debug_printVX(float this, float idx){
+    assert_arity(ecx, 2);
+    assert_type(this, typeof_args);
+    float v_args = this[1];
+
+    printf("%mV[%d]\n",970,idx);
+    float buff = vector_get_ref(v_args, idx);
+    args_debug_printX(this, buff);
+}
+
+float args_debug_printV(float this){
+    assert_arity(ecx, 1);
+    assert_type(this, typeof_args);
+    float v_args = this[1];
+    float size = vector_size(v_args);
+    float I;
+    for(I = 0; I < size; I++){
+        args_debug_printVX(this, I);
+    }
+}
+
+float args_add_x(float this, float str, float type){
+    assert_arity(ecx, 3);
+    assert_type(this, typeof_args);
+    float v_args = this[1];
+    float v_strings = this[2];
+    float idx = vector_size(v_strings);
+    vector_push(v_strings, str);
+    
+   // if(type == ARGS_TYPE_ARG){
+   //     // link param if any
+   //     args_link_param(this, idx);
+   // }
+    args_buff[0] = type;
+    args_buff[1] = idx;
+    //args_buff[2] = 0;
+    
+    //debug
+    //float dbg_str = vector_get(v_strings, 0, args_buff[1]);
+    //printf("pushing x (type %d, idx %d [%s], param %d)\n", args_buff[0], args_buff[1], dbg_str, args_buff[2]);
+    //end debug
+    vector_push(v_args, args_buff);
+}
+
+
+//converts the arg-count, arg-vec into an args structure
+float args_collect(float this, float argc, float argv){
+    assert_arity(ecx, 3);
+    assert_type(this, typeof_args);
+
+    float I;
+    for(I = 0; I < argc; I++){
+        float str = argv[I];
+        //printf("%mcollect argv[%d]:[%s]\n", 990, I, str);
+        if(is_long_flag(str)){
+            str = str+2;
+            str = stralloc(str);
+            args_add_x(this, str, ARGS_TYPE_FLAG);
+        }else{
+            if(is_flag(str)){
+                str = str+1;
+                float len = strlen(str);
+                //split the string into individual letter flags
+                float J;
+                for(J = 0; J < len; J++){
+                    args_str_buff[0] = str[J];
+                    args_str_buff[1] = 0;
+                    float str2 = stralloc(args_str_buff);
+                    args_add_x(this, str2, ARGS_TYPE_FLAG);
+                }
+            }else{
+                str = stralloc(str);
+                args_add_x(this, str, ARGS_TYPE_ARG);
+            }
+        }
+    }
+    
+}
+
+float args_helper_getX_t(float this, float type){
+    assert_arity(ecx, 2);
+    assert_type(this, typeof_args);
+    float v_args = this[1];
+    float v_strings = this[2];
+    float I;
+    float size = vector_size(v_args);
+    for(I = 0; I < size; I++){
+        vector_get(v_args, args_buff, I);
+        //debug
+        //printf("%mgetX_t(%d): I = %d of %d\n",990, type, I,size);
+        //args_debug_printBuff(this);
+        //end debug
+        if(args_buff[0] == type){
+            return I;
+        }
+    }
+    return -1;
+}
+
+float args_helper_getX_ts(float this, float type, float str){
+    assert_arity(ecx, 3);
+    assert_type(this, typeof_args);
+    float v_args = this[1];
+    float v_strings = this[2];
+    float I;
+    float size = vector_size(v_args);
+    for(I = 0; I < size; I++){
+        vector_get(v_args, args_buff, I);
+        if(args_buff[0] == type){
+            float str_idx = args_buff[1];
+            float str2 = vector_get(v_strings, 0, str_idx);
+            if(strcmp(str2, str) == 0){
+                return I;
+            }
+        }
+    }
+    return -1;
+}
+
+//checks the arguments to search for a flag
+float args_hasFlag(float this, float flag_str){    
+    assert_arity(ecx, 2);
+    assert_type(this, typeof_args);
+    float idx = args_helper_getX_ts(this, ARGS_TYPE_FLAG, flag_str);
+    return (idx != -1);
+}
+
+float args_num(float this){ // - returns the number of arguments
+    assert_arity(ecx, 1);
+    assert_type(this, typeof_args);
+    float res = 0;
+    
+    float v_args = this[1];
+    float size = vector_size(v_args);
+    float I;
+    for(I = 0; I < size; I++){
+        vector_get(v_args, args_buff, I);
+        if(args_buff[0] == ARGS_TYPE_ARG){
+            res++;
+        }    
+    }
+    return res;
+}
+
+float args_numFlags(float this){
+    assert_arity(ecx, 1);
+    assert_type(this, typeof_args);
+    float res = 0;
+    
+    float v_args = this[1];
+    float size = vector_size(v_args);
+    float I;
+    for(I = 0; I < size; I++){
+        vector_get(v_args, args_buff, I);
+        if(args_buff[0] == ARGS_TYPE_FLAG){
+            res++;
+        }    
+    }
+    return res;
+}
+
+float args_popArg(float this){// - returns the next argument (or nullptr) and removes it
+    assert_arity(ecx, 1);
+    assert_type(this, typeof_args);
+    
+    float idx = args_helper_getX_t(this, ARGS_TYPE_ARG); //side effect: args_buff filled out
+    if(idx != -1){
+        float v_args = this[1];
+        float v_strings = this[2];
+        
+        float str_idx = args_buff[1];
+        float str = vector_get(v_strings, 0, str_idx);
+        //printf("%mbefore pop:\n", 950);
+        //args_debug_printV(this);
+        //printf("%mpopping %d:\n", 950, idx);
+        vector_remove(v_args, idx);
+        //printf("%m %d popped. Contents left:\n",950, idx);
+        //args_debug_printV(this);
+        return str;
+    }
+    
+    return 0;
+}
+
+float args_helper_popX(float this, float idx){
+    assert_arity(ecx, 2);
+    assert_type(this, typeof_args);
+    float v_args = this[1];
+    float v_strings = this[2];
+    
+    vector_get(v_args, args_buff, idx); //this should be unnecessary but just in case lets do it again
+    float str_idx = args_buff[1];
+    float str = vector_get(v_strings, 0, str_idx);
+    
+    //debug
+    //printf("%mpopping %d:\n", 990, idx);
+    //args_debug_printBuff(this);
+    //end debug
+    
+    
+    vector_remove(v_args, idx);
+    return str;
+}
+
+//returns the flag as a string
+float args_popFlag(float this){
+    assert_arity(ecx, 1);
+    assert_type(this, typeof_args);
+    
+    float idx = args_helper_getX_t(this, ARGS_TYPE_FLAG); //side effect: args_buff filled out
+    if(idx != -1){
+        float res = args_helper_popX(this, idx);
+        return res;
+    }
+    
+    return 0;
+}
+
+//returns 1 or 0 based on whether the flag is present
+float args_popFlag_s(float this, float str){ // - returns (1 if the specified flag exists) and removes it 
+    assert_arity(ecx, 2);
+    assert_type(this, typeof_args);
+    
+    float idx = args_helper_getX_ts(this, ARGS_TYPE_FLAG, str); //side effect: args_buff filled out
+    //printf("popFlag_s: idx = %d\n",idx);
+    if(idx != -1){
+        float res = args_helper_popX(this, idx);
+        //printf("popFlag_s res = %d\n", res);
+        //return res;
+        if(res){
+            return 1;
+        }
+    }
+    
+    return 0;
+}
+
+//if specified flag exists, and a param is specified: returns 2. if p_res is specified, a pointer to the param string is written there.
+//if a specified flag exists, but no param: returns 1
+//if specified flag does not exist: returns 0.
+
+float args_popFlagParam_s(float this, float str, float p_res){// - returns (1 if the specified flag exists) and (puts corresponding param into p_res if exists) and removes both.
+    assert_arity(ecx, 3);
+    assert_type(this, typeof_args);
+    
+    float idx = args_helper_getX_ts(this, ARGS_TYPE_FLAG, str); //side effect: args_buff filled out
+    if(idx != -1){
+        //check if next one is an arg
+        args_helper_popX(this, idx);
+        float hasParam = 0;
+        float str2 = 0;
+        float v_args = this[1];
+        float size = vector_size(v_args);
+        if(idx < size){
+            vector_get(v_args, args_buff, idx);
+            if(args_buff[0] == ARGS_TYPE_ARG){
+                hasParam = 1;
+                //float str2_idx = args_buff[1];
+                //float v_strings = this[2];
+                //str2 = vector_get(v_strings, 0, str2_idx);
+                str2 = args_helper_popX(this,idx);
+            }
+        }
+        if(hasParam){            
+            if(p_res){
+                *p_res = str2;
+            }
+            return 2;
+        }else{
+            if(p_res){
+                *p_res = 0;
+            }
+            return 1;
+        }
+    }
+    
+    return 0;
+}
+
+float args_new(){
+    float args = malloc(sizeof_args);
+    args_constructor(args);
+    return args;
+}
+
+#endif

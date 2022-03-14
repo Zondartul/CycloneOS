@@ -1,0 +1,27 @@
+float cmdDump(float shell, float argc, float argv){
+    assert_type(shell, typeof_shell2);
+    if(argc > 2){
+        float devNum = str2num(argv[1]);
+        float filename = argv[2];
+        printf("dumping device %d to file %s\n", devNum, filename);
+
+        float devEntry = EBcb_get_entry(EBcb_1, devNum);
+        float devAdr = EBcb_entry_get_addr(devEntry);
+        
+        float psize = devAdr[0];
+        printf("file size = %d\n", psize);
+        if((psize < 0) || (psize > 5000)){
+            printf("file too large, abort\n");
+            return 1;
+        }
+        float fp = fopen(shell, filename, "w");
+        if(fp){printf("file opened\n");}else{
+            printf("can't open file\n");
+            return 1;
+        }
+        float res = fwrite(devAdr, psize, fp);
+        printf("wrote %d bytes, done\n", res);
+        return 0;
+    }
+    cmdHelp2(shell, argv[0]);
+}

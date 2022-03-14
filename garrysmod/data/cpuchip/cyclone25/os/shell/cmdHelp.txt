@@ -1,0 +1,39 @@
+float cmdHelp(float shell, float argc, float argv){
+    assert_type(shell, typeof_shell2);
+    if(argc > 1){
+        cmdHelp2(shell, argv[1]);
+    }else{
+        float V = shell[5];
+        float S = vector_size(V);
+        float I;
+        for(I = 0; I < S; I++){
+            float entry[4];
+            vector_get(V, entry, I);
+            float e_str = entry[1];
+            float e_desc = entry[2];
+            printf("%s", e_str);
+            if(e_desc){printf(" - %s", e_desc);}
+            printf("\n");
+        }
+    }
+}
+
+float cmdHelp2(float shell, float str_cmd){
+    assert_type(shell, typeof_shell2);
+    float V = shell[5];
+    float S = vector_size(V);
+    float I;
+    for(I = 0; I < S; I++){
+        float entry[4];
+        vector_get(V, entry, I);
+        float e_str = entry[1];
+        if(strcmp(e_str, str_cmd) == 0){
+            float e_help = entry[3];
+            if(e_help){
+                printf("%s\n",e_help);
+            }else{
+                printf("no help is available for this command\n");
+            }
+        }
+    }
+}

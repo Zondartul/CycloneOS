@@ -1,0 +1,112 @@
+float printBlockmap(float fs3, float from, float count){
+    float blocksize;     
+	fs3_low_read(fs3, 12, &blocksize, 1);
+    float num_blocks;    
+	fs3_low_read(fs3, 13, &num_blocks, 1);
+    float dptr_blockmap; 
+	fs3_low_read(fs3, 14, &dptr_blockmap, 1);
+    
+    float blockmap_size = num_blocks*2;
+    float blockmap = malloc(blockmap_size);
+    fs3_low_read(fs3, dptr_blockmap, blockmap, blockmap_size);
+    
+    float B;
+    float Buser;
+    float Bnext;
+    float col;
+    float I;
+
+    if(from > num_blocks){from = num_blocks-1;}
+    if(count > (num_blocks - from-1)){count = num_blocks - from;}    
+    if(count > 30){count = 30;}
+
+    printf("block\tuser\tnext\n");
+    for(I = from; I < count; I++){//for(I = 0; I < num_blocks; I++)
+        B = blockmap + I*2;
+        Buser = B[0];
+        Bnext = B[1];
+        col = 900;
+        if(Buser == 0){col = 575;}
+        if(Buser == 1){col = 229;}
+        if(Buser > 1){col = 755;}
+        printf("%m%d    %d    %d\n",col, I, Buser, Bnext);
+    }
+
+}
+
+float cmdFS(float shell, float argc, float argv){
+    assert_type(shell, typeof_shell2);
+    float fs3 = shell[3];
+    if(!fs3){
+        printf("filesystem not mounted, use \"mount\" or \"cd\"\n");
+        return 0;
+    }
+    if(argc > 1){
+        if(strcmp(argv[1], "info")==0){
+            float fs_header = malloc(17);
+            //disk format:
+            //0 - "lightfs3"
+            //11 - total size
+            //12 - block size
+            //13 - number of blocks
+            //14 - ptr to block map
+            //15 - ptr to blocks
+            //16 - max file index
+            
+            //fs3_low_read(float fs3, float disk_ptr, float to, float size)
+            fs3_low_read(fs3, 0, fs_header, 16);
+            printf("format: [%s]\n", fs_header);
+            printf("total size: %d\n", fs_header[11]);
+            printf("block size: %d\n", fs_header[12]);
+            printf("num blocks: %d\n", fs_header[13]);
+            printf("blockmap @: %d\n", fs_header[14]);
+            printf("blocks @:   %d\n", fs_header[15]);
+            printf("max index:  %d\n", fs_header[16]);
+            free(fs_header);
+            
+            float num_free;   float num_used;   float num_total;
+            float bytes_free; float bytes_Used; float bytes_total;
+            countHDD(fs3, &bytes_free, &bytes_used, &bytes_total, &num_free, &num_used, &num_total);
+            
+            printf("blocks:\n %d free\n %d used\n %d total\n", num_free, num_used, num_total);
+            printf("HDD: %d / %d bytes free\n", bytes_free, bytes_total); 
+            
+        }
+        else if(strcmp(argv[1], "blocks")==0){
+            if(argc > 3){
+                float blocks_from = str2num(argv[2]);
+                float blocks_count = str2num(argv[3]);
+                printBlockmap(fs3, blocks_from, blocks_count);
+            }else{
+                printf("usage: fs blocks [from][count]\n");
+            }
+        }
+        else if(strcmp(argv[1], "cache")==0){
+            if(argc > 2){
+                if(strcmp(argv[2], "on")==0){
+                    fs3[4] = 1;
+                    printf("fs cache turned on\n");
+                }
+                if(strcmp(argv[2], "off")==0){
+                    fs3[4] = 0;
+                    printf("fs cache turned off\n");
+                }
+                if(strcmp(argv[2], "reset")==0){
+                    printf("fs cache was reset\n");
+                    printf("<unimplimented>\n");
+                }
+            }else{
+                printf("fs cache is currently ");
+                if(fs3[4]){
+                    printf("ON\n");
+                }else{
+                    printf("OFF\n");
+                }
+            }
+        }else{
+            cmdHelp2(shell, argv[0]);
+        }
+    }else{
+    cmdHelp2(shell, argv[0]);
+    }
+}

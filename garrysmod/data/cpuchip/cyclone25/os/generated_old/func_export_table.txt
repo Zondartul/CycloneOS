@@ -1,0 +1,54 @@
+#ifndef CYCLONE_BUILDER
+func_export_table:
+db main;
+db set_trampoline;
+db clear_globals;
+db kprints;
+db kprintn;
+db kprintf;
+db kernel_thread;
+db exec_test;
+db write_test;
+db protect_kernel_pages;
+db init_ktimer;
+db retAlert;
+db unfuckEntry;
+db KernellCallIntHandler;
+db UnmappedPageIntHandler;
+db defaultIntHandler;
+db timerShouldRun;
+db timerLogic;
+db timerIntHandler;
+db pageTrapHandler;
+db pageReadHandler;
+db pageWriteHandler;
+db thread_terminate;
+db setThreadExitPoint;
+db jmpThreadExitPoint;
+db farjump;
+db findJmp;
+db toAbsSpace;
+db kcall;
+db vprintf;
+db bios_prints;
+db bios_printn;
+db Perr;
+db panic;
+db error;
+db kernelSize;
+func_export_table_end:
+
+var_export_table:
+db &EB_Addr_Screen;
+db &timerPeriod;
+db &timerLogicTimeout;
+db &v_proclist;
+db &proclist_I;
+db &switcherOn;
+db &k_page_manager;
+db &timerN;
+db &threadExit_ebp;
+db &threadExit_esp;
+db &threadExit_pos;
+var_export_table_end:
+#endif

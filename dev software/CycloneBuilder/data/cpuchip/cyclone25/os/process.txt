@@ -1,0 +1,44 @@
+//process
+
+//struct process{
+// typeof;
+// int procID;
+// int thread; //for now just jmp pos for thread entry point
+// int free_pages_start; //range of virtual pages that have not yet been assigned
+// int free_pages_end;
+// proginfo;    //file metadata for the loaded program
+// vector<int> pagemap; //0 - flags, 1 - remapped page
+//}
+
+//process_h = handle for process
+
+typeof_process_h: db "h_process", 0;
+float sizeof_process_h = 11; // 6 + sizeof_vector(=5)
+
+float process_h_constructor(float this){
+    this[0] = typeof_process_h;
+    this[1] = 0;
+    this[2] = 0;
+    this[3] = 0;
+    this[4] = 0;
+    this[5] = 0;
+    vector_constructor(this+6, 1);
+}
+
+float process_h_get_procID(float this){return this[1];}
+float process_h_get_thread(float this){return this[2];}
+float process_h_get_free_pages_start(float this){return this[3];}
+float process_h_get_free_pages_end(float this){return this[4];}
+float process_h_get_proginfo(float this){return this[5];}
+float process_h_get_pagemap(float this){return this+6;}
+
+
+float process_h_set_procID(float this, float val){this[1] = val;}
+float process_h_set_thread(float this, float val){this[2] = val;}
+float process_h_set_free_pages_start(float this, float val){this[3] = val;}
+float process_h_set_free_pages_end(float this, float val){this[4] = val;}
+float process_h_set_proginfo(float this, float val){this[5] = val;}
+
+
+
+

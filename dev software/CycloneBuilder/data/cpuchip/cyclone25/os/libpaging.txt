@@ -1,0 +1,126 @@
+//paging library
+#ifndef LIBPAGING_GUARD
+#define LIBPAGING_GUARD
+
+#define page_disabled 1
+#define page_remapped 2
+#define page_trap 4
+#define page_override 8
+#define page_reserved 16
+#define page_no_read 32
+#define page_no_write 64
+#define page_no_exec 128
+
+void initPaging(float PT,float size,float flags, float runlevel){
+    setPageTable(PT,size);
+    float I;
+    for(I = -1; I < size; I++){
+        mapPage(PT,I,I,flags,runlevel);
+    }
+}
+
+void setPageTable(float PT,float size){
+    CPUSET 37,PT;
+    CPUSET 38,size;
+}
+
+void getPage(float PT, float page){
+    page = page+1;
+    page = page*2;
+    page = PT+page;
+    return page;
+}
+
+void setPageFlags(float page, float flags){
+    float runlevel = *page;
+    runlevel = runlevel/256;
+    fint runlevel;
+    *page = flags+256*runlevel;
+}
+
+float getPageFlags(float page){
+    float flags = *page;
+    flags = flags%256;
+    fint flags;
+    return flags;
+}
+
+void setPageRunLevel(float page, float level){
+    float flags = *page;
+    flags = flags%256;
+    fint flags;
+    *page = flags+256*level;
+}
+
+float getPageRunlevel(float page){
+    float runlevel = *page;
+    runlevel = runlevel/256;
+    fint runlevel;
+    return runlevel;;
+}
+
+void setPageMapping(float page, float phys){page[1] = phys;}
+float getPageMapping(float page){return page[1];}
+
+void reportPage(float pageTable, float pageID){
+    float page = getPage(pageTable,pageID);
+    float flags = getPageFlags(page);
+    float level = getPageRunlevel(page);
+    float phys = getPageMapping(page);
+    printf("P%d: phys  = %d\n",pageID,phys);
+    printf("P%d: flags = %d\n",pageID,flags);
+    printf("P%d: level = %d\n",pageID,level);
+}
+
+float toPage(float addr){
+    addr = addr/128;
+    fint addr;
+    return addr;
+}
+
+
+void copyPage(float pageto, float pagefrom){
+    *pageto++ = *pagefrom++;
+    *pageto = *pagefrom;
+}
+
+void mapPage(float PT, float virt, float phys, float flags, float runlevel){
+    //float ptr = virt+1;
+    //ptr = ptr*2+1;
+    //PT[ptr] = phys;
+    
+    //setPageFlags(phys,flags);
+    //setPageRunLevel(phys, runlevel);
+    float page = getPage(PT,virt);
+    setPageMapping(page,phys);
+    setPageFlags(page,flags);
+    setPageRunlevel(page,runlevel);
+}
+
+void setMemoryRunlevel(float PT, float from, float to, float level){
+    float pagefrom = toPage(from);
+    float pageto = toPage(to);
+    float I;
+    for(I = pagefrom; I < pageto; I++){
+        float page = getPage(PT,I);
+        setPageRunlevel(page,level);
+    }
+}
+void setMemoryMapping(float PT, float from, float to, float target){
+    float pagefrom = from;//toPage(from);
+    float pageto = to;//toPage(to);
+    float pagetarget = target;//toPage(target);
+    float pageoffset = pagetarget-pagefrom;
+    float I;
+    for(I = pagefrom; I <= pageto; I++){
+        float page = getPage(PT,I);
+        float newpagetarget = I+pageoffset;
+        setPageMapping(page,newpagetarget);
+        //P("mapped page %d to %d\n",I,newpagetarget);
+    }
+}
+
+void pagingEnable(){STM;}
+void pagingDisable(){CLM;}
+
+#endif

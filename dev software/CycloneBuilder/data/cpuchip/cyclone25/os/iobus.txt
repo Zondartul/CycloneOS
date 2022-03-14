@@ -1,0 +1,42 @@
+#ifndef IOBUS_GUARD
+#define IOBUS_GUARD
+
+float ioRead(float pos){
+    assert_arity(ecx,1);
+    float a;
+    in a,pos;
+    return a;
+}
+
+float ioReadBuff(float dest, float src, float size){
+    assert_arity(ecx, 3);
+    float I;
+    for(I = 0; I < size; I++){
+        *dest++ = ioRead(src++);
+    }
+}
+
+float ioWrite(float pos, float val){
+    assert_arity(ecx, 2);
+    out pos, val;
+}
+
+float ioWriteBuff(float dest, float src, float size){
+    assert_arity(ecx, 3);
+    float I;
+    for(I = 0; I < size; I++){
+        ioWrite(dest++, *src++);
+    }
+}
+
+float iocpy(float dest, float src, float num){
+    assert_arity(ecx, 3);
+    float I;
+    for(I = 0; I < num; I++){
+        float v = src[I];
+        float d = dest+I;
+        out d,v;
+    }
+}
+
+#endif

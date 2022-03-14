@@ -1,0 +1,5 @@
+#visual studio stuff
+.vs
+Debug/
+Build/
+x86/

@@ -1,0 +1,54 @@
+#ifndef CYCLONE_BUILDER
+func_import_table:
+float main;
+float set_trampoline;
+float clear_globals;
+float kprints;
+float kprintn;
+float kprintf;
+float kernel_thread;
+float exec_test;
+float write_test;
+float protect_kernel_pages;
+float init_ktimer;
+float retAlert;
+float unfuckEntry;
+float KernellCallIntHandler;
+float UnmappedPageIntHandler;
+float defaultIntHandler;
+float timerShouldRun;
+float timerLogic;
+float timerIntHandler;
+float pageTrapHandler;
+float pageReadHandler;
+float pageWriteHandler;
+float thread_terminate;
+float setThreadExitPoint;
+float jmpThreadExitPoint;
+float farjump;
+float findJmp;
+float toAbsSpace;
+float kcall;
+float vprintf;
+float bios_prints;
+float bios_printn;
+float Perr;
+float panic;
+float error;
+float kernelSize;
+func_import_table_end:
+
+var_import_table:
+float EB_Addr_Screen;
+float timerPeriod;
+float timerLogicTimeout;
+float v_proclist;
+float proclist_I;
+float switcherOn;
+float k_page_manager;
+float timerN;
+float threadExit_ebp;
+float threadExit_esp;
+float threadExit_pos;
+var_import_table_end:
+#endif

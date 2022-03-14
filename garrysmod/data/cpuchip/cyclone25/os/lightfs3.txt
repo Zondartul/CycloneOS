@@ -1,0 +1,65 @@
+//lightfs3 - made for test25
+// completely different from lightfs2 - files are actually resident on disk rather than RAM. changes are live.
+// rules:
+//      files are resident on disk (not copied to RAM in whole)
+//      changes are live (not cached)
+//      blocks:
+//          a file is stored as a chain of blocks
+//          there is no metadata in a block, only file data.
+//          each block chain has a file index
+//              file index 0 = empty
+//                         1 = bootable code (boot chain can be copied into ram and ran in baremetal mode)
+//                         2 = root directory file
+//                         3+ = normal files
+//      folders:
+//          file name, size, and file_index is stored as a single fixed-size entry in a directory file
+//          there is no reference to block index in the folder, as blocks may be moved around (while defragging)
+//uncomment FS_DEBUG to enable printing of fs debug messages
+//#define FS_DEBUG
+//support: generic fs-agnostic functions
+
+
+// FS3 FILESYSTEM TODO
+// issues:
+//   v(fixed)- new file_handle is opened every time, FT cache doesn't work
+//   v(fixed)- fwrite doesn't update the file_handle with the new size
+//   - too many reads and openings
+//   - read-only open of nonexisting file crashes
+// needed funcs:
+//   - makedir
+//   - cd into dir
+//   - delete file
+//   - delete dir
+
+fs_marker1: db 0;
+#include "fs_support.txt"
+//volume: disk formatting and fs init/mounting
+fs_marker2: db 0;
+#include "lightfs3/fs3_volume.txt"
+//block: low-level operations on block chains that store file contents
+fs_marker3: db 0;
+#include "lightfs3/fs3_block.txt"
+//directory: functions to work with folders
+fs_marker4: db 0;
+#include "lightfs3/fs3_directory.txt"
+//lookup: working with filepath strings
+fs_marker5: db 0;
+#include "lightfs3/fs3_lookup.txt"
+//file: fread, fwrite, fopen, etc.
+fs_marker6: db 0;
+#include "lightfs3/fs3_file.txt"
+fs_marker7: db 0;
+#include "lightfs3/fs3_table.txt"
+fs_marker8: db 0;
+// usage:
+//      1. if no filesystem exists, create an fs_control_block to reside in RAM as a handle for the new filesystem.
+//      2. select an appropriate device (or area in memory) and call fs3_disk_format().
+//      3. once a filesystem exists on disk, you can get a handle to it using fs3_load_fs_descriptor().
+//      4. files and folders may be iterated by accessing the root folder fs3_open_root_dir() and iterating
+//          its entries with fs3_get_dir_filename().
+//      5. files may be written and read using fopen, fread and fwrite.
+//      6. mkdir, rmdir and rm to be discussed.
+//      7. fclose to be discussed. 
+//
+//
+//

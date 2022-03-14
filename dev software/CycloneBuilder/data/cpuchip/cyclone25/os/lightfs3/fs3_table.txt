@@ -1,0 +1,115 @@
+//lightfs file_table - holds handles to currently open files
+//file handles may be shared non-reentrantly (i.e. one seek-read or seek-write at a time)
+
+//table entries:
+// 0 - file index
+// 1 - file handle
+
+float fs3_init_file_table(float fs3){
+    assert_type(fs3, typeof_fs3);
+    float FT = malloc(sizeof_vector);
+    vector_constructor(FT, 2); //self, element_size
+    fs3[3] = FT; //filetable    
+}
+
+float fs3_add_file_to_FT(float fs3, float file_index, float file_handle){
+    assert_type(fs3, typeof_fs3);
+    float cache_mode = fs3[4];
+    if(!cache_mode){return 0;}
+    float FT = fs3[3];
+    float entry[2];
+    entry[0] = file_index;
+    entry[1] = file_handle;
+    //void vector_push(void *self, void *element)
+    vector_push(FT, entry);
+}
+
+//if the filetable contains the entry corresponding to file_index, return the matching file_handle.
+//else return zero.
+float fs3_FT_get_file(float fs3, float file_index){
+    assert_type(fs3, typeof_fs3);
+    float cache_mode = fs3[4];
+    if(!cache_mode){return 0;}
+    float FT = fs3[3];
+    float entry[2];
+    float size = vector_size(FT);
+    float I;
+    for(I = 0; I < size; I++){
+        //float vector_get(void *self, void *element, float pos)
+        vector_get(FT, entry, I);
+        if(entry[0] == file_index){
+            return entry[1];
+        }
+    }
+    return 0;
+}
+
+//remove entries from the file table with a matching file_index (if nonzero) and/or matching file_handle (if nonzero)
+//untested
+float fs3_FT_erase_file(float fs3, float file_index, float file_handle){
+    assert_type(fs3, typeof_fs3);
+    float cache_mode = fs3[4];
+    if(!cache_mode){return 0;}
+    float FT = fs3[3];
+    float entry[2];
+    float size = vector_size(FT);
+    float I = 0;
+    while(I < size){
+        vector_get(FT, entry, I);
+        if((file_index != 0) && (entry[0] != file_index)){I++; continue;}
+        if((file_handle != 0) && (entry[1] != file_handle)){I++; continue;}
+        vector_remove(FT, I);
+    }
+}
+
+//opens the directory with fidx "backlink", finds in it the file with fidx "file_index", and sets its size to "size".
+float fs3_backlink_write_size(float fs3, float backlink, float file_index, float size){
+    assert_type(fs3, typeof_fs3);
+    //printf("blw1: backlink_write_size(fs3 %d, backlink %d, file_index %d, size %d)\n",fs3, backlink, file_index, size);
+    float fh_dir = fs3_open_or_lookup_file_index(fs3, backlink, 0);
+    
+    //debug
+    //printf("backlink: backlink info\n");
+    //fs3_print_file_handle(float fs3, float file_handle)
+    //fs3_print_file_handle(fs3, fh_dir);
+    
+    //printf("blw2\n");
+    float entry_idx = fs3_dir_find_fidx(fs3, fh_dir, file_index);
+    //printf("blw3\n");
+    if(entry_idx != -1){
+        //printf("blw4\n");
+        float fptr_entry = fs3_dir_get_entry_ptr(fs3, fh_dir, entry_idx);
+        //printf("blw5\n");
+        float fptr_size = fptr_entry+2;
+        //printf("backlink: fptr_entry = %d\n", fptr_entry);
+        fseek(fh_dir, fptr_size, SEEK_SET);
+        //printf("blw6\n");  
+    //float fwrite(float from, float size, float fp)
+        fwrite(&size, 1, fh_dir);
+        //printf("blw7\n");
+    }else{
+        printf("backlink_ws: no entry for index %d\n", file_index);
+    }
+    //printf("blw_end\n");
+}
+
+float fs3_backlink_read_size(float fs3, float backlink, float file_index){
+    assert_type(fs3, typeof_fs3);
+    float size;
+    float fh_dir = fs3_open_or_lookup_file_index(fs3, backlink, 0);
+    
+    float entry_idx = fs3_dir_find_fidx(fs3, fh_dir, file_index);
+    if(entry_idx != -1){
+        float fptr_entry = fs3_dir_get_entry_ptr(fs3, fh_dir, entry_idx);
+        float fptr_size = fptr_entry+2;
+        fseek(fh_dir, fptr_size, SEEK_SET);
+        //float fread(float to, float size, float fp)
+        fread(&size, 1, fh_dir);
+    }
+    return size;
+}
+
+
+
+
+

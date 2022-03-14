@@ -1,0 +1,50 @@
+#ifndef TYPES_GUARD
+#define TYPES_GUARD
+
+void assert(float n, float str){
+    if(n == 0){
+        //Perr("assertion failed: ");
+        //Perr(str);
+        printf("%massertion failed: %s\n",900);
+        panic();
+    }
+}
+void assert_type(float self, float t){
+    if(self[0] != t){
+        printf("%mtype error: %d is not a %s\n",900,self,t);
+        //Perr("type error: ");
+        //Perr(num2str(self));
+        //Perr(" is not a\n");
+        //Perr(t);
+        //Perr("\n");
+        panic();
+    }
+}
+
+float curticks(){
+    float T;
+    cpuget eax,29;
+    T = eax;
+    return T;
+}
+
+float curtime()
+{
+    timer eax;
+    return eax;
+}
+
+float assert_arity(float ecx_here, float num_args){
+    if(ecx_here != num_args){
+        //printf("Arity error: func expects ");
+        //Perr(num2str(num_args));
+        //Perr(" args, but got ");
+        //Perr(num2str(ecx_here));
+        //Perr("\n");
+        printf("%mArity error: func expects %d args, but got %d\n", 900, num_args, ecx_here);
+        panic();
+    }
+}
+
+#endif
+

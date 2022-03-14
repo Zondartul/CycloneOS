@@ -1,0 +1,412 @@
+//Stack allocation and 
+#ifndef STACKALLOC_GUARD
+#define STACKALLOC_GUARD
+
+
+// memcpy2 - copies memory. can copy to overlapping areas.
+//
+// stack_alloc - allocates space on the stack of the current function
+// stack_return - allocates space on the owner's stack, copies the object there, and returns pointer to that object.
+//
+//                NOTE: in this case the function cannot be used as an argument for a call, as it would mess up
+//                the arguments. e.g. printf("%d,%s\n", 1, returns_string_on_stack("hello")) will bork.
+//
+//
+//future work: 
+// stack_vector - vector/dynarray that lives fully on the stack.
+//
+
+
+//include lib/zcrt/string.txt for memset;
+//#include <lib/zcrt/string.txt>
+STACKALLOC_CODE:
+
+void *memcpy2(void *dest, void *src, float n) {
+    float I;
+    if(dest < src){
+        for(I = 0; I < n; I++){
+            dest[I] = src[I];
+        }
+    }else{
+        for(I = n-1; I > -1; I--){
+            dest[I] = src[I];
+        }
+    }
+}
+
+//float stack_alloc(float n)
+//this function allocates space on the stack.
+//it will be freed automatically when the caller function exits.
+/*
+stack_alloc:
+    //out 0, esp;
+    //out 1, 2;
+    //int 1;
+    //stack state:
+    // +2: arg1   :newX
+    // +1: IPprev :
+    //ESP:        :
+    //
+    //desired stack state:
+    // +2+size:         : oldX : oldESP+2
+    //      +2:         : newX : oldESP+2-size
+    //      +1: IPprev  :      : oldESP+1-size
+    //     ESP:         :      : oldESP-size
+    mov eax, esp;
+    add eax, 2;     //eax = &size = X
+    mov ebx, esp:#2 //ebx = size
+    mov ecx, esp:#1 //ecx = IPprev
+    mov edx, eax;
+    sub edx, ebx;   
+    inc edx;        //edx = X-size+1;
+    sub esp, ebx;   //ESP = ESP-size;
+    push ecx;       //push IPprev
+    push edx;
+        //memset(X-size+1,0,size);
+        push ebx; //size
+        push 8008135;
+        push edx; //X-size+1
+        call memset;
+        add esp, 3;
+    pop eax; //eax = edx = X-size+1
+ret;
+*/
+
+stack_alloc:
+    //out 0, esp;
+    //out 1, 2;
+    //int 1;
+    //stack state:
+    // +2: arg1   :newX
+    // +1: IPprev :
+    //ESP:        :
+    //
+    //desired stack state:
+    // +2+size:         : oldX : oldESP+2
+    //      +2:         : newX : oldESP+2-size
+    //      +1: IPprev  :      : oldESP+1-size
+    //     ESP:         :      : oldESP-size
+    mov eax, esp;
+    add eax, 2;     //eax = &size = X
+    rstack ebx, esp:2;//mov ebx, esp:#2 //ebx = size
+    rstack ecx, esp:1;//mov ecx, esp:#1 //ecx = IPprev
+    mov edx, eax;
+    add edx, ss;
+    sub edx, ebx;   
+    inc edx;        //edx = X-size+1;
+    sub esp, ebx;   //ESP = ESP-size;
+    push ecx;       //push IPprev
+    push edx;
+        //memset(X-size+1,0,size);
+        push ebx; //size
+        push 8008135;
+        push edx; //X-size+1
+        call memset;
+        add esp, 3;
+    pop eax; //eax = edx = X-size+1
+ret;
+
+/*
+stack_return:
+    enter 0;
+    //variables of interest:
+    //
+    //EBP:#4: SR_arg3 (num_args)
+    //EBP:#3: SR_arg2 (size)
+    //EBP:#2: SR_arg1 (ptr)
+    //EBP:#1: SR_IPprev
+    //EBP:#0: F2_EBP
+    //
+    //F2_EBP+num_args+1 = F1_X //this is just an address
+    //F2_EBP:#2: F2_arg1 //not interesting
+    //F2_EBP:#1: F2_IPprev
+    //F2_EBP:#0: F1_EBP
+    
+    //first, allocate to ourselves the same amount of stack as we would push into F1.
+        //stack_alloc(size);
+        push EBP:#3; //SR_arg2 (size);
+        call stack_alloc;
+        add esp, 1;
+    //next, push all the variables of interest onto the stack.
+    push EBP:#4;
+    push EBP:#3;
+    push EBP:#2;
+    push EBP:#1;
+    push EBP:#0;
+    mov eax, EBP:#0;
+    push eax:#0;
+    push eax:#1;
+    add eax, EBP:#4;
+    inc eax;
+    push eax;
+    
+    mov ebp, esp;
+    //to recap, here is our stack now:
+    //[allocated mem]
+    //[allocated mem]
+    //[allocated mem]
+    // +8:  SR_arg3 (num_args)
+    // +7:  SR_arg2 (size)
+    // +6:  SR_arg1 (ptr)
+    // +5:  SR_IPprev
+    // +4:  F2_EBP
+    // +3:  F1_EBP
+    // +2:  F2_IPprev
+    // +1:  F1_X
+    //EBP:
+    //this SHOULD be preserved through the memcopy operation
+    mov eax, EBP:#1;
+    sub eax, EBP:#7;
+    inc eax;        //eax = X-size+1;
+        //memcpy2(X-size+1, ptr, size);
+        push EBP:#7;
+        push EBP:#6;
+        push eax;
+        call memcpy2;
+        add esp, 3;
+    //ok, we have returned data, now let's work on returning control flow.
+    
+    //how ESP should look:
+    //             [allocated] : oldX
+    //             [allocated] : oldX-size+1          : returned data pointer     
+    //+1+num_args: arg_n       : oldX-size            : newX 
+    //       +1+1: arg1        : oldX-size-num_args+1
+    //         +1: IPprev      : oldX-size-num_args
+    //        ESP:
+    //we want X just after our returned data.
+    mov eax, EBP:#1;
+    sub eax, EBP:#7;
+    inc eax;           //eax = F1_X-size+1;
+    
+    mov esp, EBP:#1;
+    sub esp, EBP:#7;
+    sub esp, EBP:#8;   //ESP = oldX-size-num_args
+    push EBP:#2;       //push F2_IPprev
+    //EBP should become the stack base of F1
+    mov EBP, EBP:#3;   //EBP = F1_EBP;
+ret;
+*/
+
+//float stack_return(float ptr, float size, float num_args)
+//allows the caller to return a multibyte structure by value.
+//ptr - pointer to the structure you wish to return.
+//size - size of the structure you wish to return.
+//num_args - number of arguments of your function
+
+float curFrame(){return backFrame();}
+
+float backFrame(float curEBP, float num_times){
+    float nargs = ecx;
+    float cEBP = 0; 
+    float n = 0;
+    if(nargs == 0){cEBP = ebp; n = 2;}
+    if(nargs == 1){cEBP = curEBP; n = 1;}
+    if(nargs == 2){cEBP = curEBP; n = num_times;}
+    float I;
+    //printf("backframe %d, %d args, cEBP = %d\n", n, nargs, cEBP);
+    for(I = 0; I < n; I++){
+        cEBP = *(ss+cEBP);
+        //printf("cEBP = %d\n",cEBP);
+    }
+    return cEBP;
+}
+
+//str_derp: db "dongers", 0;
+
+float stack_jump(float new_ip, float new_ebp, float retval){
+    preserve eax, ebx, ecx;
+    eax = retval;
+    ecx = new_ip;
+    ebx = new_ebp;
+    mov ebp, ebx;
+    jmp ecx;
+}
+
+void stack_return(float ptr, float size, float num_args){
+    //printf("stack return: frames:\n")
+    float prevIP;
+    //float x;
+    //float I;
+    //for(I = 0; I < 4; I++){
+    //    x = backFrame(ebp,I);
+    //    printf("frame %d: %d\n",I,x);
+    //    prevIP = *(ss+x+1);
+    //    printf(" prevIP = %d\n", prevIP);
+   // }
+    float x1 = backFrame(ebp,1);
+    prevIP = *(ss+x1+1);
+    float x2 = backFrame(ebp, 2);
+    
+    stack_jump(prevIP, x2, ptr);
+}
+
+/* //this sort of worked actually....
+void stack_return(float ptr, float size, float num_args){
+    printf("stack_return(ptr %d, size %d, num_args %d)\n", ptr, size, num_args);
+    float x = curFrame();
+    printf("curFrame: %d\n", x);
+    //x = backFrame(x);
+    //printf("prevFrame: %d\n", x);
+    //x = backFrame(x);
+    //printf("prevPrevFrame: %d\n", x);
+    
+    //1. allocate space on the stack
+    sub esp, size; //size of the returned data
+    sub esp, 3;    //num of stack_return() args
+    //2. make a new stack frame there and trash this one
+    stack_return_helper(ptr, size, num_args);
+}
+
+void stack_return_helper(float ptr, float size, float num_args){
+    printf("stack_return_helper(%d, %d, %d)\n",ptr,size,num_args);
+    float prevIP = 0;
+    float x = curFrame();                                                                          
+    printf("curFrame: %d\n", x);        //--- us, stack_return_helper    // ebp = &prevEBP = ESP of stack_return before this is called
+    x = backFrame(x);               //= backframe(ebp,1);                                                                   
+    printf("pFrame: %d\n", x);          //--- sacrificial stack_return   // ebp = ESP of caller before stack_return is called
+    x = backFrame(x);               //= backframe(ebp,2);
+    printf("ppFrame: %d\n", x);         //--- our caller (sender) (we want to return as if from here) //ebp = ESP of receiver before sender is called
+    x = backFrame(x);                       //and replace the stack frame of caller by the data
+    printf("pppFrame: %d\n", x)         //--- receiver of the returned data
+   
+    x = backFrame(ebp,2);
+    printf("alt ppFrame: %d\n", x); //should be equal to above
+    prevIP = *(ss+x+1); //like rstack prevIP, EBP+1 (prevIP got pushed before prevEBP)
+    printf("prevIP = %d\n", prevIP);
+    //position of returned data = ESP of receiver before sender is called
+    //                              + num_args (as receiver cleans up num_args)
+    float dest = x+num_args;
+    dest += size; //since stack grows backwards, our data is going to start later on the stack and end earlier.
+    dest += ss;   //stack to global address
+    //memcpy2(dest, src, size);
+    x = backFrame(x, 1);
+    printf("danger copy...\n");
+    
+    printf("memcpy2(dest %d, src %d, n %d)\n", dest, ptr, size);
+    memcpy2(dest, ptr, size);
+    printf("danger copy done\n");
+    printf("str at dest = [%s]\n",dest);
+    //next we want to restore the frame pointer to that of receiver, BUT we will lose our locals in the process, so first we shove them into a register.
+    
+    mov eax, dest; //return value
+    mov ebx, x;
+    mov ecx, prevIP;
+    
+    //side-jump
+    mov ebp, ebx;
+    jmp ecx;
+    //we probably should clean up ESP too...
+    
+    //unreachable code
+    printf("HALT\n");
+    while(1){}
+}
+*/
+/*
+stack_return:
+    enter 0;
+    //variables of interest:
+    //
+    //EBP:#4: SR_arg3 (num_args)
+    //EBP:#3: SR_arg2 (size)
+    //EBP:#2: SR_arg1 (ptr)
+    //EBP:#1: SR_IPprev
+    //EBP:#0: F2_EBP
+    //
+    //F2_EBP+num_args+1 = F1_X //this is just an address
+    //F2_EBP:#2: F2_arg1 //not interesting
+    //F2_EBP:#1: F2_IPprev
+    //F2_EBP:#0: F1_EBP
+    
+    //first, allocate to ourselves the same amount of stack as we would push into F1.
+        //stack_alloc(size);
+            
+        
+        //push EBP:#3; //SR_arg2 (size);
+        rstack eax, ebp:3; //push EBP:#3 -> push *(ebp+3), we want "push *(ss + ebp + 3)" = push mem[ss+ebp:3]
+        push eax;
+        
+        call stack_alloc;
+        add esp, 1;
+    //next, push all the variables of interest onto the stack.
+    rstack eax, ebp:4; push eax; //push EBP:#4;
+    rstack eax, ebp:3; push eax; //push EBP:#3;
+    rstack eax, ebp:2; push eax; //push EBP:#2;
+    rstack eax, ebp:1; push eax; //push EBP:#1;
+    rstack eax, ebp:0; push eax; //push EBP:#0;
+    rstack eax, ebp:0; //eax equals prevEBP (loc) now //mov eax, EBP:#0;
+    rstack ebx, eax:0; push ebx; //push eax:#0; //push prevEBP+0 //prevPrevEBP
+    rstack ebx, eax:1; push ebx; //push eax:#1; //push prevEBP+1 //prevPrevIP
+    rstack ebx, ebp:4; add eax, ebx;//add eax, EBP:#4; //eax = prevEBP(loc) + ebp[4](num_args?)
+    inc eax;  
+    push eax; //on stack: prevEBP(loc)+ num_args + 1
+    
+    mov ebp, esp; //ebp = esp local
+    //to recap, here is our stack now:
+    //[allocated mem]
+    //[allocated mem]
+    //[allocated mem]
+    // +8:  SR_arg3 (num_args)
+    // +7:  SR_arg2 (size)
+    // +6:  SR_arg1 (ptr)
+    // +5:  SR_IPprev
+    // +4:  F2_EBP
+    // +3:  F1_EBP
+    // +2:  F2_IPprev
+    // +1:  F1_X
+    //EBP:
+    //this SHOULD be preserved through the memcopy operation
+    rstack eax, ebp:1;//mov eax, EBP:#1;
+    rstack ebx, ebp:7; sub eax, ebx;//sub eax, EBP:#7;
+    inc eax;        //eax = X-size+1;
+        add eax, ss;
+        //memcpy2(X-size+1, ptr, size);
+        rstack ebx, ebp:7; push ebx;//push EBP:#7;
+        rstack ebx, ebp:6; push ebx;//push EBP:#6;
+        
+        
+        push eax;
+        call memcpy2;
+        add esp, 3;
+    //ok, we have returned data, now let's work on returning control flow.
+    
+    //how ESP should look:
+    //             [allocated] : oldX
+    //             [allocated] : oldX-size+1          : returned data pointer     
+    //+1+num_args: arg_n       : oldX-size            : newX 
+    //       +1+1: arg1        : oldX-size-num_args+1
+    //         +1: IPprev      : oldX-size-num_args
+    //        ESP:
+    //we want X just after our returned data.
+    rstack eax, ebp:1;//mov eax, EBP:#1;
+    rstack ebx, ebp:7; sub eax, ebx;//sub eax, EBP:#7;
+    inc eax;           //eax = F1_X-size+1;
+    
+    rstack esp, ebp:1;//mov esp, EBP:#1;
+    rstack ebx, ebp:7; sub esp, ebx;//sub esp, EBP:#7;
+    rstack ebx, ebp:8; sub esp, ebx;//sub esp, EBP:#8;   //ESP = oldX-size-num_args
+    rstack ebx, ebp:2; push ebx;//push EBP:#2;       //push F2_IPprev
+    //EBP should become the stack base of F1
+    rstack ebx, ebp:3; mov ebp, ebx;//mov EBP, EBP:#3;   //EBP = F1_EBP;
+ret;
+*/
+
+
+//copies n bytes from src to dest byte by byte.
+//locations may overlap.
+//void *memcpy2(void *dest, void *src, float n) {
+//    float I;
+//    if(dest < src){
+//        for(I = 0; I < n; I++){
+//            dest[I] = src[I];
+//        }
+//    }else{
+//        for(I = n-1; I > -1; I--){
+//            dest[I] = src[I];
+//        }
+//    }
+//}
+STACKALLOC_CONSTANTS:
+STACKALLOC_VARS:
+STACKALLOC_END:
+#endif

@@ -1,0 +1,72 @@
+#ifndef PAGEALLOC_GUARD
+#define PAGEALLOC_GUARD
+//page allocator:
+//allocates or deallocates single pages of size 128. Allocations are aligned to page boundary. Metadata is outside of heap.
+
+float page_allocator_disk = 0;
+float page_allocator_size = 0;
+
+palloc_vpagemap: alloc 10;
+
+float palloc_set_disk(float disk, float size){
+    float ddisk = disk%128;
+    if(ddisk != 0){
+        float doff = 128-ddisk;
+        disk = disk+doff;
+        size = size-doff;
+    }    
+    page_allocator_disk = disk;
+    page_allocator_size = size;
+}
+
+//vector_set(void *self, void *element, float pos)
+//float vector_get(void *self, void *element, float pos)
+
+float palloc_init(){
+    vector_constructor(palloc_vpagemap,1);
+    float numpages = floor(page_allocator_size/128);
+    vector_resize(palloc_vpagemap, numpages);
+    float I;
+    for(I = 0; I < numpages; I++){
+        vector_set(palloc_vpagemap, 0, I);
+    }
+}
+
+float palloc(){
+    float numpages = vector_size(palloc_vpagemap);
+    float I;
+    for(I = 0; I < numpages; I++){
+        float u = vector_get(palloc_vpagemap, 0, I);
+        if(u == 0){
+            vector_set(palloc_vpagemap, 1, I);
+            float p = page_allocator_disk + 128*I;
+            return p;
+        }
+    }
+}
+
+float pfree(float p){
+    float I = (p - page_allocator_disk)/128;
+    vector_set(palloc_vpagemap, 0, I);
+}
+
+float palloc_count_used(){
+    float count = 0;
+    float numpages = vector_size(palloc_vpagemap);
+    float I;
+    for(I = 0;  I < numpages; I++){
+        float u = vector_get(palloc_vpagemap, 0, I);
+        if(u){count++;}
+    }
+    return count;
+}
+
+float palloc_count_free(){
+    float numpages = vector_size(palloc_vpagemap);
+    return numpages - palloc_count_used();
+}
+
+
+
+
+#endif

@@ -1,0 +1,190 @@
+#ifndef LIBTRACE_GUARD
+#define LIBTRACE_GUARD
+//trace
+
+//stack:
+//
+//
+//
+//
+//
+
+//get stack trace from an interrupt, assuming there are no 
+//other interrupts on the stack.
+//the frame for a normal interrupt (not external) is identical
+//to that of a long-jump.
+// ESP[+2] = prevIP
+// ESP[+1] = prevCS
+// ESP[0]  = empty
+// assuming there was an -enter-, i.e. interrupt handler is a
+// c-style function, then the first frame will be from a normal
+// call, followed by a long-call.
+//
+
+void getIntStackTrace(float buff){
+    float pEBP = ebp;
+    float pPrevIP = pEBP+1;
+    float PrevIP = *(ss+pPrevIP);
+    buff[0] = PrevIP;
+    float PrevEBP = *(ss+pEBP);
+    pEBP = PrevEBP;
+    pPrevIP = pEBP+2;
+    float I = 1;
+    while(I < 80){
+        //float prevIP = *(ss+ptrPrevIP);
+        PrevIP = *(ss+pPrevIP);
+        //printf("I = %d, prevIP = %d\n",I,prevIP);
+        //float prevBase = *(ss+ptrBase);
+        PrevEBP = *(ss+pEBP);
+        //buff[I] = prevIP;
+        buff[I] = PrevIP;
+        I++;
+        //if(prevBase == 0){break;}
+        if(PrevEBP == 0){break;}
+        //ptrBase = prevBase;
+        pEBP = PrevEBP;
+        //ptrPrevIP = ptrBase+1;
+        pPrevIP = pEBP+1;
+    }
+    buff[I] = 0;
+    
+}
+
+//normal stack climbing:
+//EBP[+1] = prevIP
+//EBP[0] = prevEBP
+void getStackTrace(float buff){
+    //float ptrBase;// = &buff+1;
+    //mov ptrBase, ebp;
+    float pEBP = ebp;
+    
+    //float ptrPrevIP = ptrBase+1;
+    float pPrevIP = pEBP+1;
+    float I = 0;
+    while(I < 80){
+        //float prevIP = *(ss+ptrPrevIP);
+        float PrevIP = *(ss+pPrevIP);
+        //printf("I = %d, prevIP = %d\n",I,prevIP);
+        //float prevBase = *(ss+ptrBase);
+        float PrevEBP = *(ss+pEBP);
+        //buff[I] = prevIP;
+        buff[I] = PrevIP;
+        I++;
+        //if(prevBase == 0){break;}
+        if(PrevEBP == 0){break;}
+        //ptrBase = prevBase;
+        pEBP = PrevEBP;
+        //ptrPrevIP = ptrBase+1;
+        pPrevIP = pEBP+1;
+    }
+    buff[I] = 0;
+}
+
+void printStackTrace(float buff){
+    /*
+    printf("printing IPs\n");
+    float I = 0;
+    float fIP;
+    while(buff[I] != 0){
+        fIP = buff[I];
+        printf("%d: %d\n",I,fIP);
+        I++;
+    }
+    */
+    //printf("printing funcs\n");
+    printf("call trace:\n");
+    float I = 0;
+    float fIP;
+    while(buff[I] != 0){
+        fIP = buff[I];
+        float funcIP = findClosestFunc(fIP);
+        float funcName = getFuncName(funcIP);
+        float IPdiff = fIP-funcIP;
+        printf("%d: %s +%d\n",I,funcName,IPdiff);
+        I++;   
+    }
+}
+
+float findClosestFunc(float fIP){
+    if(!fIP){return 0;}
+    float bestf = 0;
+    float bestdiff = 9999999;
+    float ptr = func_table;
+    while(ptr < func_table_end){
+        //if(ptr[0] < fIP){f2 = ptr[0];}
+        float f2 = ptr[0];
+        if(f2 < fIP){
+            float diff = fIP-f2;
+            if(diff < bestdiff){
+                bestdiff = diff;
+                bestf = f2;
+            }
+        }
+        ptr += 2;
+    }
+    return bestf;
+}
+
+float getFuncName(float fIP){
+    if(!fIP){return 0;}
+    float ptr = func_table;
+    while(ptr < func_table_end){
+        if(ptr[0] == fIP){return ptr[1];}
+        ptr += 2;
+    }
+    return 0;
+}
+
+float getVarName(float vIP){
+    if(!vIP){return 0;}
+    float ptr = var_table;
+    while(ptr < var_table_end){
+        if(ptr[0] == vIP){return ptr[1];}
+        ptr += 2;
+    }
+    return 0;
+}
+
+float getSymbolName(float sIP){
+    float name = getFuncName(sIP);
+    if(!name){name = getVarName(sIP);}
+    return name;
+}
+
+float findSymbolByName(float name){
+    float def = findFuncByName(name);
+    if(def == -1){def = findVarByName(name);}
+    return def;
+}
+
+float findFuncByName(float name){
+    float ptr = func_table;
+    while(ptr < func_table_end){
+        float name2 = ptr[1];
+        if(strcmp(name2,name) == 0){
+            return ptr[0];
+        }
+        ptr += 2;
+    }
+    return -1;
+}
+
+float findVarByName(float name){
+    float ptr = var_table;
+    while(ptr < var_table_end){
+        float name2 = ptr[1];
+        if(strcmp(name2,name) == 0){
+            return ptr[0];
+        }
+        ptr += 2;
+    }
+    return -1;
+}
+
+#endif
+
+
+
+
+
+

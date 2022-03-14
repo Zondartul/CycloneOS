@@ -1,0 +1,37 @@
+#ifndef TIMER_GUARD
+#define TIMER_GUARD
+
+void delay(float time)
+{
+    preserve edx;
+    timer edx;
+    float T = edx;
+    while((edx-T)<time)
+    {
+        timer edx;
+    }
+    zap edx;
+}
+
+float getTime(){
+    preserve edx;
+    timer edx;
+    float T = edx;
+    zap edx;
+    return T;
+}
+
+void setTimeout(float timeleft){
+    float T = getTime();
+    T = T+timeleft;
+    return T;
+    //apparrently doing "return getTime()+timeleft" instead gives us getTime()*2 + timeleft because fuck you
+}
+
+//returns true if timestamp > curTime
+float timePassed(float timestamp){
+    return (getTime() > timestamp);
+}
+
+
+#endif

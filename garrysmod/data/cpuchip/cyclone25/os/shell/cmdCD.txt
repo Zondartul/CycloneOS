@@ -1,0 +1,39 @@
+//change directory - if letter changes, load the filesystem as the current one
+float cmdCD(float shell, float argc, float argv){
+    assert_type(shell, typeof_shell2);
+    //get the drive letter and load the appropriate fs descriptor if one is loaded
+    float old_drivepath = malloc(10);
+    float new_drivepath = malloc(10);
+    float new_totalpath = malloc(80);
+    float str_cd = shell+100;
+    float str_arg = argv[1];
+    
+    if(argc > 1){
+        //1. check if the new path is abs (with driveletter) or not
+        if(filepath_drive(str_arg, new_drivepath)){
+            //2. check if the new path has a different driveletter
+            old_drivepath[0] = 0; //in case there is no old drivepath
+            filepath_drive(str_cd, old_drivepath);
+            
+            if(strcmp(old_drivepath, new_drivepath) != 0){            
+                if(shell2_set_fs_by_drive_letter(shell, new_drivepath)){
+                    shell2_set_cd(shell, str_arg);
+                }else{
+                    printf("drive %s not mounted (no fs)!\n", new_drivepath);
+                    goto cmdCD_end;
+                }
+            }else{
+                //abs path but drive didn't change
+                shell2_set_cd(shell, str_arg);
+            }
+        }else{
+            //relative path
+            snprintf(new_totalpath, 80, "%s%s/", str_cd, str_arg);
+            shell2_set_cd(shell, new_totalpath);
+        }
+    }else{cmdHelp2(shell,argv[0]);}
+    cmdCD_end:
+    free(old_drivepath);
+    free(new_drivepath);
+    free(new_totalpath);
+}

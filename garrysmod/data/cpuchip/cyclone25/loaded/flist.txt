@@ -1,0 +1,265 @@
+     0 db 2552
+     1 jmp 2414
+     4 alloc 128
+   132 org 2048
+va_start:
+  2048 rstack EAX,ESP:2
+  2052 sub EAX,DS
+  2054 sub EAX,SS
+  2056 ret 
+va_start_0:
+  2057 mov EAX,EBP:1
+  2061 ret 
+va_next:
+  2062 rstack EBX,ESP:2
+  2066 inc #EBX
+  2068 rstack EAX,#EBX
+  2070 ret 
+va_get:
+  2071 rstack EAX,ESP:2
+  2075 rstack EBX,ESP:3
+  2079 add EAX,EBX
+  2081 inc EAX
+  2083 mov EAX,#EAX
+  2085 ret 
+va_get_0:
+  2086 rstack EAX,ESP:2
+  2090 add EAX,EBP:2
+  2094 rstack EAX,EAX
+  2096 ret 
+exit:
+// exit()
+  2097 enter -0
+__1:
+  2100 push 0
+  2103 push 0
+  2106 push 0
+  2109 push 4
+  2112 mov ECX,4
+// kcall(...)
+  2115 call 2337
+  2118 add ESP,4
+__0:
+  2121 leave 
+  2122 ret 
+kprints:
+// kprints(s)
+  2123 enter -0
+__3:
+  2126 push 0
+  2129 push 0
+  2132 rstack EAX,EBP:2
+  2136 push EAX
+  2138 push 1
+  2141 mov ECX,4
+// kcall(...)
+  2144 call 2337
+  2147 add ESP,4
+__2:
+  2150 leave 
+  2151 ret 
+kprintn:
+// kprintn(n)
+  2152 enter -0
+__5:
+  2155 push 0
+  2158 push 0
+  2161 rstack EAX,EBP:2
+  2165 push EAX
+  2167 push 2
+  2170 mov ECX,4
+// kcall(...)
+  2173 call 2337
+  2176 add ESP,4
+__4:
+  2179 leave 
+  2180 ret 
+dbgPrint:
+// dbgPrint(str,val)
+  2181 enter -0
+__7:
+  2184 rstack EAX,EBP:2
+// kprints arg #1 (float s)
+  2188 push EAX
+  2190 mov ECX,1
+// kprints(...)
+  2193 call 2123
+  2196 add ESP,1
+// kprints arg #1 (float s)
+  2199 push 2243
+  2202 mov ECX,1
+// kprints(...)
+  2205 call 2123
+  2208 add ESP,1
+  2211 rstack EAX,EBP:3
+// kprintn arg #1 (float n)
+  2215 push EAX
+  2217 mov ECX,1
+// kprintn(...)
+  2220 call 2152
+  2223 add ESP,1
+// kprints arg #1 (float s)
+  2226 push 2240
+  2229 mov ECX,1
+// kprints(...)
+  2232 call 2123
+  2235 add ESP,1
+__6:
+  2238 leave 
+  2239 ret 
+__9:
+  2240 db ".
+",0
+__8:
+  2243 db " = ",0
+kprintf:
+// kprintf(fmt)
+  2247 enter 2
+__11:
+  2250 sstack EBP:-1,ECX
+  2254 mov EAX,SS:ESP
+  2257 add EAX,2
+  2260 push EAX
+  2262 mov ECX,1
+// va_start(...)
+  2265 call 2048
+  2268 add ESP,1
+  2271 sstack EBP:-2,EAX
+  2275 rstack EAX,EBP:-2
+  2279 push EAX
+  2281 rstack EAX,EBP:-1
+  2285 push EAX
+  2287 rstack EAX,EBP:2
+  2291 push EAX
+  2293 push 3
+  2296 mov ECX,4
+// kcall(...)
+  2299 call 2337
+  2302 add ESP,4
+__10:
+  2305 leave 
+  2306 ret 
+getProcID:
+// getProcID()
+  2307 enter -0
+__13:
+  2310 push 0
+  2313 push 0
+  2316 push 0
+  2319 push 5
+  2322 mov ECX,4
+// kcall(...)
+  2325 call 2337
+  2328 add ESP,4
+  2331 mov EAX,R0
+  2333 leave 
+  2334 ret 
+__12:
+  2335 leave 
+  2336 ret 
+kcall:
+// kcall(a,b,c,d)
+  2337 enter -0
+__15:
+  2340 rstack EAX,EBP:2
+  2344 mov R0,EAX
+  2346 rstack EAX,EBP:3
+  2350 mov R1,EAX
+  2352 rstack EAX,EBP:4
+  2356 mov R2,EAX
+  2358 rstack EAX,EBP:5
+  2362 mov R3,EAX
+  2364 int 40
+__14:
+  2367 leave 
+  2368 ret 
+delay:
+// delay(time)
+  2369 enter 1
+__17:
+  2372 timer EDX
+  2374 sstack EBP:-1,EDX
+__19:
+  2378 rstack EAX,EBP:-1
+  2382 neg EAX
+  2384 mov EBX,EAX
+  2386 add EDX,EBX
+  2388 rstack EAX,EBP:2
+  2392 sub EAX,EDX
+  2394 mov EBX,EAX
+  2396 fsgn EBX,EBX
+  2398 max EBX,0
+// if ((EDX-T)<time
+  2401 cmp 0,EBX
+  2404 jz 2412
+  2407 timer EDX
+  2409 jmp 2378
+__18:
+__16:
+  2412 leave 
+  2413 ret 
+main:
+// main()
+  2414 enter 1
+__21:
+// kprintf arg #1 (float fmt)
+  2417 push 2539
+  2420 mov ECX,1
+// kprintf(...)
+  2423 call 2247
+  2426 add ESP,1
+  2429 mov ECX,0
+// getProcID(...)
+  2432 call 2307
+  2435 sstack EBP:-1,EAX
+// kprints arg #1 (float s)
+  2439 push 2519
+  2442 mov ECX,1
+// kprints(...)
+  2445 call 2123
+  2448 add ESP,1
+  2451 rstack EAX,EBP:-1
+// kprintn arg #1 (float n)
+  2455 push EAX
+  2457 mov ECX,1
+// kprintn(...)
+  2460 call 2152
+  2463 add ESP,1
+// kprints arg #1 (float s)
+  2466 push 2240
+  2469 mov ECX,1
+// kprints(...)
+  2472 call 2123
+  2475 add ESP,1
+  2478 rstack EAX,EBP:-1
+// kprintf arg #2 (unknown)
+  2482 push EAX
+// kprintf arg #1 (float fmt)
+  2484 push 2525
+  2487 mov ECX,2
+// kprintf(...)
+  2490 call 2247
+  2493 add ESP,2
+  2496 mov ECX,0
+// exit(...)
+  2499 call 2097
+__26:
+// if (1
+  2502 cmp 0,1
+  2506 jz 2512
+  2509 jmp 2502
+__25:
+  2512 mov EAX,0
+  2515 leave 
+  2516 ret 
+__20:
+  2517 leave 
+  2518 ret 
+__23:
+  2519 db "id = ",0
+__24:
+  2525 db "proc_id = %d
+",0
+__22:
+  2539 db "hello world
+",0

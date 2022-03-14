@@ -1,0 +1,92 @@
+float printBytemap(float ptr, float sizeX, float sizeY){
+    float black = 0;
+    float white = 999999;
+    float green =  90090;
+    float pink  = 929929;
+    float purple= 808808;
+    float blue  = 009009; 
+    float red   = 900900;
+    
+    float col_zero = black;
+    float col_num_low = white;
+    float col_num_negative = green;
+    float col_num_float_low = pink;
+    float col_num_float_high = purple;
+    float col_num_high = blue;
+    
+    float I;
+    float J;
+    for(J = 0; J < sizeX+2; J++){printf("_");}
+    printf("\n");
+    
+    for(I = 0; I < sizeY; I++){
+        printf("|");
+        for(J = 0; J < sizeX; J++){
+            float byte = *ptr++;
+            float fl = byte-floor(byte);
+            
+            float col = red;
+            if(byte == 0){col = col_zero;}
+            else if(fl){
+                if(byte < 10000){col = col_num_float_low;}
+                else{col = col_num_float_high;}
+            }else if(byte < 0){col = col_num_negative;}
+            else if(byte < 10000){col = col_num_low;}
+            else{col = col_num_high;}
+            
+            printf("%m ",col);
+        }
+        printf("|");
+        printf("\n");
+    }
+    for(J = 0; J < sizeX+2; J++){printf("_");}
+    printf("\n");
+}
+
+float cmdDevice(float shell, float argc, float argv){
+    //device list - list devices
+    //device info <num> - more info about device number num.
+    
+    //TODO: add a way to refer to devices on the other side of an address bus or ext.bus
+    float devNum;
+    float devEntry;
+    float devType;
+    float typeString;
+    float devAddr;
+    float devSize;
+    
+    if(argc > 1){
+        if(strcmp(argv[1],"list")==0){
+            printf("devices:\n");
+            float I;
+            for(I = 0; I < 9; I++){
+                devEntry = EBcb_get_entry(EBcb_1,I);
+                devType = EBcb_entry_get_type(devEntry);
+                typeString = udhTypeToString(devType);
+                printf("dev %d: %s\n",I,typeString);
+            }
+        }
+        if(strcmp(argv[1],"info")==0){
+            if(argc>2){
+                devNum = str2num(argv[2]);
+                devEntry = EBcb_get_entry(EBcb_1,devNum);
+                devType = EBcb_entry_get_type(devEntry);
+                typeString = udhTypeToString(devType);
+                devAddr = EBcb_entry_get_addr(devEntry);
+                devSize = EBcb_entry_get_size(devEntry);
+                printf("dev %d: %s\n", devNum,typeString);
+                printf("@ %d, size %d\n", devAddr, devSize);
+                printf("memory:\n");
+                printBytemap(devAddr, 20,5);
+                
+            }else{cmdHelp2(shell,argv[0]);}
+        }
+        //if(strcmp(argv[1],"refresh")==0){
+            //clm makes a general fault for some reason. should check what page we're on, etc.
+            //printf("suspending page protection...");    clm;                    printf(" ok\n");
+            //printf("running EB autoconf...");           EBcb_autoconf(EBcb_1);  printf(" ok\n");
+            //printf("restoring page protection...");     stm;                    printf(" ok\n");
+            //printf("device list refreshed\n");
+        //}
+    }else{cmdHelp2(shell,argv[0]);}
+}

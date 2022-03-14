@@ -1,0 +1,22 @@
+//
+// thread type
+//  a process contains one virtual memory space and multiple threads
+//  each thread contains a CPU frame and a stack
+//
+
+//struct thread{
+//  typeof;
+//  reg ip;
+//}
+
+
+typeof_thread: db "thread",0;
+float sizeof_thread = 2;
+
+float thread_constructor(float this){
+    this[0] = typeof_thread;
+    this[1] = 0;
+}
+
+float thread_get_ip(float this){assert_type(this, typeof_thread); return this[1];}
+float thread_set_ip(float this, float val){assert_type(this, typeof_thread); this[1] = val;}

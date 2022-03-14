@@ -1,0 +1,13 @@
+//libstring globals
+#ifndef LIBSTRING_GLOBALS_GUARD
+#define LIBSTRING_GLOBALS_GUARD
+
+LIBSTRING_VARS:
+c2str_str:alloc 2;
+Constr:alloc 256
+float Nbase = 10;//Nbase:db 10;
+float Nprec = 3;//Nprec:db 3;
+Nstack:alloc 16;
+Array:alloc 16
+
+#endif

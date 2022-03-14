@@ -1,0 +1,417 @@
+// CYCLONE 25 BIOS
+//
+// Cyclone 25 relies on a dual CPU master-slave architecture,
+// where the BIOS CPU controls the User CPU, provides some basic
+// IO functions (screen, keyboard, disk) and can provide error
+// diagnostic if the User CPU crashes.
+// Also it can go Beep.
+//
+
+//
+// old setup:
+//
+//User CPU control... User CPU IOBUS --------------+
+// |                                               |
+//[port][port] - buttons, leds, sound emitters     |
+//  |                                              |
+// IOBUS                                           |
+//  |                                              |
+// BIOS - MEMBUS - ADR BYPASS - Ext. Bus - 1. transaction RAM
+//                      |                  2. HDD
+//                      |                  3. Keyboard
+//                      |                  4. ???
+//                      |                  5. User screen
+//                      +------------------6. BIOS screen
+//                                         7. User MEMBUS spy
+//
+//
+//
+//
+//       problem: extended bus can only explicitly specify the address of
+//       the first 8 entries, for other entries only size is known.
+//
+//       possible solution: make slots (1 MB or 8 MB), one per EB, and then connect multiple
+//       EBs through address buses. Each EB will be connected only directly to devices,
+//       NOT to other buses.
+//
+//       problem2: extended bus forces the user to PROGRAMMATICALLY specify the start and end
+//       of each of 8 memory regions, so basically the bus will have to be scanned
+//       by setting recursion to 0, and then... recursively accessing each EB in turn, and
+//       filling out our own tables with info.
+//
+// new setup:
+// user CPU control ... user CPU membus -----------+
+//  |                                            addr bus
+// [port][port]-buttons,leds,sound                 |
+//  |                             2. EB_ram----1. user ram (1 MB)
+// IOBUS                          3. hdd   -4.-2. EB (devices)
+//  |                          /         /         |
+//  BIOS - MEMBUS - EB_bios -------------     1. zASM entry cpu
+//                          \             \-5 2. bios screen
+//                           1.trans mem   \6 3. keyboard
+//                                |           4. user screen
+//                           user CPU iobus
+//
+//
+//
+//
+//
+//
+
+
+jmp main;
+alloc 10;
+#pragma set OutputFinalListing true
+#pragma set OutputToFile true
+#include "computer7.txt"
+#include "libconsolescreen.txt"
+#include "drv_udh.txt"
+#include "printf.txt"
+#include "timer.txt"
+#include "libkeyboard.txt"
+#include "libextbus.txt"
+#include "util.txt"
+#include "libnumber.txt"
+#include "transbus.txt"
+#include "types.txt"
+
+//#define ADDR_EB 65536
+
+
+//enty:
+//0 - type
+//1 - total size
+//2 - calculated abs. address
+//3 - used / pointer to user
+//float size_device_bind_entry = 4;
+
+//device_bind_table: alloc 512;
+//float num_device_entries = 8;//128;
+
+
+//float udh_device_table_populate(float table, float num_entries){
+//    printf("running query\n");
+//    udhQueryDevices();
+//    printf("devs queried...\n");
+//    testBoot(1000);
+//    float numDevs = 0;
+//    float I = 0;
+//    for(I = 0; I < num_entries; I++){
+//        //printf("I = %d\n",I);
+//        float P = I*4
+//        float P_type = P;
+//        float P_size = P+1;
+//        float P_addr = P+2;
+//        float P_user = P+3;
+//        //printf("getType(%d) = ",I);
+//        float type = udhGetDeviceType(I);
+//        //printf("%d\n",type);
+//        if(type){numDevs++;}
+//        //printf("getSize(%d) = ",type);
+//        float size = udh_getSizeFromType(type);
+//        //printf("%d\n",size);
+//        //printf("getOffset(%d) =",I);
+//        float addr = udhGetDeviceOffset(I);
+//        //printf("%d\n",addr);
+//        float user = 0;
+//        //printf("set %d[%d] = %d (type)\n",table,P_type,type);
+//        table[P_type] = type;
+//        //printf("set %d[%d] = %d (size)\n",table,P_size,size);
+//        table[P_size] = size;
+//        //printf("set %d[%d] = %d (addr)\n",table,P_addr,addr);
+//        table[P_addr] = addr;
+//        //printf("set %d[%d] = %d (user)\n",table,P_user,user);
+//        table[P_user] = user;
+//        //printf("ok\n");
+//    }    
+//    printf("done\n");
+//    testBoot(2000);
+//    return numDevs;
+//}
+
+
+
+//returns: device address (can be used to find device in table later
+
+float testDevBound(float res, float str){
+    printf("%s: ", str); 
+    float p = *res;
+    if(p){printf("%d %mOK\n",p, 292);}
+    else{printf("%d %mMISSING\n",p, 922);}
+    return p;
+}
+
+//binds the device to user 1 and returns it's address
+float bindDevice(float res, float type){return EBcb_device_bind_addr(EBcb_1, type, 1, res);}
+
+
+float EB_Addr_TransMem = 0;
+float EB_Addr_HDD = 0;
+float EB_Addr_Keyboard = 0;
+float EB_Addr_EB_RAM = 0;
+float EB_Addr_EB_Devices = 0;
+float EB_Addr_BIOS_screen = 0;
+float EB_Addr_User_screen = 0;
+
+
+
+EBcb_1: alloc 50;
+EBcb_2: alloc 50;
+EBcb_3: alloc 50;
+EBcb_4: alloc 50;
+
+test_array: db "hello world of butterflies",0;
+test_array_end: db 0;
+
+#define BIOSCMD_PRINTS 1
+#define BIOSCMD_PRINTN 2
+
+float main(){
+    testBoot_init();
+    ledColor(255,255,0);
+    writePin(pino_clk, 0);
+    writePin(pino_reset, 1);
+    beep1();
+    
+    screen_set(ADDR_SCR);
+    screen_clear();
+    testBoot(1650);
+    printf("%m===== Cyclone 25 BIOS 1 =====\n",2980);
+    
+    printf("main bus autoconfig...");
+    EBcb_constructor(EBcb_1);
+    float entry = EBcb_get_entry(EBcb_1,0);
+    EBcb_entry_set_addr(entry, ADDR_EB);
+    EBcb_autoconf(EBcb_1);
+    
+    bindDevice(&EB_Addr_TransMem, UDH_RAM); 
+    bindDevice(&EB_Addr_HDD, UDH_ROM);
+    bindDevice(&EB_Addr_EB_RAM, UDH_EXTENDED_BUS);
+    bindDevice(&EB_Addr_EB_Devices, UDH_EXTENDED_BUS);
+    bindDevice(&EB_Addr_BIOS_screen, UDH_CONSOLE_SCREEN);
+    bindDevice(&EB_Addr_Keyboard, UDH_KEYBOARD);
+    bindDevice(&EB_Addr_User_screen, UDH_CONSOLE_SCREEN);
+    printf("done\n");
+    
+    printf("RAM bus autoconfig...");
+    EBcb_constructor(EBcb_2);
+    float entry2 = EBcb_get_entry(EBcb_2,0);
+    EBcb_entry_set_addr(entry2, EB_Addr_EB_RAM);
+    EBcb_autoconf(EBcb_2);
+    printf("done\n");
+    
+    printf("Devices bus autoconfig...");
+    EBcb_constructor(EBcb_3);
+    float entry3 = EBcb_get_entry(EBcb_3,0);
+    EBcb_entry_set_addr(entry3, EB_Addr_EB_Devices);
+    EBcb_autoconf(EBcb_3);
+    printf("done\n");
+    
+ 
+    setKeyboard(EB_Addr_Keyboard);
+    trSet(EB_Addr_TransMem);
+    trClear();
+        
+
+//              console screen size
+//          |----------------------------|
+    
+    testDevBound(&EB_Addr_TransMem,     "transaction RAM");   
+    testDevBound(&EB_Addr_HDD,          "HDD");
+    testDevBound(&EB_Addr_EB_RAM,       "EB(user RAM)");
+    testDevBound(&EB_Addr_EB_Devices,   "EB(user devices)");
+    testDevBound(&EB_Addr_BIOS_screen,  "BIOS c.screen");
+    testDevBound(&EB_Addr_Keyboard,     "Keyboard");
+ //   printf("test bound done\n");
+//    testBoot(3000);    
+
+//    PrintStringXY(1,1,"Hello World",109);
+//    screen_set(ADDR_SCR);
+    //printf("User screen test\n");
+    UserScreenClear();
+    //float I;
+    //for(I = 0; I < 20; I++){
+    //    UserPrintf("hello %m%d\n",900+I,I);    
+   // }
+    //printf("User screen test done\n");
+    clearKB();
+    printf("Type any key for BIOS setup\n");
+    float timestamp = setTimeout(3);
+    float T = getTime();
+    float gotK = 0;
+    while(!timePassed(timestamp)){
+        if(hasKey()){
+            float K = readKey();
+            gotK = 1;
+            printf("you pressed '%c'!\n",K);
+        }
+        ledColor(0,0,0);
+        delay(0.5);
+        ledColor(255,255,0);
+        delay(0.5);
+    }
+    if(!gotK){printf("no key pressed\n");}
+    testBoot(4000);
+    ledColor(0,255,0);
+    beep1();
+
+    float prevBtnOn = 0;
+    float prevBtnReset = 0;    
+    float prevCpuError = 0;
+    while(1){
+        float btnReset = readPin(pini_btn_reset);
+        if(btnReset != prevBtnReset){
+            prevBtnReset = btnReset;
+            if(btnReset){
+                printf("resetting CPU\n");
+                writePin(pino_reset, 1);
+            }else{
+                writePin(pino_reset, 0);
+            }
+        }
+        float btnOn = readPin(pini_btn_on);
+        if(btnOn != prevBtnOn){
+            prevBtnOn = btnOn;
+            if(btnOn){
+                printf("turning CPU on\n");
+                CPU_on = 1;
+                writePin(pino_freq, 400000);
+                writePin(pino_clk, 1); 
+            }else{
+                printf("turning CPU off\n");
+                CPU_on = 0;
+                writePin(pino_clk, 0);
+            }
+        }
+        float CpuError = readPin(pini_err);
+        if(CpuError != prevCpuError){
+            prevCpuError = CpuError;
+            if(CpuError){
+                writePin(pino_clk, 0); //flick the on-switch to turn it back on
+                printCpuError(CpuError); 
+            }
+        }
+        float hasCmd = trRead(0);
+        if(hasCmd == 2){
+            float cmd = trRead(1);
+            float p;
+            float biosprint_col = 449;//227
+            if(cmd == BIOSCMD_PRINTS){
+                p = EB_Addr_TransMem+2;
+                printf("%m%s",biosprint_col,p);
+                trWrite(0,1);
+                while(trRead(0) != 1){nop;}
+            }else{
+            if(cmd == BIOSCMD_PRINTN){
+                p = EB_Addr_TransMem+2;
+                float val = *p;
+                printf("%m%d",biosprint_col,val);
+                trWrite(0,1);
+                while(trRead(0) != 1){nop;}
+            }else{
+                trWrite(0,3);
+                while(trRead(0) != 3){nop;}
+            }}
+        }
+    }    
+    while(1){nop;}
+}
+
+float Perr(float s){printf("%m%s",900,s);}
+float panic(){return 0;}
+
+str_reset:                      db "Reset", 0;                                      //int 0
+str_halt:                       db "Halt", 0;                                       //int 1
+str_end_of_program:             db "End of program", 0;                             //int 2
+str_division_by_zero:           db "Division by zero", 0;                           //int 3
+str_unknown_opcode:             db "Unknown opcode", 0;                             //int 4
+str_internal_error:             db "Internal error", 0;                             //int 5
+str_stack_error:                db "Stack error", 0;                                //int 6
+str_memory_rw_fault:            db "Memory read/write fault", 0;                    //int 7
+str_membus_fault:               db "MemBus fault", 0;                               //int 8
+str_write_access_violation:     db "Write access violation (page protection)", 0;   //int 9
+str_port_rw_fault:              db "Port read/write fault", 0;                      //int 10
+str_page_access_violation:      db "Page access violation (page protection)", 0;    //int 11
+str_read_access_violation:      db "Read access violation (page protection)", 0;    //int 12
+str_general_fault:              db "General fault", 0;                              //int 13
+str_execute_access_violation:   db "Execute access violation (page protection)", 0; //int 14
+str_address_space_violation:    db "Address space violation", 0;                    //int 15
+str_frame_instruction_limit:    db "Frame instruction limit", 0;                    //int 17
+str_string_read_error:          db "String read error (GPU)", 0;                    //int 23
+str_page_read_access_trap:      db "Page read access trap", 0;                      //int 28
+str_page_write_access_trap:     db "Page write access trap", 0;                     //int 29
+str_page_access_trap:           db "Page access trap", 0;                           //int 30
+str_debug_trap:                 db "Debug trap", 0;                                 //int 31
+
+Cpu_Error_Table:
+db 0; db str_reset;                      
+db 1; db str_halt;                       
+db 2; db str_end_of_program;             
+db 3; db str_division_by_zero;           
+db 4; db str_unknown_opcode;             
+db 5; db str_internal_error;             
+db 6; db str_stack_error;                
+db 7; db str_memory_rw_fault;            
+db 8; db str_membus_fault;               
+db 9; db str_write_access_violation;     
+db 10; db str_port_rw_fault;              
+db 11; db str_page_access_violation;      
+db 12; db str_read_access_violation;      
+db 13; db str_general_fault;              
+db 14; db str_execute_access_violation;   
+db 15; db str_address_space_violation;    
+db 17; db str_frame_instruction_limit;    
+db 23; db str_string_read_error;          
+db 28; db str_page_read_access_trap;      
+db 29; db str_page_write_access_trap;     
+db 30; db str_page_access_trap;           
+db 31; db str_debug_trap;                 
+db 0, db 0;
+
+float StringTableFind(float table, float val){
+    while(table[1]){
+        if(table[0] == val){
+            return table[1];
+        }
+        table = table+2;
+    }
+    return 0;
+}
+
+float printCpuError(float err){
+    float E1 = floor(err);
+    float E2 = round(frac(err)*100000);
+    
+    
+    if((E1 >= 0) && (E1 <= 31)){
+        printf("%mCpu error: %d.%d\n",900,E1,E2);
+        float S = StringTableFind(Cpu_Error_Table, E1);
+        if(S){printf("%m%s\n",900,S);}
+        else{printf("%mUnknown error\n",900);}
+    }else{
+        printf("%mCpu interrupt: %d.%d\n",559,E1,E2);
+    }
+}
+
+float CPU_on = 0;
+
+
+str_nums: db "0123456789",0;
+
+
+/*
+ filesystem idea:
+ the BIOS should provide a simple FS access so that the guest CPU doesn't fuck it up.
+ the FS would be based on lightfs from test23 but with all variables wrapped in a struct
+ so that several instances of the FS could run at once.
+ The FS will first be tested on the guest system.
+
+*/
+
+
+
+
+
+
+
+

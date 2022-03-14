@@ -1,0 +1,12 @@
+#pragma once
+#include <iostream>
+#include <fstream>
+#include <ios>
+#include <string>
+#include <vector>
+using std::string;
+using std::vector;
+using std::ofstream;
+using std::ifstream;
+using std::cout;
+using std::endl;

@@ -1,0 +1,55 @@
+//BIOS utilities
+
+// own-boot tester - gives an
+PSarray: alloc 10;
+float numTests = 0;
+float suppressTest = 0;
+float testBoot_init(){memcpy(PSarray,0,10);}
+float testBoot(float T){
+    if(suppressTest){return;}
+    float P;
+    for(P = 0; P < 10; P++){
+        float val1 = *P;
+        float val2 = PSarray[P];
+        if(val1 != val2){
+            suppressTest = 1;
+            ledColor(255,0,0);
+            beep2();
+            printf("bootsec byte %d corrupted! %d boots, last %d\n", P, numTests,T); 
+            while(1){nop;}
+        }
+    }
+    //printf("bootsec ok\n");
+    numTests++;
+}
+
+// memory finding
+float find_str(float ptr_from, float ptr_to, float str){
+    float len = strlen(str);
+    float I;
+    for(I = ptr_from; I < ptr_to; I++){
+        if(strncmp(I,str,len)==0){
+            return I;
+        }
+    }
+    return 0;
+}
+
+float find_things(){
+    printf("searching...\n");
+    float I;
+    for(I = 0; I < 100; I++){
+        float from = ADDR_EB+I*10000;
+        float to =   ADDR_EB+(I+1)*10000;
+        printf("try %d to %d...",from,to);
+        float f = find_str(from,to,"hmemlmom");
+        if(f){
+            printf("YES\n");
+            printf("real addr = %d\n",f);
+            return;
+        }else{
+            printf("nope\n");
+        }
+    }
+    return 0;
+}

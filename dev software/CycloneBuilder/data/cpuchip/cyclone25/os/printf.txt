@@ -1,0 +1,316 @@
+//printf
+#ifndef PRINTF_GUARD
+#define PRINTF_GUARD
+#include <cyclone25/bios/variadic.txt>
+#include <cyclone25/bios/libstring.txt>
+
+// printf format:
+// %d - number
+// %c - character
+// %s - string
+// %m - set color
+// %e - set escape mode
+// %x - set X coord
+// %y - set Y coord
+
+
+float printf(char* format)//... VARIADIC
+{
+    //preserve ecx, ebp;float va_v_count = ecx;float va_v_start = ebp; float va_v_list = ebp; float va_v_cur = 0;zap ecx, ebp;
+    float va = va_start(&format);
+    //va_start1(va_v_start, &va_v_list, &va_v_cur, 2);
+    float I = 0;
+    float C = 0;
+    float S = 0;
+    float A = 0;
+    float A2 = 0;
+    float c3 = 0;
+    float c2 = 0;
+    float pcolor = 999;
+    float pcolor2 = 999;
+    float pdarken = 222;
+    float escmode = 0;
+    //float P = 0;
+    C = format[I];
+    //testBoot(); //7th
+    while(C!=0)
+    {
+        if(C=='%')
+        {
+            S = format[I+1];
+            if(S == 'd')
+            {
+                A = va_next(&va);
+                float St = num2str(A);
+                Print(St,pcolor);
+                I = I+2;
+            }
+            if(S == 'c')
+            {
+                A = va_next(&va);
+                A2 = A;
+                pcolor2 = pcolor;
+                if(escmode == 2){
+                    if(isPrint(A) == 0){A2 = '.'; pcolor2 = pcolor-pdarken;}
+                }
+                if(escmode == 1){
+                    if(isPrint(A) == 0){pcolor2 = pcolor - pdarken;}
+                    if(A == '\a'){A2 = 'a'; pcolor2 = pcolor - pdarken;}
+                    if(A == '\b'){A2 = 'b'; pcolor2 = pcolor - pdarken;}
+                    if(A == '\n'){A2 = 'n'; pcolor2 = pcolor - pdarken;}
+                    if(A == '\r'){A2 = 'r'; pcolor2 = pcolor - pdarken;}
+                    if(A == '\t'){A2 = 't'; pcolor2 = pcolor - pdarken;}
+                    if(A == '\0'){A2 = '0'; pcolor2 = pcolor - pdarken;}
+                }
+                c2 = A2;
+                Print(&c2,pcolor2);//Pc(A);
+                I = I+2;
+            }
+            if(S == 's')
+            {
+                A = va_next(&va);
+                if(!A){A = "<null>";}
+                Print(A,pcolor);
+                I = I+2;
+            }
+            if(S == 'm')
+            {
+                A = va_next(&va);
+                pcolor = A;
+                I = I+2;
+            }
+            if(S == 'e')
+            {
+                A = va_next(&va);
+                escmode = A;
+                I = I+2;
+            }
+            if(S == 'x')
+            {
+                A = va_next(&va);
+                PrintScrX = A;
+                I = I+2;
+            }
+            if(S == 'y')
+            {
+                A = va_next(&va);
+                PrintScrY = A;
+                I = I+2;
+            }
+        }
+        else
+        {
+            if(C=='\\')
+            {
+               S = format[I+1];
+               if(S == 'a'){PrintChar('\a');}//fputchar(stream, 7);}
+               if(S == 'b'){PrintChar('\b');}//fputchar(stream,8);}
+               if(S == 'n'){PrintChar('\n');}//fputchar(stream,10);}
+               if(S == 'r'){PrintChar('\r');}//fputchar(stream,13);}
+               if(S == 't'){PrintChar('\t');}//fputchar(stream,9);}
+               if(S == '\\'){PrintChar('\\');}//fputchar(stream,92);}
+               if(S == '\''){PrintChar('\'');}//fputchar(stream,39);}
+               if(S == '\"'){PrintChar('\"');}//fputchar(stream,34);}
+               if(S == '0'){PrintChar('\0');}//fputchar(stream,0);}
+            }
+            else
+            {
+                //testBoot(); //8th
+                pcolor2 = pcolor;
+                if(escmode == 2){
+                    if(isPrint(C) == 0){C = '.'; pcolor2 = pcolor-pdarken;}
+                }
+                //testBoot(); //9th
+                if(escmode == 1){
+                    if(C == '\a'){C = 'a'; pcolor2 = pcolor - pdarken;}
+                    if(C == '\b'){C = 'b'; pcolor2 = pcolor - pdarken;}
+                    if(C == '\n'){C = 'n'; pcolor2 = pcolor - pdarken;}
+                    if(C == '\r'){C = 'r'; pcolor2 = pcolor - pdarken;}
+                    if(C == '\t'){C = 't'; pcolor2 = pcolor - pdarken;}
+                    if(C == '\0'){C = '0'; pcolor2 = pcolor - pdarken;}
+                    if(isPrint(C) == 0){pcolor2 = pcolor - pdarken;}
+                }
+                //testBoot(); //10th
+                c2 = C;
+                Print(&c2,pcolor2);
+                //testBoot(); //11th
+                //Pc(C);//fputchar(stream,C);
+                I = I+1;
+            }   
+        }
+        C = format[I];
+    }
+    return 1;
+}
+/*
+float bios_printc(float c){
+    float c1 = 0;
+    float c2 = c;
+    bios_prints(&c2);
+}
+
+float bios_printf(float format){
+    //preserve ecx, ebp;float va_v_count = ecx;float va_v_start = ebp; float va_v_list = ebp; float va_v_cur = 0;zap ecx, ebp;
+    float va = va_start(&format);
+    //va_start1(va_v_start, &va_v_list, &va_v_cur, 2);
+    float I = 0;
+    float C = 0;
+    float S = 0;
+    float A = 0;
+    float A2 = 0;
+    float c3 = 0;
+    float c2 = 0;
+    //float P = 0;
+    C = format[I];
+    //testBoot(); //7th
+    while(C!=0)
+    {
+        if(C=='%')
+        {
+            S = format[I+1];
+            if(S == 'd')
+            {
+                A = va_next(&va);
+                float St = num2str(A);
+                bios_prints(St);
+                I = I+2;
+            }
+            if(S == 'c')
+            {
+                A = va_next(&va);
+                A2 = A;
+                c2 = A2;
+                bios_prints(&c2);//Pc(A);
+                I = I+2;
+            }
+            if(S == 's')
+            {
+                A = va_next(&va);
+                if(!A){A = "<null>";}
+                bios_prints(A);
+                I = I+2;
+            }
+        }
+        else
+        {
+            if(C=='\\')
+            {
+               S = format[I+1];
+               if(S == 'a') {bios_printc('\a');}//fputchar(stream, 7);}
+               if(S == 'b') {bios_printc('\b');}//fputchar(stream,8);}
+               if(S == 'n') {bios_printc('\n');}//fputchar(stream,10);}
+               if(S == 'r') {bios_printc('\r');}//fputchar(stream,13);}
+               if(S == 't') {bios_printc('\t');}//fputchar(stream,9);}
+               if(S == '\\'){bios_printc('\\');}//fputchar(stream,92);}
+               if(S == '\''){bios_printc('\'');}//fputchar(stream,39);}
+               if(S == '\"'){bios_printc('\"');}//fputchar(stream,34);}
+               if(S == '0') {bios_printc('\0');}//fputchar(stream,0);}
+            }
+            else
+            {
+                c2 = C;
+                bios_prints(&c2);
+                I = I+1;
+            }   
+        }
+        C = format[I];
+    }
+    return 1;
+}
+*/
+//helper functino for snprintf
+//copies up to n bytes from src to pbuff,
+//incrementing pbuff and decrementing n.
+float snprintf_cpy(float ppbuff, float pn, float src){
+    float pbuff = *ppbuff;
+    float n = *pn;
+    while(n && (*src)){
+        *pbuff++ = *src++;
+        n--;
+    }
+    *ppbuff = pbuff;
+    *pn = n;
+}
+
+float snprintf_putch(float ppbuff, float pn, float c){
+    float pbuff = *ppbuff;
+    float n = *pn;
+    if(n){
+        *pbuff++ = c;
+    }
+    *ppbuff = pbuff;
+    *pn = n;
+}
+
+float snprintf(float buff, float n, float format){
+    //preserve ecx, ebp;float va_v_count = ecx;float va_v_start = ebp; float va_v_list = ebp; float va_v_cur = 0;zap ecx, ebp;
+    float va = va_start(&format);
+    //va_start1(va_v_start, &va_v_list, &va_v_cur, 2);
+    float I = 0;
+    float C = 0;
+    float S = 0;
+    float A = 0;
+    float A2 = 0;
+    float c3 = 0;
+    float c2 = 0;
+    float pbuff = buff;
+    //float P = 0;
+    C = format[I];
+    //testBoot(); //7th
+    while(C!=0)
+    {
+        if(C=='%')
+        {
+            S = format[I+1];
+            if(S == 'd')
+            {
+                A = va_next(&va);
+                float St = num2str(A);
+                snprintf_cpy(&pbuff, &n, St);                           
+                I = I+2;
+            }
+            if(S == 'c')
+            {
+                A = va_next(&va);
+                snprintf_putch(&pbuff, &n, A);
+                I = I+2;
+            }
+            if(S == 's')
+            {
+                A = va_next(&va);
+                if(!A){A = "<null>";}
+                snprintf_cpy(&pbuff, &n, A);
+                I = I+2;
+            }
+        }
+        else
+        {
+            if(C=='\\')
+            {
+               S = format[I+1];
+               if(S == 'a') {snprintf_putch(&pbuff, &n, '\a');}//fputchar(stream, 7);}
+               if(S == 'b') {snprintf_putch(&pbuff, &n, '\b');}//fputchar(stream,8);}
+               if(S == 'n') {snprintf_putch(&pbuff, &n, '\n');}//fputchar(stream,10);}
+               if(S == 'r') {snprintf_putch(&pbuff, &n, '\r');}//fputchar(stream,13);}
+               if(S == 't') {snprintf_putch(&pbuff, &n, '\t');}//fputchar(stream,9);}
+               if(S == '\\'){snprintf_putch(&pbuff, &n, '\\');}//fputchar(stream,92);}
+               if(S == '\''){snprintf_putch(&pbuff, &n, '\'');}//fputchar(stream,39);}
+               if(S == '\"'){snprintf_putch(&pbuff, &n, '\"');}//fputchar(stream,34);}
+               if(S == '0') {snprintf_putch(&pbuff, &n, '\0');}//fputchar(stream,0);}
+            }
+            else
+            {
+                snprintf_putch(&pbuff, &n, C);
+                I = I+1;
+            }   
+        }
+        C = format[I];
+    }
+    if(n){*pbuff++ = 0;}
+    else{pbuff--; *pbuff = 0;}
+    return 1;
+}
+
+
+
+#endif

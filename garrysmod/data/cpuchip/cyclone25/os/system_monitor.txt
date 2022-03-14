@@ -1,0 +1,175 @@
+//system monitor / control panel
+//
+// provides general and detailed information about all systems of CycloneOS
+//
+// cli interface:
+//
+// >system --- prints current used/free/total RAM, HDD, num processes, state of paging
+// >system -hardware --- prints the hardware map
+// >system -map --- prints the locations of code and data
+// >system -diag --- run a diagnostic to check if everything works correctly
+// >system -list --- lists subsystem
+//   register   --- IP, EBP, ESP, CS, SS (i.e. location of stack, etc)
+//   trace      --- stack trace support (description)
+//   interface  --- kernel interface (location, functions, page status)
+//   libs       --- list of #included kernel libraries
+//   interrupts --- current interrupt setup   
+//   malloc     --- memory allocation status, RAM counts
+//   paging     --- paging status
+//   shell      --- shell status
+//   process    --- process and thread status
+//   loader     --- program loader status
+//   fs         --- filesystem status
+//    
+// >system [system] -- commands and info about specific system
+// 
+
+float stack_count(float ret_freestack, float ret_usedstack){
+    float Snow = esp;
+    float Stotal;
+    preserve eax;
+    cpuget 9, eax;
+    Stotal = eax;
+    zap eax;
+    *ret_freestack = Snow;
+    *ret_usedstack = Snow - Stotal;
+}
+
+str_hardwareMap:
+db "user CPU control ... user CPU membus -----------+             \n"
+db " |                                            addr bus        \n"
+db "[port][port]-buttons,leds,sound                 |             \n"
+db " |                             2. EB_ram----1. user ram (1 MB)\n"
+db "IOBUS                          3. hdd   -4.-2. EB (devices)   \n"
+db " |                          /         /         |             \n"
+db "BIOS - MEMBUS - EB_bios -------------     1. zASM entry cpu   \n"
+db "                        \             \-5 2. bios screen      \n"
+db "                         1.trans mem   \6 3. keyboard         \n"
+db "                               |          4. user screen      \n"
+db "                         user CPU iobus                       \n"
+db 0;
+
+// user CPU control ... user CPU membus -----------+
+//  |                                            addr bus
+// [port][port]-buttons,leds,sound                 |
+//  |                             2. EB_ram----1. user ram (1 MB)
+// IOBUS                          3. hdd   -4.-2. EB (devices)
+//  |                          /         /         |
+//  BIOS - MEMBUS - EB_bios -------------     1. zASM entry cpu
+//                          \             \-5 2. bios screen
+//                           1.trans mem   \6 3. keyboard
+//                                |           4. user screen
+//                           user CPU iobus
+
+str_systemList:
+db "register\n", "trace\n", "interface\n", "libs\n", "interrupts\n", "malloc\n",
+db "paging\n", "shell\n", "process\n", "loader\n", "fs\n", 0;
+
+float sys_diag_stack(){
+    printf("stack diagnostic\n");
+    float psize = kernelSize();
+    float p_ss = SS;
+    float p_esp = esp;
+    printf("code size = %d\nstack segment = %d\nesp = %d\n", psize, p_ss, p_esp);
+}
+
+float sys_diag_heap(){
+    printf("heap diagnostic\n");
+    //malloc
+    float res = malloc_test();
+    if(res == 0){printf("malloc test %mOK\n",90);}
+    
+    float freesize, usedsize, freecount, usedcount;
+    malloc_count(&freesize, &usedsize, &freecount, &usedcount);
+    //printf("heap: %d bytes used, %d bytes free\n", usedsize, freesize);
+    printf("heap: "); printKbs(usedsize); printf(" used, "); printKbs(freesize); printf(" free\n");
+}
+
+float sys_diag_disk(){
+    printf("disk diagnostic\n");
+    printf("<not implemented>\n");
+}
+
+float cmdSystem(float shell, float argc, float argv){
+    assert_type(shell, typeof_shell2);
+    
+    float freesize, usedsize, freecount, usedcount;
+    float totalsize;
+   float freestack, usedstack;
+    float totalstack;
+            
+            
+    if(argc > 1){
+        if(strcmp(argv[1], "-hardware") == 0){
+            printf("hardware map from the POV of the BIOS cpu:\n");
+            printf("%s\n", str_hardwareMap);
+            return 0;
+        }
+        if(strcmp(argv[1], "-map") == 0){
+            printf("RAM map:\n");
+            printf("0 - %d: boot stub\n", derpslot);
+            printf("%d - %d: programslot & kernel interface\n", programslot, programslot_end);
+            printf("%d - %d: libraries & kernel code\n", libmarker1, libmarker20);
+            printf("%d - %d: global variables\n", all_globals, main_globals_end);
+            printf("%d - %d: stack buffer\n", stack_buffer, stack_buffer_end);
+            printf("%d - %d: kernel main\n", main, pg_int_handlers);
+            printf("%d - %d: interrupt handlers\n", pg_int_handlers, pg_int_handlers_end);
+            printf("%d - %d: random code\n", pg_int_handlers_end, heap);
+            printf("%d++: heap\n", heap);  
+            return 0;
+        }
+        if(strcmp(argv[1], "-diag") == 0){
+            if(argc > 2){
+                if(strcmp(argv[2], "stack")==0){
+                    sys_diag_stack();
+                    
+                    return 0;
+                }else if(strcmp(argv[2], "heap")==0){
+                    sys_diag_heap();
+                    
+                    //palloc
+                    return 0;
+                }else if(strcmp(argv[2], "disk")==0){
+                    sys_diag_disk();
+                    return 0;
+                }
+            }else{
+                sys_diag_stack();
+                sys_diag_heap();
+                sys_diag_disk();
+                return 0;
+            }
+        }
+        if(strcmp(argv[1], "-list")==0){
+            //in the future, we want systems to register with the system monitor
+            printf("%s\n", str_systemList);
+            return 0;
+        }
+        //>system [system]
+        //look through list of systems for more stuff
+        printf("system [system_name] is not implemented yet\n");
+        return 0;
+    }
+    else{
+        //>system
+        printf("system monitor and control panel.\n");
+            //RAM counts
+            printf("RAM count...\n");
+            malloc_count(&freesize, &usedsize, &freecount, &usedcount);
+            totalsize = freesize+usedsize;
+        printf("RAM: %d used, %d free, %d total\n", usedsize, freesize, totalsize);
+        
+            //stack counts
+            printf("stack count...\n");
+            stack_count(&freestack, &usedstack);
+            totalstack = freestack+usedstack;
+        printf("Stack: %d used, %d free, %d total\n", usedstack, freestack, totalstack);
+        
+        printf("hint: try \"help system\"\n");
+        return 0;
+    }
+}
+
+float sys_init_commands(float shell){
+    shell2_add_command(shell, cmdSystem, "system", "control panel", "system monitor and control panel. Usage: system [-hardware/-map/-diag/-list/[system_name]]");  
+}

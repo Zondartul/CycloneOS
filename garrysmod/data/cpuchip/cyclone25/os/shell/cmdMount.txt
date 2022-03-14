@@ -1,0 +1,24 @@
+//mount a lightfs3 volume that resides in the specified device
+//load the fs descriptor and assign it to a letter
+float cmdMount(float shell, float argc, float argv){
+    assert_type(shell, typeof_shell2);
+    if(argc > 2){
+        float devNum = str2num(argv[1]);
+        float devEntry = EBcb_get_entry(EBcb_1,devNum);
+        float devType = EBcb_entry_get_type(devEntry);
+        float typeString = udhTypeToString(devType);
+        float devAdr = EBcb_entry_get_addr(devEntry);
+    
+        float name = argv[2];
+        
+        printf("mounting device %d\n(%s) as %s:/\n", devnum, typeString, name);
+        //printf("init_fs3()...\n");
+        float fs3 = init_fs3();
+        //printf("load fs descriptor...\n");
+        fs3_load_fs_descriptor(fs3, devAdr);
+        //printf("associate letter...\n");
+        shell2_associate_fs3_with_letter(shell, fs3, name);
+        //shell[3] = fs3; //current fs moved to CD
+        //printf("done\n");
+    }else{cmdHelp2(shell,argv[0]);}
+}

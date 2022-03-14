@@ -1,0 +1,978 @@
+//shell2
+
+/*
+shell structure:
+0 - typeof shell2
+1 - command text len
+2 - fs letter table
+3 - current fs
+4 - current dir len
+5 - commands table
+10..80 - command text
+100..180 - current dir
+*/
+
+typeof_shell2: db "shell2", 0;
+float sizeof_shell2 = 180;
+float sizeof_shell2_text = 80;
+float sizeof_shell2_cd = 80;
+
+float init_shell2(){
+    float shell = malloc(sizeof_shell2);
+    shell2_constructor(shell);
+    return shell;
+}
+
+float shell2_constructor(float self){
+    self[0] = typeof_shell2;
+    self[1] = 0;
+    float V = malloc(sizeof_vector);
+    vector_constructor(V,10); //element size = 10
+    self[2] = V; // fs letter table
+    self[3] = 0; // current fs
+    self[4] = 0; // current dir len
+    float V2 = malloc(sizeof_vector);
+    vector_constructor(V2,4);
+    self[5] = V2; // commands table
+    self[10] = 0; //command text
+    self[100] = 0; // current dir len;
+    
+    shell2_add_command(self, cmdHelp,   "help",   "helps with commands", "usage: help (command)");
+    shell2_add_command(self, cmdCls,    "cls",    "clear screen",0);
+    shell2_add_command(self, cmdEcho,   "echo",   "print a message",0);
+    shell2_add_command(self, cmdDevice, "device", "enumerates devices",  "usage: device [list/info]");
+    shell2_add_command(self, cmdMount,  "mount",  "assign drive letter", "usage: mount [deviceNum] [driveLetter]");
+    shell2_add_command(self, cmdCD,     "cd",     "change directory",0);
+    shell2_add_command(self, cmdFormat, "format", "installs lightfs3", "usage: format [deviceNum]");
+    shell2_add_command(self, cmdDir,    "dir",    "lists current dirs",0);
+    shell2_add_command(self, cmdMem,    "mem",    "displays memory contents", "usage: mem [from] [numBytes]");
+    shell2_add_command(self, cmdWrite,  "write",  "write text to file", "usage: write [-f filename] text");
+    shell2_add_command(self, cmdRead,   "read",   "read text from file", "usage: read [-f filename]");
+    shell2_add_command(self, cmdMkDir,  "mkdir",  "create a directory", "usage: mkdir [name]");
+    shell2_add_command(self, cmdDiag,   "diag",   "run system diagnostic", "usage: diag [stack/heap/disk]");
+    shell2_add_command(self, cmdFS,     "fs",     "filesystem settings", "usage: fs [blocks/cache [on/off/reset]]");
+    shell2_add_command(self, cmdDel,    "del",    "delete a file or folder",0);
+    shell2_add_command(self, cmdOverstack, "overstack", "test overstack",0);
+    shell2_add_command(self, cmdDump,   "dump",   "write dev to file", "usage: dump [deviceNum] [filename]");
+    shell2_add_command(self, cmdRun,    "run",    "run executable file", "usage: run [alcor/allfunc/inex] [filename]")
+}
+
+float shell2_open(float self){
+    assert_type(self, typeof_shell2);
+    screen_clear();
+    setPrintCursor(0,0);
+    printf("shell = %d\n", self);
+    
+    float EB_Kb = 0;
+    EBcb_device_bind_addr(EBcb_1, UDH_KEYBOARD, 1, &EB_Kb);
+    if(!EB_Kb){
+        printf("no keyboard, quitting.\n");
+        return;
+    }
+    printf("found keyboard at %d\n", EB_Kb);
+    setKeyboard(EB_Kb);
+
+    while(1){
+        shell2_waitInput(self);
+    }
+}
+
+float shell2_add_command(float self, float func, float str_cmd, float str_desc, float str_help){
+    assert_type(self, typeof_shell2);
+    float entry[4];
+    entry[0] = func;
+    entry[1] = str_cmd;
+    entry[2] = str_desc;
+    entry[3] = str_help;
+    float V = self[5];
+    vector_push(V, entry);
+}
+
+//returns command entry and returns 1 on success or 0 on failure.
+float shell2_lookup_command(float self, float str_cmd, float entry){
+    assert_type(self, typeof_shell2);
+    //printf("s2 lookup(%d, %s, @ %d)\n",self,str_cmd,entry);
+    float V = self[5];
+    float S = vector_size(V);
+    float I;
+    //printf("V = %d, S = %d\n",V,S);
+    for(I = 0; I < S; I++){
+        //printf("try entry %d...",I);
+        //float vector_get(void *self, void *element, float pos)
+        vector_get(V, entry, I);
+        float e_str = entry[1];
+        //printf("str =[%s]\n",e_str);
+        if(strcmp(e_str, str_cmd) == 0){
+            //printf("found!\n");
+            return 1;
+        }
+    }
+    //printf("not found\n");
+    return 0;
+}
+
+float shell2_waitInput(float self){
+    assert_type(self, typeof_shell2);
+    shell2_print_prompt(self);
+    screen_cursor_enable();
+    while(1){
+        screen_set_cursor_pos_xy( printScrX, printScrY);
+        float K = waitkey();
+        float R = shell2_process_key(self, K);
+        if(R){return;}
+    }
+}
+
+float shell2_print_prompt(float self){
+    assert_type(self, typeof_shell2);
+    float cd_str = self+100; //current dir
+    float cd_len = self[4]; //current dir len
+    if(cd_len){
+        printf("%s", cd_str);
+    }
+    printf("> ");
+}
+
+float shell2_process_key(float self, float K){
+    assert_type(self, typeof_shell2);
+    float text_len;
+    float text_ptr;
+    if(K == KEY_ENTER){
+        screen_cursor_disable();
+        printf("\n");
+        shell2_process_command(self);
+        text_len = 0;
+        text_ptr[0] = 0;
+        self[1] = text_len; //text len
+        return 1;   
+    }
+    if(K == KEY_BACKSPACE){
+        text_len = self[1]; //command text len
+        text_ptr = self+10; //command text
+        if(text_len > 0){
+            text_len--;
+            text_ptr[text_len] = 0;
+            //print a backspace
+            screenEraseChar();
+        }
+        self[1] = text_len; //text len
+    }
+    if(isPrint1(K)){
+        printf("%c",K);
+        text_len = self[1]; //text len
+        text_ptr = self+10; //command text
+        text_ptr[text_len] = K;   text_len++;
+        text_ptr[text_len] = 0;
+        self[1] = text_len;
+    }
+    return 0;
+}
+
+float shell2_process_command(float self){
+    assert_type(self, typeof_shell2);
+    float str = self+10; //command text
+    //printf("you entered: [%s]\n", str);
+    float buff[120];
+    strcpy(buff,str);
+    float argv = explode(buff, " ");
+    float argc = strlen(argv); 
+    
+    float cmd_entry[4];
+    if(shell2_lookup_command(self, argv[0], cmd_entry)){
+        float cmd_func = cmd_entry[0];
+        cmd_func(self, argc, argv);
+    }else{
+        printf("%mcommand not found\n",822);
+    }
+    
+    
+    //if(strcmp(argv[0], "help")==0){cmdHelp(self, argc, argv);}
+    //if(strcmp(argv[0], "device")==0){cmdDevice(self, argc, argv);}
+    //if(strcmp(argv[0], "mount")==0){cmdMount(self, argc, argv);} 
+    //if(strcmp(argv[0], "cd")==0){cmdCD(self, argc, argv);}
+    //if(strcmp(argv[0], "format")==0){cmdFormat(self, argc, argv);}
+    //if(strcmp(argv[0], "dir")==0){cmdDir(self, argc, argv);}
+    
+}
+
+float shell2_associate_fs3_with_letter(float self, float fs3, float letter){
+    assert_type(self, typeof_shell2);
+    //fs entry:
+    //[0] - fs
+    //[1-10] - letter
+    float entry[10];
+    float e_letter = entry+1;
+    entry[0] = fs3;
+    //char* strncpy(char *dest, *src, float n)
+    strncpy(e_letter, letter, 8);
+    float V = self[2]; //fs letter table
+    vector_push(V, entry);
+}
+
+float shell2_set_fs_by_drive_letter(float self, float letter){
+    assert_type(self, typeof_shell2);
+    //printf("sdl 1\n");
+    self[3] = 0; //current fs
+    float V = self[2]; //command letter table
+    float S = vector_size(V);
+    float I;
+    //printf("sdl 2\n");
+    for(I = 0; I < S; I++){
+   // printf("sdl 3\n");
+        float entry[10];
+        //float vector_get(void *self, void *element, float pos)
+        float e_letter = entry+1;
+        vector_get(V,entry,I);
+    //printf("sdl 4\n");
+    //    printf("entry %d : letter [%s]\n",I,e_letter);
+        if(strcmp(letter,e_letter) == 0){
+    //printf("sdl 5\n");
+            //found it
+            self[3] = entry[0]; //current fs = fs
+            
+            //printf("letter found, fs = %d\n", self[3]);
+            return 1;
+        }
+    }
+    //printf("sdl 6\n");
+    printf("fs not found for letter %s\n",letter);
+    return 0; //not found
+}
+
+float shell2_set_cd(float self, float dir){
+    assert_type(self, typeof_shell2);
+    float cd_str = self+100; //current dir 
+    //float new_str = concat(dir, ":/");
+    //strncpy(cd_str, new_str, sizeof_shell2_cd);
+    strncpy(cd_str, dir, sizeof_shell2_cd);
+    self[4] = strlen(cd_str); // current dir len
+}
+
+//------------ commands -------------
+
+float cmdHelp(float shell, float argc, float argv){
+    assert_type(shell, typeof_shell2);
+    if(argc > 1){
+        cmdHelp2(shell, argv[1]);
+    }else{
+        float V = shell[5];
+        float S = vector_size(V);
+        float I;
+        for(I = 0; I < S; I++){
+            float entry[4];
+            vector_get(V, entry, I);
+            float e_str = entry[1];
+            float e_desc = entry[2];
+            printf("%s", e_str);
+            if(e_desc){printf(" - %s", e_desc);}
+            printf("\n");
+        }
+    }
+}
+
+float cmdHelp2(float shell, float str_cmd){
+    assert_type(shell, typeof_shell2);
+    float V = shell[5];
+    float S = vector_size(V);
+    float I;
+    for(I = 0; I < S; I++){
+        float entry[4];
+        vector_get(V, entry, I);
+        float e_str = entry[1];
+        if(strcmp(e_str, str_cmd) == 0){
+            float e_help = entry[3];
+            if(e_help){
+                printf("%s\n",e_help);
+            }else{
+                printf("no help is available for this command\n");
+            }
+        }
+    }
+}
+
+float cmdCls(float shell){
+    screen_clear();
+    setPrintCursor(0,0);
+}
+
+float cmdEcho(float shell, float argc, float argv){
+    float I;
+    for(I = 1; I < argc; I++){
+        printf("%s ",argv[I]);
+    }
+    printf("\n");
+}
+
+float printBytemap(float ptr, float sizeX, float sizeY){
+    float black = 0;
+    float white = 999999;
+    float green =  90090;
+    float pink  = 929929;
+    float purple= 808808;
+    float blue  = 009009; 
+    float red   = 900900;
+    
+    float col_zero = black;
+    float col_num_low = white;
+    float col_num_negative = green;
+    float col_num_float_low = pink;
+    float col_num_float_high = purple;
+    float col_num_high = blue;
+    
+    float I;
+    float J;
+    for(J = 0; J < sizeX+2; J++){printf("_");}
+    printf("\n");
+    
+    for(I = 0; I < sizeY; I++){
+        printf("|");
+        for(J = 0; J < sizeX; J++){
+            float byte = *ptr++;
+            float fl = byte-floor(byte);
+            
+            float col = red;
+            if(byte == 0){col = col_zero;}
+            else if(fl){
+                if(byte < 10000){col = col_num_float_low;}
+                else{col = col_num_float_high;}
+            }else if(byte < 0){col = col_num_negative;}
+            else if(byte < 10000){col = col_num_low;}
+            else{col = col_num_high;}
+            
+            printf("%m ",col);
+        }
+        printf("|");
+        printf("\n");
+    }
+    for(J = 0; J < sizeX+2; J++){printf("_");}
+    printf("\n");
+}
+
+float cmdDevice(float shell, float argc, float argv){
+    //device list - list devices
+    //device info <num> - more info about device number num.
+    
+    //TODO: add a way to refer to devices on the other side of an address bus or ext.bus
+    float devNum;
+    float devEntry;
+    float devType;
+    float typeString;
+    float devAddr;
+    float devSize;
+    
+    if(argc > 1){
+        if(strcmp(argv[1],"list")==0){
+            printf("devices:\n");
+            float I;
+            for(I = 0; I < 9; I++){
+                devEntry = EBcb_get_entry(EBcb_1,I);
+                devType = EBcb_entry_get_type(devEntry);
+                typeString = udhTypeToString(devType);
+                printf("dev %d: %s\n",I,typeString);
+            }
+        }
+        if(strcmp(argv[1],"info")==0){
+            if(argc>2){
+                devNum = str2num(argv[2]);
+                devEntry = EBcb_get_entry(EBcb_1,devNum);
+                devType = EBcb_entry_get_type(devEntry);
+                typeString = udhTypeToString(devType);
+                devAddr = EBcb_entry_get_addr(devEntry);
+                devSize = EBcb_entry_get_size(devEntry);
+                printf("dev %d: %s\n", devNum,typeString);
+                printf("@ %d, size %d\n", devAddr, devSize);
+                printf("memory:\n");
+                printBytemap(devAddr, 20,5);
+                
+            }else{cmdHelp2(shell,argv[0]);}
+        }
+        //if(strcmp(argv[1],"refresh")==0){
+            //clm makes a general fault for some reason. should check what page we're on, etc.
+            //printf("suspending page protection...");    clm;                    printf(" ok\n");
+            //printf("running EB autoconf...");           EBcb_autoconf(EBcb_1);  printf(" ok\n");
+            //printf("restoring page protection...");     stm;                    printf(" ok\n");
+            //printf("device list refreshed\n");
+        //}
+    }else{cmdHelp2(shell,argv[0]);}
+}
+
+
+//---------- Filesystem stuff
+#include "lightfs3.txt"
+//mount a lightfs3 volume that resides in the specified device
+//load the fs descriptor and assign it to a letter
+float cmdMount(float shell, float argc, float argv){
+    assert_type(shell, typeof_shell2);
+    if(argc > 2){
+        float devNum = str2num(argv[1]);
+        float devEntry = EBcb_get_entry(EBcb_1,devNum);
+        float devType = EBcb_entry_get_type(devEntry);
+        float typeString = udhTypeToString(devType);
+        float devAdr = EBcb_entry_get_addr(devEntry);
+    
+        float name = argv[2];
+        
+        printf("mounting device %d\n(%s) as %s:/\n", devnum, typeString, name);
+        //printf("init_fs3()...\n");
+        float fs3 = init_fs3();
+        //printf("load fs descriptor...\n");
+        fs3_load_fs_descriptor(fs3, devAdr);
+        //printf("associate letter...\n");
+        shell2_associate_fs3_with_letter(shell, fs3, name);
+        //shell[3] = fs3; //current fs moved to CD
+        //printf("done\n");
+    }else{cmdHelp2(shell,argv[0]);}
+}
+
+//change directory - if letter changes, load the filesystem as the current one
+float cmdCD(float shell, float argc, float argv){
+    assert_type(shell, typeof_shell2);
+    //get the drive letter and load the appropriate fs descriptor if one is loaded
+    float old_drivepath = malloc(10);
+    float new_drivepath = malloc(10);
+    float new_totalpath = malloc(80);
+    float str_cd = shell+100;
+    float str_arg = argv[1];
+    
+    if(argc > 1){
+        //1. check if the new path is abs (with driveletter) or not
+        if(filepath_drive(str_arg, new_drivepath)){
+            //2. check if the new path has a different driveletter
+            old_drivepath[0] = 0; //in case there is no old drivepath
+            filepath_drive(str_cd, old_drivepath);
+            
+            if(strcmp(old_drivepath, new_drivepath) != 0){            
+                if(shell2_set_fs_by_drive_letter(shell, new_drivepath)){
+                    shell2_set_cd(shell, str_arg);
+                }else{
+                    printf("drive %s not mounted (no fs)!\n", new_drivepath);
+                    goto cmdCD_end;
+                }
+            }else{
+                //abs path but drive didn't change
+                shell2_set_cd(shell, str_arg);
+            }
+        }else{
+            //relative path
+            snprintf(new_totalpath, 80, "%s%s/", str_cd, str_arg);
+            shell2_set_cd(shell, new_totalpath);
+        }
+    }else{cmdHelp2(shell,argv[0]);}
+    cmdCD_end:
+    free(old_drivepath);
+    free(new_drivepath);
+    free(new_totalpath);
+}
+
+//format the specified device as a lightfs3 volume
+//a blank filesystem will be written to the device
+float cmdFormat(float shell, float argc, float argv){
+    assert_type(shell, typeof_shell2);
+    if(argc > 1){
+        float devNum = str2num(argv[1]);
+        float devEntry = EBcb_get_entry(EBcb_1,devNum);
+        float devType = EBcb_entry_get_type(devEntry);
+        float typeString = udhTypeToString(devType);
+        float devAdr = EBcb_entry_get_addr(devEntry);
+        float devSize = EBcb_entry_get_size(devEntry);
+        
+        float blockSize = 300;
+        printf("formatting device %d\n(%s) @ %d\nas lightfs3\n", devnum, typeString, devAdr);
+        printf("device size = %d\n", devSize);
+        printf("block size = %d\n", blockSize); 
+        float fs3 = init_fs3();
+        //shell2_set_fs(shell, fs3);
+        fs3_disk_format(fs3, devAdr, devSize, blockSize);
+        //fs struct may be discarded now
+    }else{cmdHelp2(shell,argv[0]);}
+}
+
+float cmdDir(float shell, float argc, float argv){
+    assert_type(shell, typeof_shell2);
+    float fs3 = shell[3]; //current fs
+    //printf("dir: shell = %d, fs3 = %d\n",shell, fs3);
+    //printf("dir 1\n");
+    if(!fs3){printf("no filesystem (use mount, cd)\n"); return;}
+    float buff = malloc(32);//buff[32];
+    float cur_dir = shell+100; //current dir
+    float fh_dir = fopen(shell, cur_dir,"r");
+    if(fh_dir){}//{printf("%mfh_dir opened\n",90);}
+    else{printf("%mcan't open fh_dir\n",990); return;}
+    //printf("fh = %d\n",fh_dir);
+    float I = 0;
+    //printf("dir 2\n");
+    float filenames = malloc(200);//filenames[200]; //10 files, 20 chars
+    float filesizes = malloc(10);//filesizes[10];
+    float filetypes = malloc(10);
+    float entry_buff = malloc(fs3_entry_size);
+    float num_files = 0;
+    
+    float p_filename;
+    float f_size;
+    float f_type;
+    //float debugI = 1;
+    //printf("c1: ebp = %d, esp = %d, ss = %d\n", ebp, esp, ss);
+    while(1){
+        float res = fs3_dir_get_filename(fs3, fh_dir, I, buff);
+        //printf("c2: ebp = %d, esp = %d, ss = %d\n", ebp, esp, ss);
+        if(res){
+              p_filename = filenames+num_files*20;
+    //        //void *memcpy(void *dest, void *src, float n)
+              memcpy(p_filename, buff, 20);
+              p_filename[20] = 0;
+              f_size = fs3_dir_get_filesize(fs3, fh_dir, I);
+              
+              fs3_dir_read_entry(fs3, fh_dir, I, entry_buff);
+              float type = entry_buff[1];
+              filetypes[num_files] = type;          
+            
+                    
+              //printf("c3: ebp = %d, esp = %d, ss = %d\n", ebp, esp, ss);
+              filesizes[num_files] = f_size;
+              num_files++;
+              if(num_files >= 10){
+                break;
+              }
+    //
+            I++;
+        }else{
+            break;
+        }
+    }   
+    cmdDirDerp:
+    if(I == 0){printf("%mthere are no files in [%s]\n",880,cur_dir);}
+    else{
+        printf("\n%m------------------------\n",90);
+        printf("%mthere are %d files in [%s]\n", 90, num_files, cur_dir);
+        printf("%mn\tsize\tname\n",90);
+        for(I = 0; I < num_files; I++){
+            p_filename = filenames+I*20;
+            f_size = filesizes[I];
+            float typecol = 90;
+            f_type = filetypes[I];
+            if(f_type == FS3_FTYPE_DIR){
+                typecol = 990;
+            }
+            printf("%m%d\t%d\t%m[%s]\n", 90,I, f_size, typecol, p_filename);   
+            //printf("%m%d\t%d\n",90,I,f_size);
+            //printf("%d\n",I);
+        }
+        printf("%m------------------------\n",90);
+        
+
+    //    printf("\n");
+    }
+    free(filesizes);
+    free(filenames);
+    free(buff);
+    //printf("ebp = %d, esp = %d\n", ebp, esp);
+    //printf("dir 3\n");
+}
+
+float cmdMkDir(float shell, float argc, float argv){
+    assert_type(shell, typeof_shell2);
+    float fs3 = shell[3];
+    if(!fs3){printf("no filesystem (use mount, cd)\n"); return;}
+    if(argc > 1){
+        float dirname = argv[1];
+        printf("%mmaking directory [%s]\n",90,dirname);
+        fs3_mkdir(shell, dirname);
+    }else{
+        cmdHelp2(shell, argv[0]);
+    }
+}
+
+float cmdDel(float shell, float argc, float argv){
+    assert_type(shell, typeof_shell2);
+    fs3_delFile(shell, argc[1]);
+}
+
+float cmdMem(float shell, float argc, float argv){
+    assert_type(shell, typeof_shell2);
+    //mem [from][num]             -- print number of bytes from memory
+    //mem [from][num] -disk       -- print from current disk
+    //mem [from][num] -d [devnum] -- print from device num
+    //printf("cmdMem(%d, %d, %d)\n",shell,argc,argv);
+    //float I;
+    //for(I = 0; I < argc; I++){
+    //    printf("argv[%d] = [%s]\n",I,argv[I]);
+    //}
+    
+    if(argc > 2){
+        float addr_from = str2num(argv[1]);
+        float num_bytes = str2num(argv[2]);
+        if(argc > 3){
+            if(strcmp(argv[3], "-disk")==0){
+                float fs3 = shell[3]; //current fs
+                if(!fs3){printf("no filesystem (use mount, cd)\n"); return;}
+                assert_type(fs3, typeof_fs3);
+                float diskAdr = fs3[1]; //disk pointer
+                printf("rel. to disk @ %d\n",diskAdr);
+                addr_from = addr_from + diskAdr;
+            }else if(strcmp(argv[3], "-d")==0){
+                if(argc > 4){
+                    float devNum = str2num(argv[4]);
+                    float devEntry = EBcb_get_entry(EBcb_1, devNum);
+                    float devAdr = EBcb_entry_get_addr(devEntry);
+                    printf("rel. to dev %d @ %d\n", devNum, devAdr);
+                    addr_from = addr_from + devAdr;
+                }else{cmdHelp2(shell,argv[0]);}
+            }else{cmdHelp2(shell,argv[0]);}
+        }
+        
+        if(num_bytes > 100){
+            num_bytes = 10;
+            printf("num_bytes too high, limiting to %d\n", num_bytes);
+        }
+        while(num_bytes--){
+            float byte = *addr_from;
+            float bch = ' ';
+            if(isprint(byte)){bch = byte;}
+            printf("%d:\t%d\t%c\n",addr_from, byte, bch);
+            addr_from++;
+        }
+    }else{cmdHelp2(shell,argv[0]);}
+}
+
+// FS3 FILESYSTEM TODO
+// issues:
+//   v(fixed)- new file_handle is opened every time, FT cache doesn't work
+//   v(fixed)- fwrite doesn't update the file_handle with the new size
+//   - too many reads and openings
+//   - read-only open of nonexisting file crashes
+// needed funcs:
+//   - makedir
+//   - cd into dir
+//   - delete file
+//   - delete dir
+
+float cmdWrite(float shell, float argc, float argv){
+    assert_type(shell, typeof_shell2);
+    if(argc > 1){
+        if(strcmp(argv[1], "-f")==0){
+            if(argc > 2){
+                float filename = argv[2];
+                //printf("write to file [%s]\n", filename);
+                float fh = fopen(shell, filename, "a"); //mode append
+                //lfa_check("after fopen: ");
+                if(!fh){printf("can't open file\n"); return 0;}
+                else{printf("%mfile opened\n",90);}
+                //printf("fh = %d\n",fh);
+                float I;
+                for(I = 3; I < argc; I++){
+                    float str = argv[I];
+                    //printf("writing [%s]...\n", str);
+                    float len = strlen(str);
+                    //float res = fwrite(str, len+1, fh);
+                    float res = fwrite(str, len, fh);
+                    if(res){/*printf("wrote %d bytes to file\n", res);*/}
+                    else{printf("can't fwrite\n"); return 0;}
+                }
+                return 1;
+            }
+        }
+    }
+    cmdHelp2(shell,argv[0]);
+    return 0;
+}
+
+float cmdRead(float shell, float argc, float argv){
+    assert_type(shell, typeof_shell2);
+    if(argc > 1){
+        if(strcmp(argv[1], "-f")==0){
+            if(argc > 2){
+                float filename = argv[2];
+                printf("read from file [%s]\n", filename);
+                float fh = fopen(shell, filename, "r");
+                if(!fh){printf("can't open file\n"); return 0;}
+                else{printf("%mfile opened\n",90);}
+                //printf("fh = %d\n",fh);
+                //float fs3 = shell[3]; //current fs //debug
+                //fs3_print_file_handle(fs3, fh);    //debug
+                
+                //float buff[100];
+                float len = fsize(fh);
+                float buff = malloc(len+1);
+                //float res = fread(buff, 100, fh);
+                float res = fread(buff, len, fh);
+                buff[len] = 0;
+                if(res){printf("%m%s\n",90,buff); free(buff);}
+                else{printf("can't fread\n"); free(buff); return 0;}
+                //float I;
+                //for(I = 3; I < argc; I++){
+                //    float str = argv[I];
+                //    //printf("writing [%s]...\n", str);
+                //    float len = strlen(str);
+                //    float res = fwrite(str, len, fh);
+                //    if(res){/*printf("wrote %d bytes to file\n", res);*/}
+                //    else{printf("can't fwrite\n"); return 0;}
+                //}
+                return 1;
+            }
+        }
+    }
+    cmdHelp2(shell,argv[0]);
+    return 0;
+}
+
+float countHDD(float fs3, float ret_bytes_free, float ret_bytes_used, float ret_bytes_total, float ret_blocks_free, float ret_blocks_used, float ret_blocks_total){
+    float blocksize;     
+	fs3_low_read(fs3, 12, &blocksize, 1);
+    float num_blocks;    
+	fs3_low_read(fs3, 13, &num_blocks, 1);
+    float dptr_blockmap; 
+	fs3_low_read(fs3, 14, &dptr_blockmap, 1);
+    
+    float blockmap_size = num_blocks*2;
+    float blockmap = malloc(blockmap_size);
+    fs3_low_read(fs3, dptr_blockmap, blockmap, blockmap_size);
+    
+    float B;
+    float Buser;
+    float Bnext;
+    float col;
+    float I;
+    float num_free = 0;
+    float num_used = 0;
+    for(I = 0; I < num_blocks; I++){
+        B = blockmap + I*2;
+        Buser = B[0];
+        if(Buser == 0){num_free++;}
+        else{num_used++;}
+    }
+    float bytes_total = num_blocks*blocksize;
+    float bytes_free = blocksize*num_free;
+    float bytes_used = bytes_total - bytes_free;
+    
+    if(ret_bytes_free){*ret_bytes_free = bytes_free;}
+    if(ret_bytes_used){*ret_bytes_used = bytes_used;}
+    if(ret_bytes_total){*ret_bytes_total = bytes_total;}
+    if(ret_blocks_free){*ret_blocks_free = num_free;}
+    if(ret_blocks_used){*ret_blocks_used = num_used;}
+    if(ret_blocks_total){*ret_blocks_total = num_blocks;}
+}
+
+float printBlockmap(float fs3, float from, float count){
+    float blocksize;     
+	fs3_low_read(fs3, 12, &blocksize, 1);
+    float num_blocks;    
+	fs3_low_read(fs3, 13, &num_blocks, 1);
+    float dptr_blockmap; 
+	fs3_low_read(fs3, 14, &dptr_blockmap, 1);
+    
+    float blockmap_size = num_blocks*2;
+    float blockmap = malloc(blockmap_size);
+    fs3_low_read(fs3, dptr_blockmap, blockmap, blockmap_size);
+    
+    float B;
+    float Buser;
+    float Bnext;
+    float col;
+    float I;
+
+    if(from > num_blocks){from = num_blocks-1;}
+    if(count > (num_blocks - from-1)){count = num_blocks - from;}    
+    if(count > 30){count = 30;}
+
+    printf("block\tuser\tnext\n");
+    for(I = from; I < count; I++){//for(I = 0; I < num_blocks; I++)
+        B = blockmap + I*2;
+        Buser = B[0];
+        Bnext = B[1];
+        col = 900;
+        if(Buser == 0){col = 575;}
+        if(Buser == 1){col = 229;}
+        if(Buser > 1){col = 755;}
+        printf("%m%d    %d    %d\n",col, I, Buser, Bnext);
+    }
+
+}
+
+float cmdFS(float shell, float argc, float argv){
+    assert_type(shell, typeof_shell2);
+    float fs3 = shell[3];
+    if(!fs3){
+        printf("filesystem not mounted, use \"mount\" or \"cd\"\n");
+        return 0;
+    }
+    if(argc > 1){
+        if(strcmp(argv[1], "info")==0){
+            float fs_header = malloc(17);
+            //disk format:
+            //0 - "lightfs3"
+            //11 - total size
+            //12 - block size
+            //13 - number of blocks
+            //14 - ptr to block map
+            //15 - ptr to blocks
+            //16 - max file index
+            
+            //fs3_low_read(float fs3, float disk_ptr, float to, float size)
+            fs3_low_read(fs3, 0, fs_header, 16);
+            printf("format: [%s]\n", fs_header);
+            printf("total size: %d\n", fs_header[11]);
+            printf("block size: %d\n", fs_header[12]);
+            printf("num blocks: %d\n", fs_header[13]);
+            printf("blockmap @: %d\n", fs_header[14]);
+            printf("blocks @:   %d\n", fs_header[15]);
+            printf("max index:  %d\n", fs_header[16]);
+            free(fs_header);
+            
+            float num_free;   
+			float num_used;   
+			float num_total;
+            float bytes_free; 
+			float bytes_Used; 
+			float bytes_total;
+            countHDD(fs3, &bytes_free, &bytes_used, &bytes_total, &num_free, &num_used, &num_total);
+            
+            printf("blocks:\n %d free\n %d used\n %d total\n", num_free, num_used, num_total);
+            printf("HDD: %d / %d bytes free\n", bytes_free, bytes_total); 
+            
+        }
+        else if(strcmp(argv[1], "blocks")==0){
+            if(argc > 3){
+                float blocks_from = str2num(argv[2]);
+                float blocks_count = str2num(argv[3]);
+                printBlockmap(fs3, blocks_from, blocks_count);
+            }else{
+                printf("usage: fs blocks [from][count]\n");
+            }
+        }
+        else if(strcmp(argv[1], "cache")==0){
+            if(argc > 2){
+                if(strcmp(argv[2], "on")==0){
+                    fs3[4] = 1;
+                    printf("fs cache turned on\n");
+                }
+                if(strcmp(argv[2], "off")==0){
+                    fs3[4] = 0;
+                    printf("fs cache turned off\n");
+                }
+                if(strcmp(argv[2], "reset")==0){
+                    printf("fs cache was reset\n");
+                    printf("<unimplimented>\n");
+                }
+            }else{
+                printf("fs cache is currently ");
+                if(fs3[4]){
+                    printf("ON\n");
+                }else{
+                    printf("OFF\n");
+                }
+            }
+        }else{
+            cmdHelp2(shell, argv[0]);
+        }
+    }else{
+    cmdHelp2(shell, argv[0]);
+    }
+}
+
+float printKbs(float bytes){
+    if(bytes > 1000000){
+        bytes = floor(bytes/1000000);
+        printf("%d Mb", bytes);
+    }
+    if(bytes > 1000){
+        bytes = floor(bytes/1000);
+        printf("%d kb", bytes);
+    }else{
+        printf("%d bytes", bytes);
+    }
+}
+
+float cmdDiag(float shell, float argc, float argv){
+    float ovs = overstack_fenter("cmdDiag");
+    
+    assert_type(shell, typeof_shell2);
+    if(argc > 1){
+        if(strcmp(argv[1], "stack")==0){
+            printf("stack diagnostic\n");
+            float psize = kernelSize();
+            float p_ss = SS;
+            float p_esp = esp;
+            printf("code size = %d\nstack segment = %d\nesp = %d\n", psize, p_ss, p_esp);
+            
+            overstack_fexit(ovs, "cmdDiag"); return 1;
+        }else if(strcmp(argv[1], "heap")==0){
+            printf("heap diagnostic\n");
+            //malloc
+            float res = malloc_test();
+            if(res == 0){printf("malloc test %mOK\n",90);}
+            
+            float freesize, usedsize, freecount, usedcount;
+            malloc_count(&freesize, &usedsize, &freecount, &usedcount);
+            //printf("heap: %d bytes used, %d bytes free\n", usedsize, freesize);
+            printf("heap: "); printKbs(usedsize); printf(" used, "); printKbs(freesize); printf(" free\n");
+            
+            //palloc
+            overstack_fexit(ovs, "cmdDiag"); return 1;
+        }else if(strcmp(argv[1], "disk")==0){
+            printf("disk diagnostic\n");
+            overstack_fexit(ovs, "cmdDiag"); return 1;
+        }
+    }
+    cmdHelp2(shell, argv[0]);
+    overstack_fexit(ovs, "cmdDiag"); return 0;
+}
+
+float cmdOverstack(float shell, float argc, float argv){
+    float ovs = overstack_fenter("cmdOverstack");
+    
+    printf("overstack test:");
+    overstack_trace();
+    
+    overstack_fexit(ovs, "cmdOverstack");
+}
+
+float cmdDump(float shell, float argc, float argv){
+    assert_type(shell, typeof_shell2);
+    if(argc > 2){
+        float devNum = str2num(argv[1]);
+        float filename = argv[2];
+        printf("dumping device %d to file %s\n", devNum, filename);
+
+        float devEntry = EBcb_get_entry(EBcb_1, devNum);
+        float devAdr = EBcb_entry_get_addr(devEntry);
+        
+        float psize = devAdr[0];
+        printf("file size = %d\n", psize);
+        if((psize < 0) || (psize > 5000)){
+            printf("file too large, abort\n");
+            return 1;
+        }
+        float fp = fopen(shell, filename, "w");
+        if(fp){printf("file opened\n");}else{
+            printf("can't open file\n");
+            return 1;
+        }
+        float res = fwrite(devAdr, psize, fp);
+        printf("wrote %d bytes, done\n", res);
+        return 0;
+    }
+    cmdHelp2(shell, argv[0]);
+}
+
+float cmdRun(float shell, float argc, float argv){
+    assert_type(shell, typeof_shell2);
+    if(argc > 2){
+        float mode = argv[1];
+        float filename = argv[2];
+        if(strcmp(mode, "alcor") == 0){
+            printf("running file %s", filename);
+            return 0;
+        }
+        if(strcmp(mode, "allfunc") == 0){
+            printf("unimplemented");
+            return 1;
+        }
+        if(strcmp(mode, "inex") == 0){
+            printf("unimplemented");
+            return 1;
+        }
+        printf("unknown mode\n");
+        return 1;
+    }
+    cmdHelp2(shell, argv[0]);
+}

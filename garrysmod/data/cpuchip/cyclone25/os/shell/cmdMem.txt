@@ -1,0 +1,46 @@
+float cmdMem(float shell, float argc, float argv){
+    assert_type(shell, typeof_shell2);
+    //mem [from][num]             -- print number of bytes from memory
+    //mem [from][num] -disk       -- print from current disk
+    //mem [from][num] -d [devnum] -- print from device num
+    //printf("cmdMem(%d, %d, %d)\n",shell,argc,argv);
+    //float I;
+    //for(I = 0; I < argc; I++){
+    //    printf("argv[%d] = [%s]\n",I,argv[I]);
+    //}
+    
+    if(argc > 2){
+        float addr_from = str2num(argv[1]);
+        float num_bytes = str2num(argv[2]);
+        if(argc > 3){
+            if(strcmp(argv[3], "-disk")==0){
+                float fs3 = shell[3]; //current fs
+                if(!fs3){printf("no filesystem (use mount, cd)\n"); return;}
+                assert_type(fs3, typeof_fs3);
+                float diskAdr = fs3[1]; //disk pointer
+                printf("rel. to disk @ %d\n",diskAdr);
+                addr_from = addr_from + diskAdr;
+            }else if(strcmp(argv[3], "-d")==0){
+                if(argc > 4){
+                    float devNum = str2num(argv[4]);
+                    float devEntry = EBcb_get_entry(EBcb_1, devNum);
+                    float devAdr = EBcb_entry_get_addr(devEntry);
+                    printf("rel. to dev %d @ %d\n", devNum, devAdr);
+                    addr_from = addr_from + devAdr;
+                }else{cmdHelp2(shell,argv[0]);}
+            }else{cmdHelp2(shell,argv[0]);}
+        }
+        
+        if(num_bytes > 100){
+            num_bytes = 10;
+            printf("num_bytes too high, limiting to %d\n", num_bytes);
+        }
+        while(num_bytes--){
+            float byte = *addr_from;
+            float bch = ' ';
+            if(isprint(byte)){bch = byte;}
+            printf("%d:\t%d\t%c\n",addr_from, byte, bch);
+            addr_from++;
+        }
+    }else{cmdHelp2(shell,argv[0]);}
+}

@@ -1,0 +1,381 @@
+//lightfs3 file and folder lookup functions
+
+// functions:
+//
+// open_file_index - returns a file handle to the file with the given file_index
+// open_root_dir - returns a file handle to the root directory file
+// find_file - returns a file_index associated with a given filename
+//  find_file_helper - implementation of above. opens all folders in path.
+//   find_file_in_folder - implementation of above. looks in a single folder non-recursively.
+// fs3_from_filepath - uses env. vars to find the fs control block assoc. with drive letter.
+//  shell2_get_fs - implementation of above. uses driveletter->fs3 table.
+//
+
+//what the actual fuck am i doing
+//idea: all opened file handles get added to a big file index - handle table
+
+float fs3_open_file_index(float fs3, float file_index, float new_allowed){
+    assert_type(fs3, typeof_fs3);
+//#ifdef FS_DEBUG
+//    printf("fs3_open_file_index(fs3 %d, file_index %d, new_allowed %d)\n", fs3, file_index, new_allowed);
+//#endif
+    float fblock = malloc(2);//fblock[2];
+    float block_num = fs3_find_first_file_block(fs3, file_index, fblock);
+    if(block_num == -1){
+//#ifdef FS_DEBUG
+//        printf("fofi: no first block\n");
+//#endif
+        if(new_allowed){
+//#ifdef FS_DEBUG
+//            printf("fofi: low new...\n");
+//#endif
+            block_num = fs3_low_new(fs3, file_index);
+        }
+    }
+    //printf("fs3_ofi: block_num = %d\n",block_num);
+    if(block_num != -1){
+//#ifdef FS_DEBUG
+//        printf("fofi: has block, constructing fh...\n");
+//#endif
+//        printf("fofi0\n");
+        float fh = malloc(sizeof_file_handle);
+//        printf("fofi1, fh=%d\n",fh);
+        file_handle_constructor(fh);
+//        printf("fofi2\n");
+        float fh_imp = malloc(sizeof_fs3_fh);
+//        printf("fofi3, fh_imp=%d\n",fh_imp);
+        //float fs3_fh_constructor(float self, float fs3, float file_index, float fblock, float backlink)
+        fs3_fh_constructor(fh_imp, fs3, file_index, block_num, 0);
+//        printf("fofi4\n");
+        file_handle_set_imp(fh, fh_imp);
+//        printf("fofi5\n");
+//#ifdef FS_DEBUG
+//        printf("fofi done\n");
+//#endif
+        free(fblock);
+        
+        fs3_add_file_to_FT(fs3, file_index, fh);
+        return fh;
+        
+    }else{
+//#ifdef FS_DEBUG
+//        printf("%mfs3_open_file_index fail\n",411);
+//#endif
+        free(fblock);
+        return 0;
+    }
+}
+
+float fs3_open_or_lookup_file_index(float fs3, float file_index, float new_allowed){
+    float res = fs3_FT_get_file(fs3, file_index);
+    if(!res){  
+        res = fs3_open_file_index(fs3, file_index, new_allowed);
+    }
+    return res;
+}
+
+//returns a file handle to the root directory
+float fs3_open_root_dir(float fs3){
+    //root dir has file index 2
+    float fh = fs3_open_file_index(fs3, 2, 0);
+    if(!fh){
+//#ifdef FS_DEBUG
+//        printf("%mfs3_open_root_dir fail\n",411);
+//#endif
+    }
+    return fh;
+}
+
+
+//returns the file index of the specified file
+//if new_allowed = 1, creates a file if it doesn't exist.
+//ret_f_dir = the open handle to the directory is put here
+float fs3_find_file(float fs3, float filename, float new_allowed, float ret_backlink){
+    float fh_root_dir = fs3_open_root_dir(fs3);
+    float res = fs3_find_file_helper(fs3, filename, fh_root_dir, new_allowed, ret_backlink);
+    if(res == -1){
+//#ifdef FS_DEBUG
+//        printf("%mfs3_find_file fail\n",411);
+//#endif
+    }
+    return res;
+}
+
+//looks for a file index in a specified directory
+//returns: -1 on failure, file_index on success
+//warning: does not actually look inside a long chain of folders because dumb
+float fs3_find_file_helper(float fs3, float filename, float fh_dir, float new_allowed, float ret_backlink){
+    assert_arity(ecx, 5); //we added some args
+//#ifdef FS_DEBUG
+//    printf("fs3_ffh(fs3 %d, filename %s, fh_dir %d, new %d, ret_backlink %d, )\n",fs3, filename, fh_dir, new_allowed, ret_backlink);
+//#endif
+    assert_type(fs3, typeof_fs3);
+    assert_type(fh_dir, typeof_file_handle);
+    //printf("fs3_ffh(%s)\n",filename);
+    float res = -1;
+    *ret_backlink = -1; //initialize the backlink to "not found"
+    //... special case: filename '/' refers to the root folder
+    if(strcmp(filename, "/")==0){
+        res = 2; goto fs3_ffh_end;//return 2;
+        } //file index 2 = root folder
+    
+    //1. decimate the filename, get the first folder (if any)
+    //void filepath_decimate(char *filename, float *folders, char *name, float *is_abs){
+    //float buff = malloc(80);
+    //float filepath = buff;
+    //memcpy(filepath, filename, 80);
+    //float folders[10];
+    float folders;
+    float name;
+    float is_abs;
+    
+
+    //if we're presented with a folder path, open the folder file instead
+//    float len = strlen(filepath);
+//    if(filepath[len-1] == '/'){
+//    filepath[len-1] = 0;}
+    filepath_decimate(filename, &folders, &name, &is_abs);
+    float num_folders = strlen(folders);
+    if(name == 0){
+        name = folders[num_folders-1];
+        num_folders--;
+    }
+    
+    
+    float folder_index;
+    float fh_dir2;
+    float file_index;
+    float I;
+    
+    //printf("decimated result:\n");
+    //printf("name = [%s]\n", name);
+    //printf("is_abs = %d\n", is_abs);
+    //printf("num_folders = %d\n", num_folders);
+    //for(I = 0; I < num_folders; I++){
+    //    printf("folder %d = [%s]\n",I, folders[I]);
+    //}
+    //printf("end.\n");
+    //printf("fs3_ffh: num_folders = %d\n", num_folders);
+    if(num_folders){
+        //float first_folder = folders[0];
+        //glue together the remaining filepath
+        
+        //if(num_folders > 1){
+        //    for(I = 2; I < 10; I++){
+        //        float folder = folders[I];
+        //        if(folder){
+        //            folder[-1] = '/';
+        //        }
+        //    }
+        //    filepath = folders[1];
+        //}else{
+        //    filepath = name;
+        //}
+        float ff_len = strlen(folders[0]);
+        float first_folder = folders[0];      //first_folder is in a buffer with decimated folder list
+        float path_rest = filename+ff_len+1;
+        //printf("fs3_ffh: filename [%s]\n", filename);
+        //printf("fs3_ffh: first_folder [%s]\n",first_folder);
+        //printf("fs3_ffh: path_rest [%s]\n",path_rest);
+//#ifdef FS_DEBUG
+//        printf("remaining filepath: [%s]\n", filepath);
+        
+//        printf("has %d folders, first one is <%d>[%s]\n",num_folders, first_folder, first_folder);
+//#endif
+        //2. if has folder, find that folder and recursively call in there.
+        //printf("..ffh 10\n");
+        folder_index = fs3_find_file_in_folder(fs3, first_folder, fh_dir); //find the first folder
+        *ret_backlink = folder_index;
+        if(folder_index == -1){
+//#ifdef FS_DEBUG
+            //printf("fs3_ffh: %mcan't find folder [%s]\n", 411, first_folder); 
+//#endif
+            res = -1; goto fs3_ffh_end;//return -1;
+        }
+        //printf("..ffh 11\n");
+        fh_dir2 = fs3_open_file_index(fs3, folder_index, 0);                  //open the first folder
+        if(fh_dir2 == 0){
+//#ifdef FS_DEBUG
+            //printf("fs3_ffh: %mcan't open folder [%s]\n", 411, first_folder); 
+//#endif
+            res = -1; goto fs3_ffh_end;//return -1;
+        }else{
+            //printf("fs3_ffh: opened folder [%s]\n", first_folder);
+        }
+        //printf("..ffh 12\n");
+        //file_index = fs3_find_file_in_folder(fs3, filename, fh_dir2, ret_backlink);      //keep looking for original file in that folder
+        file_index = fs3_find_file_helper(fs3, path_rest, fh_dir2, new_allowed, ret_backlink);
+        if(file_index == -1){
+//#ifdef FS_DEBUG
+           // printf("fs3_ffh: %mcan't find file [%s] in folder [%s]\n", 411, filename, first_folder);
+            //printf("%malso, search in deep folders not implemented cause lazy\n",411);
+        
+//#endif
+        }
+        //printf("..ffh 13\n");
+        res = file_index; goto fs3_ffh_end;//return file_index;
+    }else{
+//#ifdef FS_DEBUG
+//        printf("no folder specified\n");
+//#endif
+        //3. if no folder specified in the filename, then see if the current folder lists this file.
+        file_index = fs3_find_file_in_folder(fs3, name, fh_dir);
+        if(file_index == -1){
+            //this file does not exist yet
+            if(new_allowed){
+//#ifdef FS_DEBUG
+//                printf("making a new file\n");
+//#endif
+                file_index = fs3_new_abs(fs3, fh_dir, name);
+            }
+            if(file_index == -1){
+//#ifdef FS_DEBUG
+//                printf("%mfs3_find_file_helper fail\n", 411);
+                //printf("fs3_ffh: fs3_ffif fail and new forbidden\n");
+//#endif
+            }
+        }
+        //*ret_fh_dir = fh_dir;
+        //set backlink to the current dir's file index (grab from file handle)
+        float fh_imp = file_handle_get_imp(fh_dir);
+        folder_index = fh_imp[4]; //file_index
+        *ret_backlink = folder_index;
+        res = file_index; goto fs3_ffh_end;//return file_index;
+    }
+    fs3_ffh_end:
+    return res;
+}
+
+//returns the index of the directory entry in the folder file
+float fs3_find_entry_in_folder(float fs3, float filename, float fh_dir){
+    assert_type(fs3, typeof_fs3);
+    //#ifdef FS_DEBUG
+//    printf("fs3_find_file_in_folder(fs3 %d, filename [%s], fh_dir %d)\n", fs3, filename, fh_dir);
+//#endif
+    float res;
+    float num_entries = -1;
+    res = fseek(fh_dir, 0, SEEK_SET);
+    if(!res){
+//#ifdef FS_DEBUG
+//        printf("%mffif fail\n", 411);
+//#endif
+    }
+    res = fread(&num_entries, 1, fh_dir);
+    if(!res){
+//#ifdef FS_DEBUG
+//        printf("%mffif fail\n", 411);
+//#endif
+    }
+//#ifdef FS_DEBUG
+//    printf("folder has %d entries\n", num_entries);
+//#endif
+    float I;
+    for(I = 0; I < num_entries; I++){
+        float entry_pos = fs3_dir_get_entry_ptr(fs3, fh_dir, I);
+        fseek(fh_dir, entry_pos, SEEK_SET);
+        float entry[40];
+        fread(entry, 40, fh_dir);
+        float e_name = entry+4;
+//#ifdef FS_DEBUG
+//        printf("entry %d: @ %d [%s]\n",I, entry_pos, e_name);
+//#endif
+        if(strcmp(e_name, filename) == 0){
+            return I;
+            //float e_file_index = entry[0];
+//#ifdef FS_DEBUG
+//            printf("found index %d for [%s]\n", e_file_index, filename);
+//#endif
+            //*ret_dir_entry = I;
+            //return e_file_index;
+        }
+    }
+//#ifdef FS_DEBUG
+//    printf("%mfs3_find_file_in_folder fail\n",411);
+//#endif
+    return -1;
+}
+
+//looks for a file entry in an open folder file.
+//returns file_index on success or -1 on failure.
+float fs3_find_file_in_folder(float fs3, float filename, float fh_dir){
+    assert_type(fs3, typeof_fs3);
+   // printf("fs3_ffif(%s)\n", filename);
+    float entry_idx = fs3_find_entry_in_folder(fs3, filename, fh_dir);
+    if(entry_idx != -1){
+        float entry_pos = fs3_dir_get_entry_ptr(fs3, fh_dir, entry_idx);
+        float index_pos = entry_pos;
+        float res;
+        fseek(fh_dir, index_pos, SEEK_SET);
+        fread(&res, 1, fh_dir);
+        return res;
+    }else{
+        //printf("fs3_ffif: fs3_feif fail\n");
+        return -1;
+    }
+}
+
+//returns ptr to filesystem control block "fs3" on success
+//or 0 on failure
+float fs3_from_filepath(float shell, float filepath){
+    //1. get drive letter
+    float driveletter[10];
+    float res = filepath_drive(filepath, driveletter);
+    if(res){
+        //2. look in shell for the right drive letter
+        float fs3 = shell2_get_fs3(shell, driveletter);
+        return fs3;
+    }else{
+//#ifdef FS_DEBUG
+//        printf("%mfs3_from_filepath fail\n",411);
+//#endif
+        return 0;
+    }
+}
+
+//extracts fs3 from the table<string,fs3> in shell2.
+float shell2_get_fs3(float shell, float letter){
+    assert_type(shell, typeof_shell2);
+    float V = shell[2]; //command letter table
+    float S = vector_size(V);
+    float I;
+    for(I = 0; I < S; I++){
+        float entry[10];
+        float e_letter = entry+1;
+        vector_get(V,entry,I);
+        if(strcmp(letter,e_letter) == 0){
+            return entry[0];
+        }
+    }
+    return 0; //not found
+}
+
+//------------ file_handle backlink: reference to the directory that contains the file. the directory file has all the metadata of this file.
+//a backlink is necessary to alter the recorded file size on disk.
+//backlink is only the file_index. List of things it is not:
+//  - Backlink should not be a file_handle (this would create a racing condition for multiple writers).
+//    - an actual (shared) file_handle can be acquired by knowing the file index.
+//  - backlink should not contain a directory array index of the files entry - other files may be created or deleted, invalidating this link.
+//    - the array index needs to be found every time.
+
+//setting a backlink (file_index of parent dir) to a file_handle
+//should also update the file_handle with any data from the directory entry
+float fs3_file_set_backlink(float fh, float backlink, float fs3){
+    assert_type(fh, typeof_file_handle);
+    assert_type(fs3, typeof_fs3);
+    float fp_imp = file_handle_get_imp(fh);
+    fp_imp[9] = backlink;
+    
+    float file_index = fp_imp[4];
+    
+    //float fs3_backlink_read_size(float fs3, float backlink, float file_index)
+    float size = fs3_backlink_read_size(fs3, backlink, file_index);
+    fp_imp[2] = size;
+}
+
+float fs3_file_get_backlink(float fh){
+    assert_type(fh, typeof_file_handle);
+    float fp_imp = file_handle_get_imp(fh);
+    float backlink = fp_imp[9];
+    return backlink;
+}
+

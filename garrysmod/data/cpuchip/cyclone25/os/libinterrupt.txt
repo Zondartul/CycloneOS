@@ -1,0 +1,335 @@
+//interrupts
+
+
+#define int_set_cmpr 8
+#define int_dont_set_cs 16
+#define int_enabled 32
+#define int_external 64
+#define int_NewPTE 128
+#define int_NewPTE2 256
+#define int_extra_regs 512
+
+//IT - interrupt table pointer, alloc size*4
+//interrupts from <first> to <size> will be set to "handler" with "flags"
+void initInterrupts(float IT, float first, float size, float handler, float flags){
+    cpuset 52,size;
+    lidtr IT;
+    float I;
+    for(I = first; I < size; I++){
+        addInterruptHandler(IT,I,handler,flags);
+    }
+}
+
+//void init_interrupt_table(){
+//    cpuset 52,256; //256 entries
+//    lidtr interruptTable;
+//}
+//
+//void setup_interrupts(){
+//    float I;
+//    float flags = int_enabled;//+int_external;
+//    for(I = 4; I < 256; I++){
+//        addInterruptHandler(I,referenceIntHandler,flags);
+//    }
+//    float pagefrom = toPage(intHandlersStart);
+//    float pageto = toPage(intHandlersEnd);
+//    for(I = pagefrom; I <= pageto; I++){
+//        float page = getPage(pageTable,I);
+//        setPageRunlevel(page,0);
+//       //P("set page %d to runlevel 0\n",I);
+//    }
+//    //P("elevated pages %d to %d\n",pagefrom,pageto);
+//}
+//bit
+//0   1   2   3   4   5   6   7
+//1   2   4   8  16  32  64 128
+
+//bit
+//0 interrupt handler ip
+//3 cmpr reg will be set to 1
+//4 int should not set CS
+//5 int enabled
+//6 int is an external int
+
+void addInterruptHandler(float IT, float num, float func,float flags){
+    float pint = IT+4*num;
+    //float flags = int_enabled;
+    pint[0] = func;
+    pint[1] = 0;
+    pint[2] = 0;
+    pint[3] = flags;
+}
+float numInts = 0;
+
+alloc 128;
+intHandlersStart:
+/*
+void stopIntHandler(){
+    cli;
+    unfuckEntry(stopIntHandler);
+    CLM;
+    CPUSET 64, 0; //disable timer so it doesn't trigger
+    nop;
+    clef;   
+    float LADD; cpuget LADD,27;
+    float LINT; cpuget LINT,28;
+    float prevCS; mov prevCS, EBP:#1;
+    float prevIP; mov prevIP, EBP:#2;
+    //float prevCol = PrintCol; PrintCol = 900111;
+    printf("%ms:INT %d:%d from %d:%d\n",810,LINT,LADD,prevIP,prevCS);
+    float str = intnum_to_str(LINT);
+    printf("%m%s\n",810,str);
+    if(current_thread){thread_terminate();}
+    printf("Press any key to reset\n");
+    //while(*AdrKB == 0){}
+    while(!hasKey()){}
+    readKey();
+    //PrintCol = prevCol;
+    int 0;
+    leave;
+    iret;
+}
+void errIntHandler(){
+    cli;
+    unfuckEntry(errIntHandler);
+    float LADD; cpuget LADD,27;
+    float LINT; cpuget LINT,28;
+    float prevCS; mov prevCS, EBP:#1;
+    float prevIP; mov prevIP, EBP:#2;
+    interruptsDisable();
+    extendedModeDisable();
+    //printf("INT %d:%d from %d:%d\n",LINT,LADD,prevIP,prevCS);
+    float str = intnum_to_str(LINT);
+    //printf("%s\n",str);
+    printf("e:Kernel received interrupt\n%d:%d, IP = %d\n\"%s\"\n",LINT,LADD,prevIP,str);
+    if(current_thread){thread_terminate();}
+    
+    mov EBP, EBP:#0; //return to previous frame for a correct trace
+    panic();
+    //leave;
+    //iret;
+}
+//
+//void readOverrideHandler(){
+//    float LADD; cpuget LADD,27;
+//    float MEMADDR; cpuget MEMADDR,63;
+//    LADD++;
+//    //cpuset 27,LADD;
+//    //cpuset 63,MEMADDR;
+//    leave;
+//    iret;
+//}
+//void writeOverrideHandler(){
+//    float LADD; cpuget LADD,27;
+//    float MEMADDR; cpuget MEMADDR,63;
+//    //cpuset 27,1337;
+//    //cpuset 63,MEMADDR;
+//    leave;
+//    iret;
+//}
+//
+//void noReadHandler(){
+//    out 7,5;
+//    float LADD; cpuget LADD,27;
+//    float LINT; cpuget LINT,28;
+//    float page = LADD/128;
+//    fint page;
+//    P("INT: access to %d\npage %d: read forbidden\n",LADD,page);
+//    leave;
+//    iret;
+//}
+//
+//void noWriteHandler(){
+//    out 7,6;
+//    float LADD; cpuget LADD,27;
+//    float LINT; cpuget LINT,28;
+//    float page = LADD/128;
+//    fint page;
+//    P("INT: access to %d\npage %d: write forbidden\n",LADD,page);
+//    leave;
+//    iret;
+//}
+//
+//void trapHandler(){
+//    out 7,7; //traps are hot
+//    float LADD; cpuget LADD,27;
+//    float LINT; cpuget LINT,28;
+//    float page = LADD/128;
+//    fint page;
+//    P("INT: access to %d\npage %d: trapped\n",LADD,page);
+//    leave;
+//    iret;
+//}
+//
+//void noExecHandler(){
+//    out 7,18;
+//    delay(3);
+//    float LADD; cpuget LADD,27;
+//    float LINT; cpuget LINT,28;
+//    float str = intnum_to_str(LINT);
+//    clearScreen();
+//    PrintX = 0;PrintY = 0;
+//    P("Interrupt %d:%d\n%s\n",LINT,LADD,str);
+//    float IH_IP;
+//    float IH_CS;
+//    mov IH_CS, EBP:#1;
+//    mov IH_IP, EBP:#2;
+//    float prevEBP; mov prevEBP,EBP:#0;
+//    P("called from %d:%d\n",IH_IP,IH_CS);
+//    float RET_IP; mov RET_IP,EBP:#3;
+//    P("return to:%d\n",RET_IP);
+//    P("let me try... call(%d)\n",LADD);
+//    delay(2);
+//    out 7,19;
+//    LADD(12);
+//    out 7,20;
+//    P("returned from noexec\n");
+//    delay(2);
+//    mov EBP:#2,IH_CS;
+//    mov ESP,EBP:1;
+//    mov EBP,prevEBP;
+//    //leave;
+////    P("stack:\n");
+////    float I;
+////    for(I = 0; I< 10; I++){
+////        float N;
+////        mov N,ebp;
+////        N = N[I];
+////        P("%d: %d\n",I,N); 
+////    }
+//    //while(1){}
+//    //leave;
+//    iret;
+//}
+//
+//void referenceIntHandler(){
+//    float LADD; cpuget LADD,27;
+//    float LINT; cpuget LINT,28;
+//    float str = intnum_to_str(LINT);
+//    P("Interrupt %d:%d\n%s\n",LINT,LADD,str);
+//    leave;
+//    iret;
+//}
+//
+//void defaultIntHandler(){
+//    out 7,3;
+//    //cli; //disable interrupts
+//    out 0, 999;
+//    out 1, 999;
+//    out 2, 999;
+//    numInts++;
+//    out 4, numInts;
+//    float argc = ecx;
+//    float LADD = 110;
+//    float LINT = 111;
+//    float inten = 112;
+//    float intr = 113;
+//    cpuget LADD,27; //privileged instruction
+//    cpuget LINT,28;
+//    cpuget inten,32;
+//    cpuget intr,47;
+//    out 1, LADD;
+//    P("Default int handler\n");
+//    P("LADD = %d\n",LADD);
+//    P("LINT = %d\n",LINT);
+//    float str = intnum_to_str(LINT);
+//    P("%s\n",str);
+//    cpuset 27,1337;
+//    //cpuset 42,0; //memrq
+//    //P("IF = %d\n",inten);
+//    //P("INTR = %d\n",intr);
+//    //P("int return\n");
+//    //extret for external interrupt return
+//    //nmiret for non-maskable interrupt
+//    //iret for normal interrupts
+//    out 2, 111;
+//    leave;
+//    //sti;
+//    iret;
+//}
+*/
+intHandlersEnd:
+alloc 128;
+//extret is new name for nmiret
+//also iretp changes page table (PTBL)
+void extendedModeEnable(){stef;}
+void extendedModeDisable(){clef;}
+void interruptsEnable(){sti;}
+void interruptsDisable(){cli;}
+//#define interruptsDisable clef
+//void interruptsEnable(){
+//    stef;
+//    sti;
+//}
+//
+//void interruptsDisable(){
+//    cli;
+//    clef;
+//}
+
+//interruptTable:
+//alloc 4*256;
+
+float intnum_to_str(float num){
+    if(num < 0){return str_int_default;}
+    if(num > 31){return str_int_default;}
+    return intnames[num];
+}
+
+intnames:
+db str_int0;
+db str_int1;
+db str_int2;
+db str_int3;
+db str_int4;
+db str_int5;
+db str_int6;
+db str_int7;
+db str_int8;
+db str_int9;
+db str_int10;
+db str_int11;
+db str_int12;
+db str_int13;
+db str_int14;
+db str_int15;
+db str_int_default;
+db str_int17;
+db str_int_default;
+db str_int_default;
+db str_int_default;
+db str_int_default;
+db str_int_default;
+db str_int23;
+db str_int_default;
+db str_int_default;
+db str_int_default;
+db str_int_default;
+db str_int28;
+db str_int29;
+db str_int30;
+db str_int31;
+
+str_int_default: db "User interrupt",0;
+str_int0: db	"Reset",0;
+str_int1: db	"Halt",0;
+str_int2: db	"End of program execution",0;
+str_int3: db	"Division by zero",0;
+str_int4: db "Unknown opcode",0;
+str_int5: db	"Internal processor error",0;
+str_int6: db	"Stack error (overflow/underflow)",0;
+str_int7: db	"Memory read/write fault",0;
+str_int8: db	"MemBus fault",0;
+str_int9: db	"Write access violation (page protection)",0;
+str_int10: db	"Port read/write fault",0;
+str_int11: db	"Page acccess violation (page protection)",0;
+str_int12: db	"Read access violation (page protection)",0;
+str_int13: db	"General processor fault",0;
+str_int14: db	"Execute access violation (page protection)",0;
+str_int15: db	"Address space violation",0;
+str_int17: db	"Frame instruction limit (GPU only)",0;
+str_int23: db	"String read error (GPU only)",0;
+str_int28: db "Page read access trap",0;
+str_int29: db	"Page write access trap",0;
+str_int30: db	"Page access trap",0;
+str_int31: db	"Debug trap",0;

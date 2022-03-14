@@ -1,0 +1,56 @@
+//computer7 - hardware IO definitions for the hardware specific to computer 7 dupe.
+
+#define ADDR_SCR 65536
+#define ADDR_EB 165536
+
+float pino_freq	= 0;
+float pino_clk	= 1;
+float pino_reset = 2;
+float pino_int	= 3;
+
+//#defines are broken and sometimes give undefined label for no reason
+float pino_4 = 4;
+float pino_5 = 5;
+float pino_6 = 6;
+float pino_7 = 7;
+float pino_led_r =  8;
+float pino_led_g = 	9;
+float pino_led_b = 10;
+
+float pino_beep1 = 11; 
+float pino_beep2 =	12; 
+
+float ledColor(float red, float green, float blue){
+    writePin( PINO_LED_R, red);
+    writePin( PINO_LED_G, green);
+    writePin( PINO_LED_B , blue);
+}
+
+float pini_err	= 0
+
+float pini_btn_on	=	1;
+float pini_btn_reset	= 2
+float pini_sw1	= 4;
+float pini_sw2	= 5;
+float pini_sw3	= 6;
+float pini_sw4	= 7;
+
+float writePin(float pin, float val){
+    out pin, val;
+}
+
+float readPin(float pin){
+    in pin, eax;   
+}
+
+float beep1(){
+    writePin(pino_beep1,1);
+    delay(0.5);
+    writePin(pino_beep1,0);
+}
+float beep2(){
+    writePin(pino_beep2,1);
+    delay(1);
+    writePin(pino_beep2,0);
+}
+

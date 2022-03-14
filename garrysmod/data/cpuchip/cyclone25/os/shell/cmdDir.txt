@@ -1,0 +1,81 @@
+float cmdDir(float shell, float argc, float argv){
+    assert_type(shell, typeof_shell2);
+    float fs3 = shell[3]; //current fs
+    //printf("dir: shell = %d, fs3 = %d\n",shell, fs3);
+    //printf("dir 1\n");
+    if(!fs3){printf("no filesystem (use mount, cd)\n"); return;}
+    float buff = malloc(32);//buff[32];
+    float cur_dir = shell+100; //current dir
+    float fh_dir = fopen(shell, cur_dir,"r");
+    if(fh_dir){}//{printf("%mfh_dir opened\n",90);}
+    else{printf("%mcan't open fh_dir\n",990); return;}
+    //printf("fh = %d\n",fh_dir);
+    float I = 0;
+    //printf("dir 2\n");
+    float filenames = malloc(200);//filenames[200]; //10 files, 20 chars
+    float filesizes = malloc(10);//filesizes[10];
+    float filetypes = malloc(10);
+    float entry_buff = malloc(fs3_entry_size);
+    float num_files = 0;
+    
+    float p_filename;
+    float f_size;
+    float f_type;
+    //float debugI = 1;
+    //printf("c1: ebp = %d, esp = %d, ss = %d\n", ebp, esp, ss);
+    while(1){
+        float res = fs3_dir_get_filename(fs3, fh_dir, I, buff);
+        //printf("c2: ebp = %d, esp = %d, ss = %d\n", ebp, esp, ss);
+        if(res){
+              p_filename = filenames+num_files*20;
+    //        //void *memcpy(void *dest, void *src, float n)
+              memcpy(p_filename, buff, 20);
+              p_filename[20] = 0;
+              f_size = fs3_dir_get_filesize(fs3, fh_dir, I);
+              
+              fs3_dir_read_entry(fs3, fh_dir, I, entry_buff);
+              float type = entry_buff[1];
+              filetypes[num_files] = type;          
+            
+                    
+              //printf("c3: ebp = %d, esp = %d, ss = %d\n", ebp, esp, ss);
+              filesizes[num_files] = f_size;
+              num_files++;
+              if(num_files >= 10){
+                break;
+              }
+    //
+            I++;
+        }else{
+            break;
+        }
+    }   
+    cmdDirDerp:
+    if(I == 0){printf("%mthere are no files in [%s]\n",880,cur_dir);}
+    else{
+        printf("\n%m------------------------\n",90);
+        printf("%mthere are %d files in [%s]\n", 90, num_files, cur_dir);
+        printf("%mn\tsize\tname\n",90);
+        for(I = 0; I < num_files; I++){
+            p_filename = filenames+I*20;
+            f_size = filesizes[I];
+            float typecol = 90;
+            f_type = filetypes[I];
+            if(f_type == FS3_FTYPE_DIR){
+                typecol = 990;
+            }
+            printf("%m%d\t%d\t%m[%s]\n", 90,I, f_size, typecol, p_filename);   
+            //printf("%m%d\t%d\n",90,I,f_size);
+            //printf("%d\n",I);
+        }
+        printf("%m------------------------\n",90);
+        
+
+    //    printf("\n");
+    }
+    free(filesizes);
+    free(filenames);
+    free(buff);
+    //printf("ebp = %d, esp = %d\n", ebp, esp);
+    //printf("dir 3\n");
+}

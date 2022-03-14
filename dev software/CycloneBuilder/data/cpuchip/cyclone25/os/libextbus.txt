@@ -1,0 +1,230 @@
+// libextbus - Extended bus library
+//
+// how EB works:
+// EB memory map:
+// 0-31 - control area
+//  0-16 - devices 1..8 memory range
+//          these ranges are set by user. data access into memory at an address matching the range
+//          will be re-directed to connected device, and range start address will be subtracted from
+//          the requested address.
+//   0 - device 1 memory start offset
+//   1 - device 1 memory end offset
+//  16 - set control area size (min = 32), entries above 32 will be used to store the type of connected devices
+//  17 - trigger a re-scan of connected device types
+//  20 - recursive scan mode - default = 1
+//          if set, during device scan, when the EB encounters a plug/socket, address bus, or extended bus,
+//          it will instead enumerate the devices connected to that and omit the plug/socket/ab/eb.
+//          up to 255 recursion levels allowed.  
+// 32..control area end - scan results
+// > control area end - mapped to device memory
+
+// how this library works:
+//
+// an "EB control block" is populated by enumerating an EB at a known address.
+// the control block contains 9 device entries, the first corresponding to EB,
+// and the rest to the 8 connected devices. Each entry holds the device type,
+// the size of it's memory, the absolute address of the device as seen by this
+// CPU, and the user ID.
+//
+
+#include "drv_udh.txt"
+
+//------------------------------------------------------------------
+//struct EBcb_entry{
+//  typeof;
+//  enum type;
+//  int size;
+//  ptr addr;
+//  int user;
+//}
+
+
+typeof_EBcb_entry: db "EBcbEntry",0;
+float sizeof_EBcb_entry = 5;
+
+float EBcb_entry_constructor(float this){
+    this[0] = typeof_EBcb_entry;
+    float I;
+    for(I = 1; I < 5; I++){
+        this[I] = 0;
+    }
+}
+
+float EBcb_entry_set_type(float this, float val){this[1] = val;}
+float EBcb_entry_set_size(float this, float val){this[2] = val;}
+float EBcb_entry_set_addr(float this, float val){this[3] = val;}
+float EBcb_entry_set_user(float this, float val){this[4] = val;}
+float EBcb_entry_get_type(float this){return this[1];}
+float EBcb_entry_get_size(float this){return this[2];}
+float EBcb_entry_get_addr(float this){return this[3];}
+float EBcb_entry_get_user(float this){return this[4];}
+//------------------------------------------------------------------
+//struct EBcb{
+//  typeof;
+//  EBcb_entry EB;
+//  EBcb_entry devices[8];
+//}
+
+typeof_EBcb: db "EBctrlBlock", 0;
+float sizeof_EBcb = 46; //9*5+1 = 46
+
+float EBcb_constructor(float this){
+    this[0] = typeof_EBcb;
+    float I;
+    for(I = 0; I < 9; I++){
+        float P_entry = EBcb_get_entry(this, I);
+        EBcb_entry_constructor(P_entry);
+    }
+}
+
+float EBcb_get_entry(float this, float num){
+    float entry = this+sizeof_EBcb_entry*num+1;
+    return entry;
+}
+
+//read the EB device and fill out a table with gathered data.
+float EBcb_populate(float this){
+    float EBentry = EBcb_get_entry(this,0);
+    float EBaddr = EBcb_entry_get_addr(EBentry);
+    udhSetBusAddress(EBaddr);
+    udhSetRecursive(0);
+    udhQueryDevices();
+    float I;
+    for(I = 0; I < 8; I++){
+        float entryNum = I+1;
+        EBentry = EBcb_get_entry(this, entryNum);
+        float devType = udhGetDeviceType(I);
+        float devStart = udhGetDeviceStart(I);
+        float devEnd = udhGetDeviceEnd(I);
+        float devSize = devEnd-devStart+1;
+        EBcb_entry_set_type(EBentry, devType);
+        EBcb_entry_set_size(EBentry, devSize);
+        EBcb_entry_set_addr(EBentry, devStart);
+    }
+}
+
+//figure out how big a memory area a device needs
+float getSizeFromDevType(float type){
+    //return 4000-1;
+    return udh_getSizeFromType(type);
+}
+
+//automatically configure the EB by assigning memory ranges to each
+//of 8 devices
+float EBcb_autoconf(float this){
+    float EBentry = EBcb_get_entry(this,0);
+    float EBaddr = EBcb_entry_get_addr(EBentry);
+    udhSetBusAddress(EBaddr);
+    udhSetRecursive(0);
+    udhQueryDevices();
+    float accumulatedAddr = 0//EBaddr+32+8;
+    float I;
+    for(I = 0; I < 8; I++){
+        float entryNum = I+1;
+        float devEntry = EBcb_get_entry(this, entryNum);
+        //// insert code here
+        // get type -> calculate size from type -> add size to increment
+        // -> set start and end according to current increment
+        float devType = udhGetDeviceType(I);
+        float devStart = accumulatedAddr;
+        float devSize = getSizeFromDevType(devType);
+        float devEnd = devStart+devSize;
+        udhSetDeviceStart(I, devStart);
+        udhSetDeviceEnd(I, devEnd);
+        accumulatedAddr = devEnd+1;
+        EBcb_entry_set_type(devEntry, devType);
+        EBcb_entry_set_size(devEntry, devSize);
+        float devAddr = udhGetDeviceOffset(I);
+        EBcb_entry_set_addr(devEntry, devAddr);
+    }
+}
+
+//resize the memory range of a single device and push all others
+float EBcb_resize_dev(float this, float num, float size){
+    float EBentry = EBcb_get_entry(this, 0);
+    float EBaddr = EBcb_entry_get_addr(EBentry);
+    //1. set first entry to start as it is now, and end after <size>
+    float devEntry = EBcb_get_entry(this,num+1);
+    float devStart = udhGetDeviceStart(num); //EBcb_entry_get_addr(devEntry);
+    float devSize = size;
+    float devEnd = devStart+devSize;
+    udhSetDeviceStart(num, devStart);
+    udhSetDeviceEnd(num, devEnd);
+    float accumulatedAddr = devEnd+1;
+    //2. put the rest of the entries end-to-end and keep their size as it was. 
+    float I;
+    for(I = num+1; I < 8; I++){
+        float entryNum = I+1;
+        devEntry = EBcb_get_entry(this, entryNum);
+        devStart = accumulatedAddr;
+        devSize = EBcb_entry_get_size(devEntry);
+        devEnd = devStart+devSize;
+        udhSetDeviceStart(I, devStart);
+        udhSetDeviceEnd(I, devEnd);
+        float devAddr = udhGetDeviceOffset(I);
+        EBcb_entry_set_addr(devEntry, devAddr);
+        accumulatedAddr = devEnd+1;     
+    }
+}
+
+//find a free device of given type and assign it to the user
+//returns the entry number (0 = no device)
+float EBcb_device_bind(float this, float type, float user){
+    //printf("EBcb_device_bind(this %d, type %d, user %d)\n",this,type,user);
+    float I;
+    for(I = 0; I < 8; I++){
+        float entryNum = I+1;
+        float devEntry = EBcb_get_entry(this, entryNum);
+        float devType = EBcb_entry_get_type(devEntry);
+        float devUser = EBcb_entry_get_user(devEntry);
+        //printf("I = %d, type = %d, user = %d\n", I, devType, devUser);
+        float bTypeOk = (devType == type);
+        float bUserOk = (devUser == 0);//(devUser == user) || (devUser == 0);
+        if(bTypeOk && bUserOk){
+            //printf("match\n");
+            EBcb_entry_set_user(devEntry, user);
+            return entryNum;
+        }else{
+            //printf("no match\n");
+        }   
+    }
+    return 0;
+}
+
+//binds the device of given type to given user and assigns it's address to *res.
+float EBcb_device_bind_addr(float this, float type, float user, float res){
+    //printf("binding res %d to type %d\n",res,type);
+    float entryNum = EBcb_device_bind(this, type, user);
+    float addr = 0;
+    if(entryNum){
+        float devEntry = EBcb_get_entry(this, entryNum);
+        addr = EBcb_entry_get_addr(devEntry);
+    }
+    *res = addr;
+    //printf("bind addr = %d\n",addr);
+    return addr;
+}
+
+float EBcb_print(float this){
+    float I;
+    for(I = 0; I < 9; I++){
+        float devEntry = EBcb_get_entry(this,I);
+        float devType = EBcb_entry_get_type(devEntry);
+        float typeString = udhTypeToString(devType);
+        float devSize = EBcb_entry_get_size(devEntry);
+        float devAddr = EBcb_entry_get_addr(devEntry);
+        float devUser = EBcb_entry_get_user(devEntry);
+        /* 
+        bios_printf("Entry %d:\n",I);
+        bios_printf("  type = %d (%s) \n", devType, typeString);
+        bios_printf("  size = %d\n", devSize);
+        bios_printf("  addr = %d to %d\n", devAddr, devAddr+devSize);
+        bios_printf("  user = %d\n\n", devUser);
+        */
+    }
+}
+
+
+
+
+

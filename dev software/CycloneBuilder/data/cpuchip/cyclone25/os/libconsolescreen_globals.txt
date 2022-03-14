@@ -1,0 +1,18 @@
+//libconsolescreen global vars
+#ifndef LIBCONSOLESCREEN_GLOBALS
+#define LIBCONSOLESCREEN_GLOBALS
+
+float cs_last_x = 29;
+float cs_last_y = 17;
+
+float printScrX = 0;
+float printScrY = 0;
+
+float AdrScreen;
+
+float screen_print_x_min = 0;
+float screen_print_y_min = 0;
+float screen_print_x_max = 0;
+float screen_print_y_max = 0;
+
+#endif

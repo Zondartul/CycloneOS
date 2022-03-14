@@ -1,0 +1,35 @@
+float cmdTestArgs(float shell, float argc, float argv){
+    printf("testing args\n");
+    float args = args_new();
+    printf("args constructed\n");
+    args_collect(args, argc, argv);
+    float nargs = args_num(args);
+    float nflags = args_numFlags(args);
+    printf("args collected %d args and %d flags\n", nargs, nflags);
+    printf("checking for flags:\n");
+    printf("flag -f: %d\n", args_popFlag_s(args, "f"));
+    printf("flag -d: %d\n", args_popFlag_s(args, "d"));
+    printf("flag --help: %d\n", args_popFlag_s(args, "help"));
+    float res1 = 0;
+    float res2 = 0;
+    res1 = args_popFlagParam_s(args, "o", &res2);
+    printf("flag -o: %d, param: %s\n", res1, res2);
+    printf("listing flags\n");
+    while(1){
+        float flag = args_popFlag(args);
+        if(flag){
+            printf("flag [%s]\n", flag);
+        }else{
+            break;
+        }
+    }
+    printf("listing args\n");
+    while(1){
+        float arg = args_popArg(args);
+        if(arg){
+            printf("arg [%s]\n", arg);
+        }else{
+            break;
+        }
+    }
+}

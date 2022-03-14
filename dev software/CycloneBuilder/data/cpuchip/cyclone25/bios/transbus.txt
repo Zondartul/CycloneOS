@@ -1,0 +1,55 @@
+#ifndef IOBUS_GUARD
+#define IOBUS_GUARD
+
+float transBus = 0;
+
+float trSet(float tr){transBus = tr;}
+
+float trRead(float pos){
+    assert_arity(ecx,1);
+    //float a;
+    //in a,pos;
+    //return a;
+    return transBus[pos];
+}
+
+float trClear(){
+    float I;
+    for(I = 0; I < 10; I++){
+        transBus[I] = 0;
+    }
+}
+
+float trReadBuff(float dest, float src, float size){
+    assert_arity(ecx, 3);
+    float I;
+    for(I = 0; I < size; I++){
+        *dest++ = trRead(src++);
+    }
+}
+
+float trWrite(float pos, float val){
+    assert_arity(ecx, 2);
+    //out pos, val;
+    transBus[pos] = val;
+}
+
+float trWriteBuff(float dest, float src, float size){
+    assert_arity(ecx, 3);
+    float I;
+    for(I = 0; I < size; I++){
+        trWrite(dest++, *src++);
+    }
+}
+
+float trcpy(float dest, float src, float num){
+    assert_arity(ecx, 3);
+    float I;
+    for(I = 0; I < num; I++){
+        float v = src[I];
+        float d = dest+I;
+        transBus[d] = v;//out d,v;
+    }
+}
+
+#endif

@@ -1,0 +1,107 @@
+#ifndef CYCLONE_BUILDER
+func_table:
+db main, db str_main;
+db set_trampoline, db str_set_trampoline;
+db clear_globals, db str_clear_globals;
+db kprints, db str_kprints;
+db kprintn, db str_kprintn;
+db kprintf, db str_kprintf;
+db kernel_thread, db str_kernel_thread;
+db exec_test, db str_exec_test;
+db write_test, db str_write_test;
+db protect_kernel_pages, db str_protect_kernel_pages;
+db init_ktimer, db str_init_ktimer;
+db retAlert, db str_retAlert;
+db unfuckEntry, db str_unfuckEntry;
+db KernellCallIntHandler, db str_KernellCallIntHandler;
+db UnmappedPageIntHandler, db str_UnmappedPageIntHandler;
+db defaultIntHandler, db str_defaultIntHandler;
+db timerShouldRun, db str_timerShouldRun;
+db timerLogic, db str_timerLogic;
+db timerIntHandler, db str_timerIntHandler;
+db pageTrapHandler, db str_pageTrapHandler;
+db pageReadHandler, db str_pageReadHandler;
+db pageWriteHandler, db str_pageWriteHandler;
+db thread_terminate, db str_thread_terminate;
+db setThreadExitPoint, db str_setThreadExitPoint;
+db jmpThreadExitPoint, db str_jmpThreadExitPoint;
+db farjump, db str_farjump;
+db findJmp, db str_findJmp;
+db toAbsSpace, db str_toAbsSpace;
+db kcall, db str_kcall;
+db vprintf, db str_vprintf;
+db bios_prints, db str_bios_prints;
+db bios_printn, db str_bios_printn;
+db Perr, db str_Perr;
+db panic, db str_panic;
+db error, db str_error;
+db kernelSize, db str_kernelSize;
+func_table_end:
+
+var_table:
+db &EB_Addr_Screen, db str_EB_Addr_Screen;
+db &timerPeriod, db str_timerPeriod;
+db &timerLogicTimeout, db str_timerLogicTimeout;
+db &v_proclist, db str_v_proclist;
+db &proclist_I, db str_proclist_I;
+db &switcherOn, db str_switcherOn;
+db &k_page_manager, db str_k_page_manager;
+db &timerN, db str_timerN;
+db &threadExit_ebp, db str_threadExit_ebp;
+db &threadExit_esp, db str_threadExit_esp;
+db &threadExit_pos, db str_threadExit_pos;
+var_table_end:
+
+func_name_table:
+str_main: db "main", db 0;
+str_set_trampoline: db "set_trampoline", db 0;
+str_clear_globals: db "clear_globals", db 0;
+str_kprints: db "kprints", db 0;
+str_kprintn: db "kprintn", db 0;
+str_kprintf: db "kprintf", db 0;
+str_kernel_thread: db "kernel_thread", db 0;
+str_exec_test: db "exec_test", db 0;
+str_write_test: db "write_test", db 0;
+str_protect_kernel_pages: db "protect_kernel_pages", db 0;
+str_init_ktimer: db "init_ktimer", db 0;
+str_retAlert: db "retAlert", db 0;
+str_unfuckEntry: db "unfuckEntry", db 0;
+str_KernellCallIntHandler: db "KernellCallIntHandler", db 0;
+str_UnmappedPageIntHandler: db "UnmappedPageIntHandler", db 0;
+str_defaultIntHandler: db "defaultIntHandler", db 0;
+str_timerShouldRun: db "timerShouldRun", db 0;
+str_timerLogic: db "timerLogic", db 0;
+str_timerIntHandler: db "timerIntHandler", db 0;
+str_pageTrapHandler: db "pageTrapHandler", db 0;
+str_pageReadHandler: db "pageReadHandler", db 0;
+str_pageWriteHandler: db "pageWriteHandler", db 0;
+str_thread_terminate: db "thread_terminate", db 0;
+str_setThreadExitPoint: db "setThreadExitPoint", db 0;
+str_jmpThreadExitPoint: db "jmpThreadExitPoint", db 0;
+str_farjump: db "farjump", db 0;
+str_findJmp: db "findJmp", db 0;
+str_toAbsSpace: db "toAbsSpace", db 0;
+str_kcall: db "kcall", db 0;
+str_vprintf: db "vprintf", db 0;
+str_bios_prints: db "bios_prints", db 0;
+str_bios_printn: db "bios_printn", db 0;
+str_Perr: db "Perr", db 0;
+str_panic: db "panic", db 0;
+str_error: db "error", db 0;
+str_kernelSize: db "kernelSize", db 0;
+func_name_table_end:
+
+var_name_table:
+str_EB_Addr_Screen: db "EB_Addr_Screen", db 0;
+str_timerPeriod: db "timerPeriod", db 0;
+str_timerLogicTimeout: db "timerLogicTimeout", db 0;
+str_v_proclist: db "v_proclist", db 0;
+str_proclist_I: db "proclist_I", db 0;
+str_switcherOn: db "switcherOn", db 0;
+str_k_page_manager: db "k_page_manager", db 0;
+str_timerN: db "timerN", db 0;
+str_threadExit_ebp: db "threadExit_ebp", db 0;
+str_threadExit_esp: db "threadExit_esp", db 0;
+str_threadExit_pos: db "threadExit_pos", db 0;
+var_name_table_end:
+#endif
